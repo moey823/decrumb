@@ -55,6 +55,13 @@ updater test does not establish real-account behavior.
 
 ## Publishing
 
+Recorded September 20, 2026: all ten signed integration scenarios passed on
+macOS 27.0, alongside 134 offline regression tests. RC2/build 2 is published with
+the signed feed live at the URL below. Its public update archive and feed passed
+official signature verification after download; the public DMG passed Gatekeeper
+and packaged smoke from a read-only mount. See [VALIDATION.md](VALIDATION.md) for
+the release source commit, checksum and remaining real-device boundaries.
+
 Production packaging requires an existing Developer ID Application identity,
 notarization Keychain profile, Sparkle Keychain account reference and immutable
 release tag. It produces the notarized/stapled DMG, matching source ZIP, update

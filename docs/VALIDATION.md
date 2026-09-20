@@ -62,7 +62,7 @@ Python 3.14.6, PyInstaller 6.22.3, bundled native signal-cli 0.14.8.
   `com.apple.security.cs.disable-library-validation` to load its embedded JNI
   library. Only that helper receives the exception; the empty-configuration
   native-library check is required during production builds and packaging.
-- The corresponding-source collector verified 2,007 dependency/source/notice
+- The corresponding-source collector verified 2,010 dependency/source/notice
   files with no unresolved dependency gaps. Production rebuilds validate their
   hashes against the exact application source and frozen native dependencies.
 - The packaged smoke test also passed on an Apple Silicon Mac running macOS
@@ -83,6 +83,17 @@ Python 3.14.6, PyInstaller 6.22.3, bundled native signal-cli 0.14.8.
   including Decrumb names, resource loading, pairing cancellation, self-only
   delivery/removal, and native Signal library loading. The mount and temporary
   files were removed. This was not an installation or real-account test.
+- RC2/build 2 is published from source commit `a464bd4f5d035d23cc17528c9e7fe30f786500f4`.
+  Apple accepted and stapled its app and DMG; Gatekeeper accepted both. All nine
+  GitHub assets match their local SHA-256 hashes. The 67,561,986-byte DMG SHA-256
+  is `b3ca25454b5f2bcd403ede544c1995a703e18aabfcfba46fc274cfaf06bb9116`.
+  The public DMG and update archive were downloaded independently and their
+  checksums verified. The downloaded image passed integrity, stapled-ticket,
+  Gatekeeper and complete packaged smoke checks from a read-only mount, which
+  was then detached. The live HTTPS appcast matches the release byte for byte;
+  official Sparkle verification accepted its signature and the downloaded
+  update archive's signature. The RC2 download, privacy and support pages are
+  live. Later documentation commits do not change the immutable RC2 artifacts.
 
 macOS graphics and process semaphore operations need normal OS access. The
 restricted tool sandbox failed QR rendering and frozen-runtime startup; both

@@ -1,6 +1,6 @@
 # Decrumb v1 readiness
 
-Status recorded 2026-09-20. **[Decrumb 1.0.0 RC1 is available](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.1)**
+Status recorded 2026-09-20. **[Decrumb 1.0.0 RC2 is available](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.2)**
 for download and installation testing. This signed, notarized candidate is a
 prerelease; real-device acceptance remains before stable v1.
 
@@ -33,9 +33,9 @@ prerelease; real-device acceptance remains before stable v1.
   and required notices with no unresolved dependency gaps. Every production
   build must regenerate or validate the packet against its exact source inputs.
 - The actual app and DMG are signed with the publisher's personal Developer ID,
-  accepted by Apple notarization, stapled, and accepted by Gatekeeper. All five
+  accepted by Apple notarization, stapled, and accepted by Gatekeeper. All nine
   uploaded assets match their local SHA-256 hashes, including the matching
-  complete-source archive and release receipt.
+  complete-source archive, signed update archive/feed, and release receipt.
 - Sparkle updates are implemented with optional automatic checks and installation,
   signed feeds/archives, durable worker coordination and recovery. Ten isolated
   signed integration scenarios passed, including actual replacement/relaunch,
