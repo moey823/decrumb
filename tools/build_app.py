@@ -52,7 +52,7 @@ def release_options(args):
         raise ReleaseError('Build number must be a positive integer of at most nine digits.')
     if not re.fullmatch(r'[0-9]+\.[0-9]+(?:\.[0-9]+)?', minimum):
         raise ReleaseError('Minimum macOS must be a numeric operating-system version.')
-    identity = args.signing_identity or os.environ.get('DECRUMB_SIGNING_IDENTITY', os.environ.get('SIDELET_SIGNING_IDENTITY', '-'))
+    identity = args.signing_identity or os.environ.get('DECRUMB_SIGNING_IDENTITY', '-')
     if args.production and identity == '-':
         raise ReleaseError('Production requires an existing Developer ID Application signing identity.')
     return {'production': args.production, 'version': version, 'build_number': build_number,
@@ -98,7 +98,7 @@ def verify_frozen_materials(manifest):
         expected = {item['path']: item['sha256'] for item in manifest['files']}
         with tempfile.TemporaryDirectory(prefix='decrumb-frozen-check-') as folder:
             root = Path(folder)
-            material_tools().frozen_inventory(BUILD / 'freeze-work/sidelet-worker/Analysis-00.toc', lock, root)
+            material_tools().frozen_inventory(BUILD / 'freeze-work/decrumb-worker/Analysis-00.toc', lock, root)
             for item in root.rglob('*'):
                 if item.is_file() and expected.get(item.relative_to(root).as_posix()) != sha256(item):
                     raise ValueError()
@@ -241,6 +241,28 @@ def copy_release_notices(folder, destination, manifest):
         shutil.copy2(Path(folder) / item['path'], target)
 
 
+def copy_public_source(root, destination):
+    """Copy only the shared public inventory and verify the copied bytes."""
+    destination.mkdir(parents=True)
+    for item in material_tools().source_inventory(root):
+        source = root / item['path']
+        target = destination / item['path']
+        if source.is_symlink():
+            raise ReleaseError('A source file became a symlink during packaging.')
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+        if sha256(target) != item['sha256']:
+            raise ReleaseError('A source file changed during packaging.')
+
+
+def copy_runtime_components(build, macos, helpers, resources):
+    shutil.copy2(build / 'Decrumb', macos / 'Decrumb')
+    shutil.copy2(build / 'url-cleaner', helpers / 'url-cleaner')
+    # Helpers is a nested-code location: non-code rules belong in Resources.
+    shutil.copy2(build / 'rules.json', resources / 'rules.json')
+    shutil.copy2(build / 'frozen/decrumb-worker', helpers / 'decrumb-worker')
+
+
 def fetch(url, path, checksum, headers=None):
     if path.exists() and hashlib.sha256(path.read_bytes()).hexdigest() == checksum:
         return
@@ -278,7 +300,7 @@ def main(argv=None):
         raise ReleaseError('The actual tooling Python differs from the complete release materials.')
     identity = options['identity']
     subprocess.run([str(python), '-m', 'PyInstaller', '--noconfirm', '--clean', '--onefile',
-                    '--name', 'sidelet-worker', '--distpath', str(BUILD / 'frozen'),
+                    '--name', 'decrumb-worker', '--distpath', str(BUILD / 'frozen'),
                     '--workpath', str(BUILD / 'freeze-work'), '--specpath', str(BUILD),
                     '--target-architecture', 'arm64', '--codesign-identity', identity,
                     str(ROOT / 'desktop.py')], check=True, env={**os.environ, 'PYINSTALLER_CONFIG_DIR': str(BUILD / 'pyinstaller-cache')})
@@ -295,10 +317,7 @@ def main(argv=None):
     macos, helpers, resources = (contents / name for name in ('MacOS', 'Helpers', 'Resources'))
     for directory in (macos, helpers, resources):
         directory.mkdir(parents=True)
-    shutil.copy2(BUILD / 'Decrumb', macos / 'Decrumb')
-    shutil.copy2(BUILD / 'url-cleaner', helpers / 'url-cleaner')
-    shutil.copy2(BUILD / 'rules.json', helpers / 'rules.json')
-    shutil.copy2(BUILD / 'frozen/sidelet-worker', helpers / 'sidelet-worker')
+    copy_runtime_components(BUILD, macos, helpers, resources)
     with tarfile.open(bottle) as archive:
         # Select only known files; never extract arbitrary archive paths.
         member = archive.getmember('signal-cli/0.14.8/bin/signal-cli')
@@ -311,11 +330,7 @@ def main(argv=None):
     (helpers / 'signal-cli').chmod(0o755)
     # Include our complete source snapshot, omitting every generated/private path.
     source_dir = resources / 'Source'
-    source_dir.mkdir()
-    for item in material_tools().source_inventory(ROOT):
-        destination = source_dir / item['path']
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ROOT / item['path'], destination)
+    copy_public_source(ROOT, source_dir)
     shutil.copy2(ROOT / 'LICENSE', resources / 'LICENSE.txt')
     shutil.copy2(BUILD / 'AppIcon.icns', resources / 'AppIcon.icns')
     shutil.copy2(ROOT / 'docs/THIRD-PARTY.md', resources / 'THIRD-PARTY.txt')
@@ -329,13 +344,12 @@ def main(argv=None):
             break
     # The minimum is deliberately the build host version until cross-version QA is done.
     minimum = options['minimum_macos']
-    # Keep the bundle identifier and internal helper name stable across the public rename.
-    info = {'CFBundleIdentifier': 'com.matthew.sidelet.desktop', 'CFBundleName': 'Decrumb',
+    info = {'CFBundleIdentifier': 'com.matthew.decrumb.desktop', 'CFBundleName': 'Decrumb',
             'CFBundleDisplayName': 'Decrumb', 'CFBundleExecutable': 'Decrumb',
             'CFBundlePackageType': 'APPL', 'CFBundleShortVersionString': options['version'],
             'CFBundleVersion': options['build_number'], 'LSMinimumSystemVersion': minimum, 'LSUIElement': True,
             'NSHighResolutionCapable': True, 'CFBundleIconFile': 'AppIcon',
-            'NSHumanReadableCopyright': 'Sidelet and Decrumb contributors. AGPL-3.0-only. See bundled licenses.'}
+            'NSHumanReadableCopyright': 'Decrumb contributors. AGPL-3.0-only. See bundled licenses.'}
     with (contents / 'Info.plist').open('wb') as output:
         plistlib.dump(info, output)
     manifest = {'app_version': options['version'], 'build_number': options['build_number'],
@@ -353,7 +367,7 @@ def main(argv=None):
                          'decrumb_source_sha256': source_inventory_sha256(source_dir),
                          'release_materials_manifest_sha256': sha256(Path(options['materials']) / 'manifest.json')})
     (resources / 'build-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
-    for executable in (helpers / 'signal-cli', helpers / 'url-cleaner', helpers / 'sidelet-worker'):
+    for executable in (helpers / 'signal-cli', helpers / 'url-cleaner', helpers / 'decrumb-worker'):
         # GraalVM extracts JNI dylibs at runtime. Signing its outer executable cannot
         # sign those embedded libraries; only this helper needs the library exception.
         entitlements = ({'com.apple.security.cs.disable-library-validation': True}
@@ -361,10 +375,10 @@ def main(argv=None):
         sign_code(executable, identity, options['production'], entitlements=entitlements)
     if options['production']:
         sign_code(APP, identity, True)
-        for executable in (APP, helpers / 'signal-cli', helpers / 'url-cleaner', helpers / 'sidelet-worker'):
+        for executable in (APP, helpers / 'signal-cli', helpers / 'url-cleaner', helpers / 'decrumb-worker'):
             verify_distribution_signature(executable, signer['team_id'],
                                           allow_library_validation_disable=executable.name == 'signal-cli')
-        for executable in (macos / 'Decrumb', helpers / 'signal-cli', helpers / 'url-cleaner', helpers / 'sidelet-worker'):
+        for executable in (macos / 'Decrumb', helpers / 'signal-cli', helpers / 'url-cleaner', helpers / 'decrumb-worker'):
             verify_deployment_target(executable, minimum)
         verify_native_helper(helpers / 'signal-cli')
     else:

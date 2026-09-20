@@ -13,7 +13,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-import sidelet
+import decrumb
 
 ENV = {**os.environ, 'PATH': '/usr/bin:/bin'}
 
@@ -28,9 +28,9 @@ def main(argv=None):
         root = Path(directory) / 'runtime'
         resources = Path(directory) / 'helpers'
         resources.mkdir()
-        for name in ('url-cleaner', 'rules.json'):
+        for name in ('url-cleaner',):
             (resources / name).symlink_to(helpers / name)
-        command = [str(helpers / 'sidelet-worker'), '--root', str(root), '--resources', str(resources)]
+        command = [str(helpers / 'decrumb-worker'), '--root', str(root), '--resources', str(resources)]
         def call(name, payload=None):
             result = subprocess.run(command + [name], input=json.dumps(payload).encode() if payload else None,
                                     capture_output=True, check=True, env=ENV, timeout=20)
@@ -136,7 +136,7 @@ for line in sys.stdin:
         print('Packaged incoming-message processing, deduplication, Note to Self delivery, and shutdown passed.')
         # Seed only this temporary installation's own recorded receipt. Avoid desktop
         # lifecycle commands here: they manage real LaunchAgents even with --root.
-        with sidelet.exclusive(root), contextlib.closing(sidelet.Store(root / 'outbox.sqlite3')) as store:
+        with decrumb.exclusive(root), contextlib.closing(decrumb.Store(root / 'outbox.sqlite3')) as store:
             assert store.request_cleanup([note['id']]) == 1
         assert call('notes-list')['notes'][0]['state'] == 'cleanup_pending'
         worker = subprocess.Popen(command + ['run'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=ENV)

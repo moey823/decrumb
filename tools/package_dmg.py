@@ -36,7 +36,7 @@ def load_app(app):
         manifest = json.loads((app / 'Contents/Resources/build-manifest.json').read_text())
         version, architecture = info['CFBundleShortVersionString'], manifest['architecture']
         if (not re.fullmatch(r'[0-9]+(?:\.[0-9]+){1,2}', version) or architecture != 'arm64' or
-                app.name != 'Decrumb.app' or info['CFBundleIdentifier'] != 'com.matthew.sidelet.desktop'):
+                app.name != 'Decrumb.app' or info['CFBundleIdentifier'] != 'com.matthew.decrumb.desktop'):
             raise ValueError()
         return info, manifest
     except (OSError, ValueError, TypeError, KeyError, plistlib.InvalidFileException):
@@ -82,13 +82,13 @@ def production_preflight(app, info, manifest, materials_dir, identity, profile):
 
 def verify_app(app, signer):
     for executable in (app, *(app / 'Contents/Helpers' / name for name in
-                              ('signal-cli', 'url-cleaner', 'sidelet-worker'))):
+                              ('signal-cli', 'url-cleaner', 'decrumb-worker'))):
         build_app.verify_distribution_signature(executable, signer['team_id'],
                                               allow_library_validation_disable=executable.name == 'signal-cli')
     with (app / 'Contents/Info.plist').open('rb') as source:
         minimum = plistlib.load(source)['LSMinimumSystemVersion']
     for executable in (app / 'Contents/MacOS/Decrumb', *(app / 'Contents/Helpers' / name for name in
-                          ('signal-cli', 'url-cleaner', 'sidelet-worker'))):
+                          ('signal-cli', 'url-cleaner', 'decrumb-worker'))):
         build_app.verify_deployment_target(executable, minimum)
 
 
@@ -134,11 +134,13 @@ def corresponding_source(app, materials_dir, manifest, output):
                 raise ReleaseError('Release materials changed during packaging.')
             archive.write(source, 'materials/' + item['path'])
         source_root = app / 'Contents/Resources/Source'
-        for source in sorted(source_root.rglob('*')):
+        for item in build_app.material_tools().source_inventory(source_root):
+            source = source_root / item['path']
             if source.is_symlink():
                 raise ReleaseError('Bundled corresponding source contains an unexpected symlink.')
-            if source.is_file():
-                archive.write(source, 'decrumb/' + str(source.relative_to(source_root)))
+            if build_app.sha256(source) != item['sha256']:
+                raise ReleaseError('Bundled corresponding source changed during packaging.')
+            archive.write(source, 'decrumb/' + item['path'])
 
 
 def asset(path):
@@ -273,11 +275,11 @@ def main(argv=None):
     parser.add_argument('--notary-profile', help='Existing notarytool Keychain profile name; never an account password or private key')
     parser.add_argument('--release-materials', type=Path, help='Complete corresponding-source materials matching the app build')
     args = parser.parse_args(argv)
-    identity = args.signing_identity or os.environ.get('DECRUMB_SIGNING_IDENTITY', os.environ.get('SIDELET_SIGNING_IDENTITY', '-'))
+    identity = args.signing_identity or os.environ.get('DECRUMB_SIGNING_IDENTITY', '-')
     profile = args.notary_profile or os.environ.get('DECRUMB_NOTARY_PROFILE')
     output = package(args.app, args.output_dir, production=args.production, identity=identity,
                      profile=profile, materials_dir=args.release_materials)
-    print(f'{output}\n{output.stat().st_size / 1_000_000:.2f} MB; SHA-256 sidecar written.')
+    print(f'{output}\n{output.stat().st_size / 1_000_000:.2f} MB; SHA-256 checksum file written.')
     if args.production:
         print('Signed, notarized, stapled and verified. Publish the DMG, source ZIP, checksums and release receipt together.')
 

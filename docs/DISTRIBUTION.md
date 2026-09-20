@@ -12,8 +12,8 @@ the path does not mean a production artifact has been produced or tested. See
 Use a signed, notarized DMG containing Decrumb.app and an Applications shortcut.
 Users drag the app to Applications, launch it there, then pair with their phone.
 Do not launch the worker from a mounted read-only image. The app, including its
-Signal dependency, is replaced as a unit; account state stays in the existing
-Application Support directory.
+Signal dependency, is replaced as a unit; account state stays in
+`~/Library/Application Support/Decrumb`.
 
 For the current development build:
 
@@ -23,7 +23,7 @@ python3 -B tools/package_dmg.py
 ```
 
 The default packager uses APFS/LZFSE, verifies the app signature and disk image,
-writes a SHA-256 sidecar, and creates a development-labelled image in build/.
+writes a SHA-256 checksum file, and creates a development-labelled image in build/.
 It does not upload anything. Selecting a signing identity alone never promotes a
 development build into a production release.
 

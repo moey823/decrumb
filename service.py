@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Control Decrumb's dedicated per-user LaunchAgent using its stable legacy ID."""
+"""Control Decrumb's dedicated per-user LaunchAgent using its Decrumb service identifier."""
 import argparse
 import fcntl
 import os
@@ -10,10 +10,10 @@ import subprocess
 import sys
 import time
 
-from sidelet import DEFAULT_ROOT, SafeError, exclusive, load_config
+from decrumb import DEFAULT_ROOT, SafeError, exclusive, load_config
 
-LABEL = "com.matthew.sidelet.link-cleaner"
-APP_LABEL = "com.matthew.sidelet.app"
+LABEL = "com.matthew.decrumb.link-cleaner"
+APP_LABEL = "com.matthew.decrumb.app"
 
 
 def write_plist(path, value):
@@ -32,7 +32,7 @@ class Service:
         self.target = self.domain + '/' + LABEL
         self.login_plist = Path.home() / 'Library/LaunchAgents' / (LABEL + '.plist')
         self.session_plist = root / 'worker.plist'
-        self.worker_command = worker_command or [sys.executable, '-B', str(Path(__file__).with_name('sidelet.py')), '--root', str(root), 'run']
+        self.worker_command = worker_command or [sys.executable, '-B', str(Path(__file__).with_name('decrumb.py')), '--root', str(root), 'run']
 
     def launch(self, *arguments, check=True):
         try:

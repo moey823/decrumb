@@ -32,10 +32,10 @@ def main():
     target_minimum = args.minimum_macos or '14.0'
     compiler = ['xcrun', 'swiftc', '-O', '-swift-version', '5', '-target', platform.machine() + '-apple-macos' + target_minimum,
                 '-module-cache-path', str(OUTPUT / 'ModuleCache')]
-    subprocess.run(compiler + [str(ROOT / 'swift/SidecarURLCleaner.swift'), str(ROOT / 'swift/main.swift'),
+    subprocess.run(compiler + [str(ROOT / 'swift/DecrumbURLCleaner.swift'), str(ROOT / 'swift/main.swift'),
                               '-o', str(OUTPUT / 'url-cleaner')], check=True)
     shutil.copyfile(ROOT / 'rules/defaults.json', OUTPUT / 'rules.json')
-    subprocess.run(compiler + ['-parse-as-library', str(ROOT / 'app/WorkerStatus.swift'), str(ROOT / 'app/SideletApp.swift'), '-o', str(OUTPUT / 'Decrumb')], check=True)
+    subprocess.run(compiler + ['-parse-as-library', str(ROOT / 'app/WorkerStatus.swift'), str(ROOT / 'app/DecrumbApp.swift'), '-o', str(OUTPUT / 'Decrumb')], check=True)
     subprocess.run(compiler + ['-parse-as-library', str(ROOT / 'app/WorkerStatus.swift'), str(ROOT / 'tests/StatusTests.swift'), '-o', str(OUTPUT / 'status-tests')], check=True)
     if args.app:
         subprocess.run(compiler + [str(ROOT / 'app/MakeIcon.swift'), '-o', str(OUTPUT / 'make-icon')], check=True)

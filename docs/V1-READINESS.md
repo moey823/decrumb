@@ -11,7 +11,7 @@ choice; a local development image is not presented as a finished public installe
 - The standalone Apple Silicon app packages its Python worker, Swift cleaner,
   and checksum-verified signal-cli 0.14.8 dependency. Development signing and
   recursive signature verification pass.
-- The recorded full offline run passed **110 Python tests**. Native status tests
+- The recorded full offline run passed **113 Python tests**. Native status tests
   also passed. See [VALIDATION.md](VALIDATION.md) for the tested scope and limits.
 - Packaged smoke tests use synthetic data and fake Signal to exercise pairing
   cancellation, incoming-message filtering, deduplication, attributed notes,
@@ -24,7 +24,7 @@ choice; a local development image is not presented as a finished public installe
   and third-party dependencies are documented. Runtime account files are outside
   the source checkout and app bundle.
 - Local development DMG packaging creates an Applications shortcut, verifies the
-  image and app signature, and writes a SHA-256 checksum sidecar.
+  image and app signature, and writes a SHA-256 checksum file.
 - An explicit production packaging path supports Developer ID signing, hardened
   runtime, version/build and deployment-target inputs, source-material checks,
   Apple notarization/stapling, and Gatekeeper assessment. These checks must pass

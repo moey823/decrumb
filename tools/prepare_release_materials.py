@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOCK = ROOT / "tools/release-dependencies.json"
 HEX = re.compile(r"[0-9a-f]{64}\Z")
 NOTICE = re.compile(r"^(?:LICEN[CS]E|COPYING|NOTICE|COPYRIGHT)(?:$|[._-])", re.I)
-SOURCE_FILES = ("sidelet.py", "notes.py", "desktop.py", "service.py", "build.py", "README.md",
+SOURCE_FILES = ("decrumb.py", "notes.py", "desktop.py", "service.py", "build.py", "README.md",
                 "CONTRIBUTING.md", "SECURITY.md", "LICENSE")
 SOURCE_DIRECTORIES = ("app", "swift", "rules", "tools", "tests", "docs", "branding")
 PRIVATE_SUFFIXES = {".pem", ".key", ".p8", ".p12", ".pfx", ".crt", ".cer", ".der", ".db", ".sqlite",
@@ -371,7 +371,7 @@ def main(argv=None):
     parser.add_argument("--output", type=Path, default=ROOT / "build/release-materials")
     parser.add_argument("--cache", type=Path, default=ROOT / "build/release-source-cache")
     parser.add_argument("--bottle", type=Path, default=ROOT / "build/downloads/signal-cli-0.14.8-arm64-sonoma.tar.gz")
-    parser.add_argument("--worker-toc", type=Path, default=ROOT / "build/freeze-work/sidelet-worker/Analysis-00.toc")
+    parser.add_argument("--worker-toc", type=Path, default=ROOT / "build/freeze-work/decrumb-worker/Analysis-00.toc")
     parser.add_argument("--offline", action="store_true")
     args = parser.parse_args(argv)
     if not re.fullmatch(r"\d+\.\d+\.\d+", args.version) or not re.fullmatch(r"[1-9]\d*", args.build):

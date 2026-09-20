@@ -22,13 +22,21 @@ do {
     }
     struct Input: Decodable {
         let text: String
-        let settings: SidecarURLCleanupSettings
+        let settings: DecrumbURLCleanupSettings
     }
     let input = try JSONDecoder().decode(Input.self, from: data)
     guard input.text.utf8.count <= 64 * 1024 else { exit(65) }
     let settings = try input.settings.validated()
     let executable = URL(fileURLWithPath: CommandLine.arguments[0]).resolvingSymlinksInPath()
-    try SidecarURLCleaner.loadRules(from: executable.deletingLastPathComponent().appendingPathComponent("rules.json"))
+    let executableDirectory = executable.deletingLastPathComponent()
+    let contents = executableDirectory.deletingLastPathComponent()
+    let packaged = executableDirectory.lastPathComponent == "Helpers" &&
+        contents.lastPathComponent == "Contents" && contents.deletingLastPathComponent().pathExtension == "app"
+    // App resources must stay outside the signed Helpers code directory. A
+    // standalone development helper loads the rules placed beside its executable.
+    let rules = packaged ? contents.appendingPathComponent("Resources/rules.json") :
+        executableDirectory.appendingPathComponent("rules.json")
+    try DecrumbURLCleaner.loadRules(from: rules)
     let detector = try NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
     let text = input.text as NSString
     var seen = Set<String>()
@@ -37,7 +45,7 @@ do {
     for match in detector.matches(in: input.text, range: NSRange(location: 0, length: text.length)) {
         guard let scheme = match.url?.scheme?.lowercased(), ["http", "https"].contains(scheme) else { continue }
         let original = text.substring(with: match.range)
-        let cleaned = SidecarURLCleaner.cleanURLString(original, settings: settings)
+        let cleaned = DecrumbURLCleaner.cleanURLString(original, settings: settings)
         func keys(_ value: String) -> [String] {
             let query = value.split(separator: "#", maxSplits: 1, omittingEmptySubsequences: false)[0].split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
             guard query.count == 2 else { return [] }
@@ -50,7 +58,7 @@ do {
         if seen.insert(absolute).inserted { urls.append(absolute) }
     }
     let normalized = try JSONSerialization.jsonObject(with: JSONEncoder().encode(settings))
-    let output = try JSONSerialization.data(withJSONObject: ["urls": urls, "changes": changes, "settings": normalized, "revision": SidecarURLCleaner.ruleSet!.revision])
+    let output = try JSONSerialization.data(withJSONObject: ["urls": urls, "changes": changes, "settings": normalized, "revision": DecrumbURLCleaner.ruleSet!.revision])
     FileHandle.standardOutput.write(output)
     FileHandle.standardOutput.write(Data([10]))
 } catch {

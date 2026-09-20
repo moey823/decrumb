@@ -1,8 +1,10 @@
 # URL cleanup rules
 
-The standalone worker uses `swift/SidecarURLCleaner.swift`, extracted from Sidelet with the
-original default tracking rules plus the configurable overrides described below. Modes are `all`, `selected`, and `off`. Base domains include subdomains;
-path prefixes match whole path boundaries. Unspecified ports match normal HTTP
+The standalone worker uses `swift/DecrumbURLCleaner.swift`, extracted from the
+personal Signal-iOS prototype with its original default tracking rules plus the
+configurable overrides described below. Modes are `all`, `selected`, and `off`.
+Base domains include subdomains; path prefixes match whole path boundaries.
+Unspecified ports match normal HTTP
 and HTTPS ports. Only HTTP and HTTPS URLs are processed.
 
 The worker sends only changed URLs to Note to Self; it does not edit the source

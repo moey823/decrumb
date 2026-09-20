@@ -22,9 +22,9 @@ import uuid
 import notes
 from notes import read_notes
 
-DEFAULT_ROOT = Path.home() / "Library/Application Support/SideletLinkCleaner"
+DEFAULT_ROOT = Path.home() / "Library/Application Support/Decrumb"
 MAX_AGE_MS = 24 * 60 * 60 * 1000
-LOG = logging.getLogger("sidelet")
+LOG = logging.getLogger("decrumb")
 
 
 class SafeError(Exception):

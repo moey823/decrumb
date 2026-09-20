@@ -2,13 +2,13 @@
 
 Accepted direction, 2026-09-20: a native menu bar app with QR onboarding,
 bundled dependencies, editable URL rules, local previews, and background controls.
-The existing CLI remains available for troubleshooting. No deployment to the
-existing Mac mini account is part of building the app.
+The CLI remains available for troubleshooting. Building the app does not deploy
+to an existing account.
 
-Public name chosen on 2026-09-20: Decrumb. The app bundle and executable use that
-name; the original internal runtime directory, service identifiers, bundle
-identifier and worker/module filenames remain stable for upgrade compatibility.
-Historical references to the Sidelet iOS prototype keep their original names.
+The app bundle and executable are `Decrumb.app` and `Decrumb`. The Python module
+is `decrumb.py`, the frozen helper is `decrumb-worker`, and the bundle identifier
+is `com.matthew.decrumb.desktop`. Its dedicated LaunchAgents use
+`com.matthew.decrumb.link-cleaner` and `com.matthew.decrumb.app`.
 
 ## Architecture
 
@@ -16,8 +16,8 @@ Historical references to the Sidelet iOS prototype keep their original names.
 - The existing Python worker owns the Signal connection and durable outbox.
 - A frozen worker executable includes Python; a pinned native signal-cli binary
   and the Swift cleaner live inside the app bundle.
-- Per-user configuration, keys, QR images and databases remain in the existing
-  private Application Support directory. App upgrades preserve that directory.
+- Per-user configuration, keys, QR images and databases live in
+  `~/Library/Application Support/Decrumb`. App upgrades preserve that directory.
 - The worker can run through its dedicated LaunchAgent independently of an open
   window. Pause persists across login; resume explicitly starts processing again.
 - UI configuration goes through a narrow local command interface, never a port.

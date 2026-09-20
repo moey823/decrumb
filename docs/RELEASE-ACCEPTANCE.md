@@ -24,8 +24,9 @@ If a development installation exists, pause its worker, disable its login
 startup, quit its interface, and remove that app. Confirm its worker has stopped.
 Removing the interface alone does not stop an already running worker.
 
-Preserve the existing Application Support directory and linked account. Do not
-delete Signal credentials, reset the account, or change another Signal service
+For subsequent Decrumb upgrades, preserve `~/Library/Application Support/Decrumb`
+and its linked account. Do not delete Signal credentials, reset the account,
+or change another Signal service
 to make a test pass. A fresh-install test and an upgrade test are separate cases;
 record which was performed. Build output in a source checkout is not itself an
 installed application.

@@ -2,24 +2,7 @@
 
 Reviewed 2026-09-20 by parallel naming, runtime and privacy reviewers. Measurements
 used the local Apple Silicon development build and synthetic offline fixtures.
-No live Signal account, message, contact, key, database or Mac mini runtime was read.
-
-## Naming
-
-The owner chose **Decrumb** on 2026-09-20. The shortlist considered was:
-
-| Name | Positioning | Tradeoff |
-| --- | --- | --- |
-| Linkpeel | Clean links, automatically. | Clearest function; could imply redirect expansion, which the app does not do. |
-| Decrumb | A little cleaner for your links. | Memorable tracking-crumb metaphor; needs the descriptor. |
-| Peelbit | Tidier links from your messages. | Friendly small-utility name; less obviously about URLs. |
-
-Other candidates: Linkhush, Crumbcut, Tagdrift. Preliminary exact-name/software
-searches found no obvious exact-name software products for these six; this is not
-trademark or domain clearance. Linklet, Linktrim and Barelink were rejected due to
-existing products. The public app is now Decrumb; historical measurements below
-describe the original build. Internal paths and identifiers remain stable for
-upgrade compatibility, as documented in the README.
+No live Signal account, message, contact, key, database or runtime was read.
 
 ## Distribution size
 
@@ -114,9 +97,10 @@ cleans periodically. Pause preserves unexpired queued notes. Stopped/paused data
 can remain beyond the threshold until another maintenance action; no app can
 enforce a deletion deadline while the Mac is off.
 
-Runtime files are outside Git and the bundle, in the private Application Support
-folder. Restrictive permissions are not application-level encryption. SQLite
-secure deletion is enabled; filesystem snapshots/backups can retain previous data.
+Runtime files are outside Git and the bundle, in
+`~/Library/Application Support/Decrumb`. Restrictive permissions are not
+application-level encryption. SQLite secure deletion is enabled; filesystem
+snapshots/backups can retain previous data.
 Aggregate counters are separate from the 30-day per-event records.
 
 ### Version-matched upstream evidence

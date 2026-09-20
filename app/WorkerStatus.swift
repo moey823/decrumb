@@ -47,7 +47,7 @@ final class WorkerStatusWatcher {
     init?(root: URL, onChange: @escaping () -> Void) {
         let descriptor = open(root.path, O_EVTONLY)
         guard descriptor >= 0 else { return nil }
-        source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: [.write, .rename, .delete], queue: DispatchQueue(label: "sidelet.status"))
+        source = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor, eventMask: [.write, .rename, .delete], queue: DispatchQueue(label: "decrumb.status"))
         source.setEventHandler(handler: onChange)
         source.setCancelHandler { close(descriptor) }
         source.resume()

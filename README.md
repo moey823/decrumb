@@ -94,9 +94,8 @@ to the build host's macOS version until compatibility testing is done. The build
 manifest records that version. This is not a notarized public release. A public
 release requires a supported-OS build/test matrix, Developer ID signing with the
 appropriate hardened-runtime settings, notarization, and complete third-party
-source/notices. `DECRUMB_SIGNING_IDENTITY` selects a signing identity for packaging;
-the previous `SIDELET_SIGNING_IDENTITY` variable remains a fallback. Selecting an
-identity does not by itself perform the remaining release steps.
+source/notices. `DECRUMB_SIGNING_IDENTITY` selects a signing identity for packaging.
+Selecting an identity does not by itself perform the remaining release steps.
 
 Create a local development DMG with an Applications shortcut after building:
 
@@ -104,7 +103,7 @@ Create a local development DMG with an Applications shortcut after building:
 python3 -B tools/package_dmg.py
 ```
 
-The image and SHA-256 sidecar stay under `build/`. This does not publish or
+The image and SHA-256 checksum file stay under `build/`. This does not publish or
 notarize the app. In-app updates are not implemented yet; the recommended route
 is Sparkle 2 with hosted release assets and a stable HTTPS update feed. See
 [distribution plan](docs/DISTRIBUTION.md) for packaging, hosting and update design.
@@ -174,7 +173,7 @@ storage details, limits, and verified upstream behavior.
 
 ## Privacy and delivery
 
-Private runtime files stay in `~/Library/Application Support/SideletLinkCleaner`
+Private runtime files stay in `~/Library/Application Support/Decrumb`
 with restrictive permissions. They never belong in Git or the application bundle.
 This includes Signal keys/state, configuration, temporary pairing images and the
 outbox. Signal CLI's outgoing message resend log is disabled. That flag does not
@@ -226,22 +225,22 @@ Source builds do not automatically deploy to an existing installation. Preserve
 its linked account and unrelated services; do not copy account files from another
 Signal installation or register a primary account.
 
-Install `sidelet.py`, **`notes.py`**, and `service.py` together in the runtime's
+Install `decrumb.py`, **`notes.py`**, and `service.py` together in the runtime's
 `bin/` directory. Place `build/url-cleaner` and **`build/rules.json` beside that
 helper** in the same directory. Keep the runtime directory private (mode 0700).
 Use the absolute paths to Python and the isolated Signal executable on your Mac;
 replace the example Signal path below:
 
 ```sh
-DECRUMB_ROOT="$HOME/Library/Application Support/SideletLinkCleaner"
+DECRUMB_ROOT="$HOME/Library/Application Support/Decrumb"
 DECRUMB_PY="$(command -v python3)"
 DECRUMB_SIGNAL_CLI="/absolute/path/to/isolated/signal-cli"
-"$DECRUMB_PY" "$DECRUMB_ROOT/bin/sidelet.py" init --helper "$DECRUMB_ROOT/bin/url-cleaner" \
+"$DECRUMB_PY" "$DECRUMB_ROOT/bin/decrumb.py" init --helper "$DECRUMB_ROOT/bin/url-cleaner" \
   --signal-cli "$DECRUMB_SIGNAL_CLI"
-"$DECRUMB_PY" "$DECRUMB_ROOT/bin/sidelet.py" pair
+"$DECRUMB_PY" "$DECRUMB_ROOT/bin/decrumb.py" pair
 "$DECRUMB_PY" "$DECRUMB_ROOT/bin/service.py" install
 "$DECRUMB_PY" "$DECRUMB_ROOT/bin/service.py" start
-"$DECRUMB_PY" "$DECRUMB_ROOT/bin/sidelet.py" status
+"$DECRUMB_PY" "$DECRUMB_ROOT/bin/decrumb.py" status
 ```
 
 While CLI pairing runs, manually open the temporary `pairing.png` and scan it.
@@ -252,17 +251,7 @@ Stopped LaunchAgent installations can be updated by running `install` again.
 
 Signal CLI is unofficial and needs updates as Signal's service evolves.
 Unlink only this app's linked device from your phone to revoke its account access.
-New links use the Decrumb name; an existing linked device can still be named Sidelet.
-
-## Name and upgrade compatibility
-
-Decrumb is the public name of the standalone macOS app, previously named Sidelet.
-The bundle and executable are `Decrumb.app` and `Decrumb`. The existing runtime
-directory `~/Library/Application Support/SideletLinkCleaner`, bundle identifier
-`com.matthew.sidelet.desktop`, service identifiers, `sidelet-worker` helper and
-Python module names remain stable. The public rename does not move private files,
-copy keys, relink an account, or rename an existing linked device. Source history
-and references to the separate Sidelet iOS prototype retain their original names.
+The linked device is named Decrumb.
 
 ## Sources and license
 

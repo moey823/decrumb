@@ -11,9 +11,9 @@ import threading
 import time
 import unittest
 
-import sidelet
+import decrumb
 
-HELPER = Path(os.environ.get("SIDELET_TEST_HELPER", str(
+HELPER = Path(os.environ.get("DECRUMB_TEST_HELPER", str(
     Path(__file__).resolve().parents[1] / "build/url-cleaner"
 )))
 SETTINGS = {"mode": "all", "baseURLs": []}
@@ -57,17 +57,17 @@ class CleanerTests(unittest.TestCase):
         ]
         for text, expected in cases:
             with self.subTest(text=text):
-                self.assertEqual(sidelet.clean(HELPER, text, SETTINGS), expected)
+                self.assertEqual(decrumb.clean(HELPER, text, SETTINGS), expected)
 
     def test_selected_and_off(self):
         chosen = {"mode": "selected", "baseURLs": ["example.com/news"]}
-        self.assertEqual(sidelet.clean(HELPER, "https://sub.example.com/news/a?utm_source=x", chosen), ["https://sub.example.com/news/a"])
+        self.assertEqual(decrumb.clean(HELPER, "https://sub.example.com/news/a?utm_source=x", chosen), ["https://sub.example.com/news/a"])
         for url in ("https://example.com/newsroom?utm_source=x", "https://notexample.com/news?utm_source=x", "https://example.com:8000/news?utm_source=x"):
-            self.assertEqual(sidelet.clean(HELPER, url, chosen), [])
-        self.assertEqual(sidelet.clean(HELPER, SAMPLE, {"mode": "off", "baseURLs": []}), [])
-        self.assertEqual(sidelet.clean(HELPER, SAMPLE, {"mode": "selected", "baseURLs": []}), [])
-        with self.assertRaises(sidelet.SafeError):
-            sidelet.clean(HELPER, SAMPLE, {"mode": "selected", "baseURLs": ["*.instagram.com"]})
+            self.assertEqual(decrumb.clean(HELPER, url, chosen), [])
+        self.assertEqual(decrumb.clean(HELPER, SAMPLE, {"mode": "off", "baseURLs": []}), [])
+        self.assertEqual(decrumb.clean(HELPER, SAMPLE, {"mode": "selected", "baseURLs": []}), [])
+        with self.assertRaises(decrumb.SafeError):
+            decrumb.clean(HELPER, SAMPLE, {"mode": "selected", "baseURLs": ["*.instagram.com"]})
 
     def test_private_input_not_in_errors(self):
         result = subprocess.run([str(HELPER)], input=b'{"secret":"private-body"}', capture_output=True)
@@ -84,11 +84,11 @@ class CleanerTests(unittest.TestCase):
 
 class FilteringTests(unittest.TestCase):
     def setUp(self):
-        self.now = sidelet.now_ms()
+        self.now = decrumb.now_ms()
         self.value = event(self.now)
 
     def accept(self, value):
-        return sidelet.candidate(value, {SELF, "self-uuid"}, self.now - 1000, self.now)
+        return decrumb.candidate(value, {SELF, "self-uuid"}, self.now - 1000, self.now)
 
     def test_receive_shapes(self):
         result = self.accept(self.value)
@@ -122,7 +122,7 @@ class FilteringTests(unittest.TestCase):
         self.assertIsNone(self.accept(self.value))
 
     def test_history_and_future_skipped(self):
-        for timestamp in (self.now - 1001, self.now + 300001, self.now - 2 * sidelet.MAX_AGE_MS):
+        for timestamp in (self.now - 1001, self.now + 300001, self.now - 2 * decrumb.MAX_AGE_MS):
             self.assertIsNone(self.accept(event(timestamp)))
 
     def test_malformed_events(self):
@@ -130,10 +130,10 @@ class FilteringTests(unittest.TestCase):
             self.assertIsNone(self.accept(value))
 
     def test_old_and_new_account_schema(self):
-        self.assertEqual(sidelet.account_details([{"number": SELF}]), (SELF, {SELF}))
-        self.assertEqual(sidelet.account_details([{"number": SELF, "aci": "self-uuid"}]), (SELF, {SELF, "self-uuid"}))
-        with self.assertRaises(sidelet.SafeError):
-            sidelet.account_details([{"number": SELF}, {"number": PEER}])
+        self.assertEqual(decrumb.account_details([{"number": SELF}]), (SELF, {SELF}))
+        self.assertEqual(decrumb.account_details([{"number": SELF, "aci": "self-uuid"}]), (SELF, {SELF, "self-uuid"}))
+        with self.assertRaises(decrumb.SafeError):
+            decrumb.account_details([{"number": SELF}, {"number": PEER}])
 
 
 class StubRpc:
@@ -145,7 +145,7 @@ class StubRpc:
     def call(self, method, params):
         self.calls.append((method, params))
         if self.fail:
-            raise sidelet.SafeError("Signal command timed out.")
+            raise decrumb.SafeError("Signal command timed out.")
         return self.response
 
 
@@ -153,61 +153,61 @@ class OutboxTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.path = Path(self.temp.name) / "outbox.sqlite3"
-        self.store = sidelet.Store(self.path)
+        self.store = decrumb.Store(self.path)
 
     def tearDown(self):
         self.store.close()
         self.temp.cleanup()
 
     def test_note_to_self_only_and_deduplicated_across_restarts(self):
-        self.assertTrue(self.store.enqueue("id", sidelet.now_ms(), [CLEAN]))
+        self.assertTrue(self.store.enqueue("id", decrumb.now_ms(), [CLEAN]))
         rpc = StubRpc()
-        self.assertTrue(sidelet.deliver_one(self.store, rpc, SELF))
+        self.assertTrue(decrumb.deliver_one(self.store, rpc, SELF))
         self.assertEqual(len(rpc.calls), 1)
         method, params = rpc.calls[0]
         self.assertEqual((method, params["account"], params["noteToSelf"]), ("send", SELF, True))
         self.assertRegex(params["message"], r"^Decrumb\n" + __import__('re').escape(CLEAN) + r"\n#decrumb_[0-9a-f]{24}$")
-        self.assertFalse(sidelet.deliver_one(self.store, rpc, SELF))
+        self.assertFalse(decrumb.deliver_one(self.store, rpc, SELF))
         self.store.close()
-        self.store = sidelet.Store(self.path)
-        self.assertFalse(self.store.enqueue("id", sidelet.now_ms(), [CLEAN]))
+        self.store = decrumb.Store(self.path)
+        self.assertFalse(self.store.enqueue("id", decrumb.now_ms(), [CLEAN]))
         self.assertEqual(self.store.db.execute("SELECT state,body FROM outbox").fetchone(), ("sent", None))
         self.assertNotIn(b"utm_source", self.path.read_bytes())
         self.assertNotIn(CLEAN.encode(), self.path.read_bytes())
 
     def test_unconfirmed_send_not_retried(self):
-        self.store.enqueue("id", sidelet.now_ms(), [CLEAN])
+        self.store.enqueue("id", decrumb.now_ms(), [CLEAN])
         rpc = StubRpc(fail=True)
-        with self.assertRaises(sidelet.SafeError):
-            sidelet.deliver_one(self.store, rpc, SELF)
-        self.assertFalse(sidelet.deliver_one(self.store, rpc, SELF))
+        with self.assertRaises(decrumb.SafeError):
+            decrumb.deliver_one(self.store, rpc, SELF)
+        self.assertFalse(decrumb.deliver_one(self.store, rpc, SELF))
         self.assertEqual(len(rpc.calls), 1)
         self.assertEqual(self.store.counts(), {"uncertain": 1})
 
     def test_upstream_failure_result_not_success(self):
-        self.store.enqueue("id", sidelet.now_ms(), [CLEAN])
-        with self.assertRaises(sidelet.SafeError):
-            sidelet.deliver_one(self.store, StubRpc({"timestamp": 123, "results": [{"type": "NETWORK_FAILURE"}]}), SELF)
+        self.store.enqueue("id", decrumb.now_ms(), [CLEAN])
+        with self.assertRaises(decrumb.SafeError):
+            decrumb.deliver_one(self.store, StubRpc({"timestamp": 123, "results": [{"type": "NETWORK_FAILURE"}]}), SELF)
         self.assertEqual(self.store.counts(), {"uncertain": 1})
 
     def test_crash_during_send_is_not_replayed(self):
-        self.store.enqueue("id", sidelet.now_ms(), [CLEAN])
+        self.store.enqueue("id", decrumb.now_ms(), [CLEAN])
         with self.store.db:
             self.store.db.execute("UPDATE outbox SET state='inflight'")
         enabled_at = self.store.enabled_at
         self.store.close()
-        self.store = sidelet.Store(self.path)
+        self.store = decrumb.Store(self.path)
         self.assertEqual(self.store.enabled_at, enabled_at)
         self.assertEqual(self.store.counts(), {"uncertain": 1})
-        self.assertFalse(sidelet.deliver_one(self.store, StubRpc(), SELF))
+        self.assertFalse(decrumb.deliver_one(self.store, StubRpc(), SELF))
 
     def test_queue_age_and_bound(self):
-        self.store.enqueue("old", sidelet.now_ms() - sidelet.MAX_AGE_MS - 1, [CLEAN])
-        self.store.expire(sidelet.now_ms())
+        self.store.enqueue("old", decrumb.now_ms() - decrumb.MAX_AGE_MS - 1, [CLEAN])
+        self.store.expire(decrumb.now_ms())
         self.assertEqual(self.store.counts(), {"expired": 1})
         for i in range(256):
-            self.assertTrue(self.store.enqueue(str(i), sidelet.now_ms(), [CLEAN]))
-        self.assertFalse(self.store.enqueue("overflow", sidelet.now_ms(), [CLEAN]))
+            self.assertTrue(self.store.enqueue(str(i), decrumb.now_ms(), [CLEAN]))
+        self.assertFalse(self.store.enqueue("overflow", decrumb.now_ms(), [CLEAN]))
 
 
 class TransportTests(unittest.TestCase):
@@ -218,18 +218,18 @@ for line in sys.stdin:
  print(json.dumps({"id":r["id"],"error":{"code":-1,"message":"private-body +15550000001"}}),flush=True)
 '''
         with tempfile.TemporaryDirectory() as folder:
-            with sidelet.Rpc(Path(folder), {}, [sys.executable, "-c", script]) as rpc:
-                with self.assertRaises(sidelet.SafeError) as error:
+            with decrumb.Rpc(Path(folder), {}, [sys.executable, "-c", script]) as rpc:
+                with self.assertRaises(decrumb.SafeError) as error:
                     rpc.call("finishLink", timeout=3)
                 self.assertEqual(str(error.exception), "Signal command failed (code -1).")
 
     def test_shutdown_interrupts_a_stalled_command(self):
         stopped = threading.Event()
         with tempfile.TemporaryDirectory() as folder:
-            with sidelet.Rpc(Path(folder), {}, [sys.executable, "-c", "import time; time.sleep(60)"], stopped) as rpc:
+            with decrumb.Rpc(Path(folder), {}, [sys.executable, "-c", "import time; time.sleep(60)"], stopped) as rpc:
                 stopped.set()
                 start = time.monotonic()
-                with self.assertRaises(sidelet.SafeError):
+                with self.assertRaises(decrumb.SafeError):
                     rpc.call("test", timeout=60)
                 self.assertLess(time.monotonic() - start, 1)
 
@@ -241,16 +241,16 @@ for line in sys.stdin:
  print(json.dumps({"jsonrpc":"2.0","id":r["id"],"result":{"ok":True}}),flush=True)
 '''
         with tempfile.TemporaryDirectory() as folder:
-            with sidelet.Rpc(Path(folder), {}, [sys.executable, "-c", script]) as rpc:
+            with decrumb.Rpc(Path(folder), {}, [sys.executable, "-c", script]) as rpc:
                 self.assertEqual(rpc.call("test", timeout=3), {"ok": True})
                 self.assertEqual(rpc.events.get(timeout=1)["method"], "receive")
             self.assertIsNotNone(rpc.process.poll())
 
     def test_closed_transport_fails_promptly(self):
         with tempfile.TemporaryDirectory() as folder:
-            with sidelet.Rpc(Path(folder), {}, [sys.executable, "-c", "pass"]) as rpc:
+            with decrumb.Rpc(Path(folder), {}, [sys.executable, "-c", "pass"]) as rpc:
                 start = time.monotonic()
-                with self.assertRaises(sidelet.SafeError):
+                with self.assertRaises(decrumb.SafeError):
                     rpc.call("test", timeout=10)
                 self.assertLess(time.monotonic() - start, 3)
 
@@ -278,8 +278,8 @@ for line in sys.stdin:
 '''.replace("PYTHON", sys.executable).replace("'SELF'", repr(SELF)).replace("EVENT", repr(event(0)))
             fake.write_text(script)
             fake.chmod(0o700)
-            sidelet.write_json(root / "config.json", {"version": 1, "signal_cli": str(fake), "helper": str(HELPER), "account": SELF, "settings": SETTINGS})
-            process = subprocess.Popen([sys.executable, str(Path(sidelet.__file__)), "--root", str(root), "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            decrumb.write_json(root / "config.json", {"version": 1, "signal_cli": str(fake), "helper": str(HELPER), "account": SELF, "settings": SETTINGS})
+            process = subprocess.Popen([sys.executable, str(Path(decrumb.__file__)), "--root", str(root), "run"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             try:
                 deadline = time.monotonic() + 12
                 calls = root / "test-only-calls.json"

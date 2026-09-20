@@ -2,21 +2,21 @@
 
 import Foundation
 
-public struct SidecarSiteRule: Codable, Equatable, Sendable {
+public struct DecrumbSiteRule: Codable, Equatable, Sendable {
     public var site: String
     public var remove: [String]
     public var keep: [String]
 }
 
-public struct SidecarRuleSet: Codable, Sendable {
+public struct DecrumbRuleSet: Codable, Sendable {
     public var version: Int
     public var revision: String
     public var globalRemove: [String]
     public var protectedParameters: [String]
-    public var sites: [SidecarSiteRule]
+    public var sites: [DecrumbSiteRule]
 }
 
-public struct SidecarURLCleanupSettings: Codable, Equatable, Sendable {
+public struct DecrumbURLCleanupSettings: Codable, Equatable, Sendable {
     public enum Mode: String, Codable, CaseIterable, Sendable {
         case off, selected, all
     }
@@ -24,11 +24,11 @@ public struct SidecarURLCleanupSettings: Codable, Equatable, Sendable {
     public var mode: Mode
     public var baseURLs: [String]
     public var excludedURLs: [String]
-    public var rules: [SidecarSiteRule]
-    public static let didChange = Notification.Name("SidecarURLCleanupSettingsDidChange")
-    private static let storageKey = "Sidecar.URLCleanup.v1"
+    public var rules: [DecrumbSiteRule]
+    public static let didChange = Notification.Name("DecrumbURLCleanupSettingsDidChange")
+    private static let storageKey = "Decrumb.URLCleanup.v1"
 
-    public init(mode: Mode = .all, baseURLs: [String] = [], excludedURLs: [String] = [], rules: [SidecarSiteRule] = []) {
+    public init(mode: Mode = .all, baseURLs: [String] = [], excludedURLs: [String] = [], rules: [DecrumbSiteRule] = []) {
         self.mode = mode
         self.baseURLs = baseURLs
         self.excludedURLs = excludedURLs
@@ -41,14 +41,14 @@ public struct SidecarURLCleanupSettings: Codable, Equatable, Sendable {
         mode = try values.decode(Mode.self, forKey: .mode)
         baseURLs = try values.decode([String].self, forKey: .baseURLs)
         excludedURLs = try values.decodeIfPresent([String].self, forKey: .excludedURLs) ?? []
-        rules = try values.decodeIfPresent([SidecarSiteRule].self, forKey: .rules) ?? []
+        rules = try values.decodeIfPresent([DecrumbSiteRule].self, forKey: .rules) ?? []
     }
 
     public func validated() throws -> Self {
         func sites(_ values: [String]) throws -> [String] {
             guard values.count <= 100 else { throw RuleError.invalid }
             return try values.map {
-                guard let site = SidecarURLCleaner.normalizedBaseURL($0) else { throw RuleError.invalid }
+                guard let site = DecrumbURLCleaner.normalizedBaseURL($0) else { throw RuleError.invalid }
                 return site
             }
         }
@@ -61,7 +61,7 @@ public struct SidecarURLCleanupSettings: Codable, Equatable, Sendable {
         }
         guard rules.count <= 100 else { throw RuleError.invalid }
         return try Self(mode: mode, baseURLs: sites(baseURLs), excludedURLs: sites(excludedURLs), rules: rules.map {
-            SidecarSiteRule(site: try sites([$0.site])[0], remove: try parameters($0.remove), keep: try parameters($0.keep))
+            DecrumbSiteRule(site: try sites([$0.site])[0], remove: try parameters($0.remove), keep: try parameters($0.keep))
         })
     }
 
@@ -83,15 +83,15 @@ public struct SidecarURLCleanupSettings: Codable, Equatable, Sendable {
 
 /// Removes only listed query keys, preserving every other byte of a link.
 /// No redirects, URL expansion, requests, or message-content logging occur here.
-public enum SidecarURLCleaner {
+public enum DecrumbURLCleaner {
     // Sources and update notes are recorded in docs/URL-CLEANUP.md.
-    public static var ruleSet: SidecarRuleSet?
+    public static var ruleSet: DecrumbRuleSet?
 
     public static func loadRules(from url: URL) throws {
-        var rules = try JSONDecoder().decode(SidecarRuleSet.self, from: Data(contentsOf: url))
-        guard rules.version == 1, !rules.protectedParameters.isEmpty else { throw SidecarURLCleanupSettings.RuleError.invalid }
-        rules.sites = try SidecarURLCleanupSettings(rules: rules.sites).validated().rules
-        let global = try SidecarURLCleanupSettings(rules: [SidecarSiteRule(site: "example.invalid", remove: rules.globalRemove, keep: rules.protectedParameters)]).validated().rules[0]
+        var rules = try JSONDecoder().decode(DecrumbRuleSet.self, from: Data(contentsOf: url))
+        guard rules.version == 1, !rules.protectedParameters.isEmpty else { throw DecrumbURLCleanupSettings.RuleError.invalid }
+        rules.sites = try DecrumbURLCleanupSettings(rules: rules.sites).validated().rules
+        let global = try DecrumbURLCleanupSettings(rules: [DecrumbSiteRule(site: "example.invalid", remove: rules.globalRemove, keep: rules.protectedParameters)]).validated().rules[0]
         rules.globalRemove = global.remove
         rules.protectedParameters = global.keep
         ruleSet = rules
@@ -134,17 +134,17 @@ public enum SidecarURLCleaner {
         return components.string
     }
 
-    public static func clean(_ url: URL, settings: SidecarURLCleanupSettings = .current) -> URL {
+    public static func clean(_ url: URL, settings: DecrumbURLCleanupSettings = .current) -> URL {
         URL(string: cleanURLString(url.absoluteString, settings: settings)) ?? url
     }
 
-    public static func cleanURLString(_ value: String, settings: SidecarURLCleanupSettings) -> String {
+    public static func cleanURLString(_ value: String, settings: DecrumbURLCleanupSettings) -> String {
         applying(removals(in: value, settings: settings), to: value).text
     }
 
     public static func cleanText(
         _ text: String,
-        settings: SidecarURLCleanupSettings = .current,
+        settings: DecrumbURLCleanupSettings = .current,
         protectedRanges: [NSRange] = [],
     ) -> Result {
         guard settings.mode != .off, text.contains("?"), let detector else {
@@ -192,7 +192,7 @@ public enum SidecarURLCleaner {
         return path.isEmpty || path == "/" || url.percentEncodedPath == path || url.percentEncodedPath.hasPrefix(path + "/")
     }
 
-    private static func removals(in value: String, settings: SidecarURLCleanupSettings) -> [NSRange] {
+    private static func removals(in value: String, settings: DecrumbURLCleanupSettings) -> [NSRange] {
         guard let rules = ruleSet, settings.mode != .off, let url = components(for: value),
               !settings.excludedURLs.contains(where: { matches(url, base: $0) }),
               settings.mode == .all || settings.baseURLs.contains(where: { matches(url, base: $0) })

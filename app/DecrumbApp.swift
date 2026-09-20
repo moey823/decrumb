@@ -75,10 +75,10 @@ struct AppError: LocalizedError {
 
 enum Backend {
     static let helpers = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers")
-    static let root = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/SideletLinkCleaner")
+    static let root = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/Application Support/Decrumb")
     static func process(_ command: String) -> Process {
         let p = Process()
-        p.executableURL = helpers.appendingPathComponent("sidelet-worker")
+        p.executableURL = helpers.appendingPathComponent("decrumb-worker")
         p.arguments = ["--root", root.path, "--resources", helpers.path, command]
         p.standardError = FileHandle.nullDevice
         return p

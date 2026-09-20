@@ -54,8 +54,9 @@ class ReleaseFixture(unittest.TestCase):
         source.mkdir(parents=True)
         shutil.copy2(builder.ROOT / 'tools/requirements-build.txt', source / 'requirements-build.txt')
         shutil.copy2(builder.ROOT / 'tools/release-dependencies.json', source / 'release-dependencies.json')
-        (self.resources / 'Source/sidelet.py').write_text('# synthetic source\n')
-        self.info = {'CFBundleIdentifier': 'com.matthew.sidelet.desktop', 'CFBundleShortVersionString': '1.0.0',
+        for name in builder.material_tools().SOURCE_FILES:
+            (self.resources / 'Source' / name).write_text('# synthetic source\n')
+        self.info = {'CFBundleIdentifier': 'com.matthew.decrumb.desktop', 'CFBundleShortVersionString': '1.0.0',
                      'CFBundleVersion': '1', 'LSMinimumSystemVersion': '26.4'}
         with (self.app / 'Contents/Info.plist').open('wb') as output:
             plistlib.dump(self.info, output)
@@ -285,8 +286,48 @@ class SignatureTests(unittest.TestCase):
         with patch.object(builder.subprocess, 'run', side_effect=success):
             builder.verify_native_helper(Path('/synthetic/signal-cli'))
         with patch.object(builder.subprocess, 'run', return_value=subprocess.CompletedProcess([], 1, '', 'JNI failure')):
-            with self.assertRaises(builder.ReleaseError):
-                builder.verify_native_helper(Path('/synthetic/signal-cli'))
+                with self.assertRaises(builder.ReleaseError):
+                    builder.verify_native_helper(Path('/synthetic/signal-cli'))
+
+
+class BundleLayoutTests(unittest.TestCase):
+    def test_rules_are_resources_and_helpers_contain_only_executables(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            build = root / 'build'
+            (build / 'frozen').mkdir(parents=True)
+            for name in ('Decrumb', 'url-cleaner', 'rules.json', 'frozen/decrumb-worker'):
+                (build / name).write_text('synthetic ' + name)
+            macos, helpers, resources = (root / 'Decrumb.app/Contents' / name for name in ('MacOS', 'Helpers', 'Resources'))
+            for path in (macos, helpers, resources):
+                path.mkdir(parents=True)
+            builder.copy_runtime_components(build, macos, helpers, resources)
+            self.assertEqual((resources / 'rules.json').read_text(), 'synthetic rules.json')
+            self.assertEqual({path.name for path in helpers.iterdir()}, {'url-cleaner', 'decrumb-worker'})
+
+    def test_source_copy_uses_public_inventory_and_verifies_bytes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder) / 'checkout'
+            root.mkdir()
+            materials = builder.material_tools()
+            for name in materials.SOURCE_FILES:
+                (root / name).write_text('synthetic public source')
+            (root / '.git').mkdir()
+            (root / 'tools').mkdir()
+            for name in ('public.py', '.env', 'ignored-secret.txt', 'local.pem', 'config.json'):
+                (root / 'tools' / name).write_text('synthetic ' + name)
+            public = set(materials.SOURCE_FILES) | {'tools/public.py', 'tools/.env', 'tools/local.pem', 'tools/config.json'}
+            git_files = ('\0'.join(sorted(public)) + '\0').encode()
+            copied = Path(folder) / 'Source'
+            with patch.object(materials.subprocess, 'check_output', return_value=git_files):
+                builder.copy_public_source(root, copied)
+                expected = materials.source_inventory_sha256(root)
+            self.assertEqual(materials.source_inventory_sha256(copied), expected)
+            self.assertEqual({path.relative_to(copied).as_posix() for path in copied.rglob('*') if path.is_file()},
+                             set(materials.SOURCE_FILES) | {'tools/public.py'})
+            with patch.object(materials, 'source_inventory', return_value=[{'path': 'tools/public.py', 'sha256': '0' * 64}]):
+                with self.assertRaises(builder.ReleaseError):
+                    builder.copy_public_source(root, Path(folder) / 'changed-Source')
 
 
 class NotarizationTests(unittest.TestCase):
@@ -366,7 +407,7 @@ class PackagingSequenceTests(ReleaseFixture):
         with zipfile.ZipFile(source_zip) as archive:
             self.assertIn('materials/source.tar', archive.namelist())
             self.assertIn('materials/NOTICE', archive.namelist())
-            self.assertIn('decrumb/sidelet.py', archive.namelist())
+            self.assertIn('decrumb/decrumb.py', archive.namelist())
         self.assertEqual((self.resources / 'build-manifest.json').read_bytes(), original)
         app_notary, dmg_notary = [i for i, event in enumerate(self.events) if event[0] == 'notarize']
         create = next(i for i, event in enumerate(self.events) if event[:2] == ('/usr/bin/hdiutil', 'create'))
@@ -379,6 +420,17 @@ class PackagingSequenceTests(ReleaseFixture):
         with self.assertRaises(builder.ReleaseError):
             self.simulate(fail_dmg=True)
         self.assertEqual(list(self.output.iterdir()), [])
+
+    def test_corresponding_source_archive_excludes_private_files(self):
+        source = self.resources / 'Source/tools'
+        for name in ('.env', 'local.pem', 'config.json'):
+            (source / name).write_text('synthetic private placeholder')
+        self.simulate()
+        with zipfile.ZipFile(self.output / 'Decrumb-1.0.0-1-arm64-sources.zip') as archive:
+            names = set(archive.namelist())
+        self.assertIn('decrumb/decrumb.py', names)
+        for name in ('.env', 'local.pem', 'config.json'):
+            self.assertNotIn('decrumb/tools/' + name, names)
 
     def test_development_build_preserves_dev_filename_and_does_not_notarize(self):
         output = self.simulate(production=False)

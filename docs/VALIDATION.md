@@ -8,8 +8,8 @@ Python 3.14.6, PyInstaller 6.22.3, bundled native signal-cli 0.14.8.
 - `python3 build.py --app`: compiled both Swift executables and icon; packaged the
   Python runtime and checksum-verified native Signal CLI; ad-hoc signing and strict
   recursive signature verification succeeded.
-- `python3 -B -m unittest discover -s tests -p 'test_*.py' -v`: **110 tests passed**.
-  Covers legacy behavior, normalized site rules, exclusions, keep/remove precedence,
+- `python3 -B -m unittest discover -s tests -p 'test_*.py' -v`: **113 tests passed**.
+  Covers baseline behavior, normalized site rules, exclusions, keep/remove precedence,
   signed links, nested URLs, input limits, cancellation, durable metrics, private
   status output, service ownership, installation updates, rule persistence and
   local retention cleanup independent of Signal connectivity. Lifecycle tests
@@ -61,8 +61,8 @@ passed when run with normal OS access. These are not skipped application tests.
 
 ## Boundaries
 
-No real Signal account was opened, paired, or messaged. No production/Mac mini
-runtime was read or deployed. No shared flight log or business wiki was changed.
+No real Signal account was opened, paired, or messaged. No live runtime was read
+or deployed. No shared flight log or business wiki was changed.
 LaunchAgent mutations were tested through mocks; an actual login/logout cycle was
 not performed on this user's account. A live incoming-message acceptance check
 remains necessary when an installation is explicitly deployed.
