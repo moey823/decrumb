@@ -222,6 +222,9 @@ def frozen_inventory(toc_path, lock, output):
             inventory.append(record)
     if not inventory or set(formulas) != set(lock["frozen_libraries"]):
         raise ValueError("Frozen dependency inventory does not cover the locked package set")
+    # PyInstaller's analysis order can vary without changing packaged inputs.
+    inventory.sort(key=lambda record: (record["name"], record["kind"], record["package"],
+                                       record["version"], record["sha256"]))
     write_json(output / "inventories/frozen-worker-native.json", inventory)
     for name, recipe in formulas.items():
         destination = output / "build-recipes" / (name + ".rb")

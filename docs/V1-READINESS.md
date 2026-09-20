@@ -11,7 +11,7 @@ choice; a local development image is not presented as a finished public installe
 - The standalone Apple Silicon app packages its Python worker, Swift cleaner,
   and checksum-verified signal-cli 0.14.8 dependency. Development signing and
   recursive signature verification pass.
-- The recorded full offline run passed **113 Python tests**. Native status tests
+- The recorded full offline run passed **114 Python tests**. Native status tests
   also passed. See [VALIDATION.md](VALIDATION.md) for the tested scope and limits.
 - Packaged smoke tests use synthetic data and fake Signal to exercise pairing
   cancellation, incoming-message filtering, deduplication, attributed notes,

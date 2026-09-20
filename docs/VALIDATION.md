@@ -8,7 +8,7 @@ Python 3.14.6, PyInstaller 6.22.3, bundled native signal-cli 0.14.8.
 - `python3 build.py --app`: compiled both Swift executables and icon; packaged the
   Python runtime and checksum-verified native Signal CLI; ad-hoc signing and strict
   recursive signature verification succeeded.
-- `python3 -B -m unittest discover -s tests -p 'test_*.py' -v`: **113 tests passed**.
+- `python3 -B -m unittest discover -s tests -p 'test_*.py' -v`: **114 tests passed**.
   Covers baseline behavior, normalized site rules, exclusions, keep/remove precedence,
   signed links, nested URLs, input limits, cancellation, durable metrics, private
   status output, service ownership, installation updates, rule persistence and

@@ -24,6 +24,30 @@ def tar_bytes(path, files):
 
 
 class ReleaseMaterialsTests(unittest.TestCase):
+    def test_frozen_inventory_is_identical_for_reordered_toc(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            package = root / "Cellar/python@3.14/3.14.6"
+            recipe = package / ".brew/python@3.14.rb"
+            recipe.parent.mkdir(parents=True)
+            recipe.write_text("# synthetic build recipe\n")
+            rows = []
+            for name in ("_pickle.so", "_codecs_tw.so"):
+                source = package / name
+                source.write_bytes(("synthetic binary " + name).encode())
+                rows.append((name, str(source), "EXTENSION"))
+            lock = {"frozen_libraries": {"python@3.14": "3.14.6"}}
+            outputs = []
+            for index, ordered_rows in enumerate((rows, list(reversed(rows)))):
+                toc = root / ("analysis-" + str(index) + ".toc")
+                toc.write_text(repr((ordered_rows,)))
+                output = root / ("output-" + str(index))
+                materials.frozen_inventory(toc, lock, output)
+                outputs.append((output / "inventories/frozen-worker-native.json").read_bytes())
+            self.assertEqual(outputs[0], outputs[1])
+            self.assertEqual([item["name"] for item in json.loads(outputs[0])],
+                             ["_codecs_tw.so", "_pickle.so"])
+
     def test_offline_cache_rejects_altered_source(self):
         with tempfile.TemporaryDirectory() as folder:
             cache = Path(folder)
