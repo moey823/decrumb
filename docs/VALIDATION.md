@@ -8,7 +8,7 @@ Python 3.14.6, PyInstaller 6.22.3, bundled native signal-cli 0.14.8.
 - `python3 build.py --app`: compiled both Swift executables and icon; packaged the
   Python runtime and checksum-verified native Signal CLI; ad-hoc signing and strict
   recursive signature verification succeeded.
-- `python3 -B -m unittest discover -s tests -p 'test_*.py' -v`: **114 tests passed**.
+- `python3 -B -m unittest discover -s tests -p 'test_*.py' -v`: **134 tests passed**.
   Covers baseline behavior, normalized site rules, exclusions, keep/remove precedence,
   signed links, nested URLs, input limits, cancellation, durable metrics, private
   status output, service ownership, installation updates, rule persistence and
@@ -20,6 +20,21 @@ Python 3.14.6, PyInstaller 6.22.3, bundled native signal-cli 0.14.8.
   discard-on-pause and restoration of the active worker after invalid mutations.
   Release tests cover source/notice checksums, private-file exclusions, signing
   requirements, deployment floors, notarization failure, and immutable outputs.
+- Sparkle 2.10.0 updater checks passed on macOS 27.0. The isolated signed
+  integration harness passed **10 scenarios**: active install, paused install,
+  dismissed manual update followed by ordinary quit, automatic install-on-quit,
+  unsaved settings deferral, pairing deferral, forced GUI crash during handoff,
+  cancellation, tampered feed and tampered archive. It uses the production Swift
+  coordinator and Python transition code, Developer ID signed fixture builds
+  1 and 2, official EdDSA signing and actual Sparkle replacement/relaunch.
+  Synthetic account, queued-work and receipt bytes survived unchanged. A real
+  synthetic process held the worker lock; Signal and LaunchAgents were replaced
+  by fixture adapters. See [UPDATE-ACCEPTANCE.md](UPDATE-ACCEPTANCE.md).
+- The official appcast generator was exercised against a packaged development
+  app in a temporary, unpublished directory. Public-key matching, generated
+  version/OS/architecture/URL/size validation, and official archive/feed signature
+  verification passed. Production packaging repeats these checks on the actual
+  notarized release; a development fixture is never published.
 - `build/status-tests`: passed native status parsing, field filtering, bounded
   reads, stale/dead-worker detection and atomic-replacement notification checks.
   A 1,000-read synthetic benchmark averaged 33.83 microseconds per read.

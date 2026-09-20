@@ -149,3 +149,50 @@ if __name__ == '__main__':
     except Exception:
         print('Background service operation failed.', file=sys.stderr)
         sys.exit(1)
+
+
+class UpdateRecovery:
+    """Short-lived login-session watchdog: reopen the app after interrupted update."""
+    def __init__(self, root, executable):
+        self.root = root
+        self.executable = executable
+        self.label = 'com.matthew.decrumb.update-recovery'
+        self.domain = 'gui/' + str(os.getuid())
+        self.path = root / 'update-recovery.plist'
+
+    def arm(self):
+        if not self.path.exists():
+            loaded = subprocess.run(['/bin/launchctl', 'print', self.domain + '/' + self.label],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            if loaded.returncode == 0:
+                raise SafeError('A running update recovery service belongs to another runtime directory.')
+        self.disarm()
+        write_plist(self.path, {'Label': self.label, 'WorkingDirectory': str(self.root),
+                              'ProgramArguments': ['/usr/bin/open', '-g', str(self.executable.parent.parent.parent)],
+                              'StartInterval': 120, 'RunAtLoad': False,
+                              'StandardOutPath': '/dev/null', 'StandardErrorPath': '/dev/null'})
+        result = subprocess.run(['/bin/launchctl', 'bootstrap', self.domain, str(self.path)],
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        if result.returncode:
+            loaded = subprocess.run(['/bin/launchctl', 'print', self.domain + '/' + self.label],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            if loaded.returncode == 0:
+                raise SafeError('Update recovery is still stopping. Reopen Decrumb to retry cleanup.')
+            self.path.unlink(missing_ok=True)
+            raise SafeError('Update recovery could not be enabled. Cleaning is unchanged; try again.')
+
+    def disarm(self):
+        if self.path.exists():
+            try:
+                value = plistlib.loads(self.path.read_bytes())
+                if value.get('Label') != self.label or value.get('WorkingDirectory') != str(self.root):
+                    raise ValueError()
+            except (OSError, ValueError, plistlib.InvalidFileException):
+                raise SafeError('Update recovery belongs to another runtime directory.') from None
+            subprocess.run(['/bin/launchctl', 'bootout', self.domain + '/' + self.label],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            loaded = subprocess.run(['/bin/launchctl', 'print', self.domain + '/' + self.label],
+                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            if loaded.returncode == 0:
+                raise SafeError('Update recovery is still stopping. Reopen Decrumb to retry cleanup.')
+            self.path.unlink(missing_ok=True)

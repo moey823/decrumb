@@ -80,3 +80,17 @@ set, not a legal certification or a promise of a byte-for-byte reproducible
 Homebrew build. Dependency updates require updating and reviewing the coverage
 lock. Signing, notarization, minimum-macOS testing, and real-device acceptance
 remain separate release checks.
+
+## Sparkle updater
+
+The native app embeds official Sparkle **2.10.0**. The release distribution SHA-256
+is `c2bf58aa8387266ac179357b1415d6f2635f044da8be41042af32425dae6da0c`; its corresponding
+source archive SHA-256 is `cf43af1f26a921a8dc0be80834b9c3038bea5fd645708d26375126cbc57c316b`.
+The original LICENSE covers Sparkle's MIT terms and its external components,
+including BSD-licensed binary-diff code and public-domain Ed25519 code. The app
+bundles this text unchanged and the release collector includes the full pinned
+source archive with its original notices. The framework's nested installer,
+updater and downloader executables are signed inside-out using Decrumb's release
+identity before the outer app is notarized.
+
+Upstream: <https://github.com/sparkle-project/Sparkle/releases/tag/2.10.0>.

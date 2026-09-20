@@ -467,7 +467,12 @@ def run(root, config):
         stopped.set()
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
-    with exclusive(root), contextlib.closing(Store(root / "outbox.sqlite3")) as store:
+    with exclusive(root), contextlib.ExitStack() as started:
+        # Check after acquiring worker.lock: the interface may have prepared an
+        # update between launchd spawning us and this process reaching the lock.
+        if (root / "update-transition.json").exists():
+            raise SafeError("An app update is preparing to install. Reopen Decrumb to finish it.")
+        store = started.enter_context(contextlib.closing(Store(root / "outbox.sqlite3")))
         heartbeat = {"state": "starting", "updated_at": now_ms(), "pid": os.getpid()}
         write_json(root / "status.json", heartbeat)
         try:

@@ -17,9 +17,11 @@ import tempfile
 import zipfile
 
 try:
-    from tools import build_app
+    from tools import build_app, sparkle, prepare_update
 except ModuleNotFoundError:  # Direct invocation from tools/.
     import build_app
+    import sparkle
+    import prepare_update
 
 ROOT = Path(__file__).resolve().parents[1]
 ReleaseError = build_app.ReleaseError
@@ -47,6 +49,10 @@ def production_preflight(app, info, manifest, materials_dir, identity, profile):
     """No signing, upload, or staging occurs until all local release inputs agree."""
     if not isinstance(profile, str) or not profile.strip():
         raise ReleaseError('Production requires an existing notarytool Keychain profile via --notary-profile.')
+    try:
+        sparkle.validate_configuration(info)
+    except ValueError:
+        raise ReleaseError('The candidate updater configuration is missing or unsafe.') from None
     version, build_number = info['CFBundleShortVersionString'], info.get('CFBundleVersion')
     minimum = info.get('LSMinimumSystemVersion', '')
     if (not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version) or
@@ -81,6 +87,8 @@ def production_preflight(app, info, manifest, materials_dir, identity, profile):
 
 
 def verify_app(app, signer):
+    for nested in sparkle.nested_code(app / 'Contents/Frameworks/Sparkle.framework'):
+        build_app.verify_distribution_signature(nested, signer['team_id'])
     for executable in (app, *(app / 'Contents/Helpers' / name for name in
                               ('signal-cli', 'url-cleaner', 'decrumb-worker'))):
         build_app.verify_distribution_signature(executable, signer['team_id'],
@@ -199,18 +207,20 @@ def publish_production(temporary, output_dir, names, version, build_number):
                 raise ReleaseError('A production output appeared during finalization; existing artifacts were preserved. No completed release receipt was written.') from None
 
 
-def package(app, output_dir, *, production=False, identity=None, profile=None, materials_dir=None):
+def package(app, output_dir, *, production=False, identity=None, profile=None, materials_dir=None, update_account=None, release_tag=None):
     app = app.resolve()
     info, manifest = load_app(app)
     version, architecture = info['CFBundleShortVersionString'], manifest['architecture']
     materials = signer = None
     output_dir.mkdir(parents=True, exist_ok=True)
     if production:
+        if not update_account or not re.fullmatch(r'[A-Za-z0-9._-]+', release_tag or ''):
+            raise ReleaseError('Production requires --update-account and --release-tag for signed update artifacts.')
         materials, signer = production_preflight(app, info, manifest, materials_dir, identity, profile)
         build_number = info['CFBundleVersion']
         check_release_number(output_dir, version, build_number)
         stem = f'Decrumb-{version}-{build_number}-{architecture}'
-        final_names = [stem + suffix for suffix in ('.dmg', '.dmg.sha256', '-sources.zip', '-sources.zip.sha256', '-release.json')]
+        final_names = [stem + suffix for suffix in ('.dmg', '.dmg.sha256', '-sources.zip', '-sources.zip.sha256', '-update.zip', '-update.zip.sha256', '-appcast.xml', '-appcast.xml.sha256', '-release.json')]
         if any((output_dir / name).exists() for name in final_names):
             raise ReleaseError('A production output already exists; release artifacts are immutable. Choose a new build number.')
     else:
@@ -248,12 +258,17 @@ def package(app, output_dir, *, production=False, identity=None, profile=None, m
                 '--verbose=2', str(image))
             sources = temporary / (stem + '-sources.zip')
             corresponding_source(staged_app, materials_dir, materials, sources)
-            records = [asset(image), asset(sources)]
+            try:
+                update_zip, appcast = prepare_update.prepare(staged_app, temporary, stem, info, account=update_account, release_tag=release_tag)
+            except ValueError as error:
+                raise ReleaseError(str(error)) from None
+            records = [asset(image), asset(sources), asset(update_zip), asset(appcast)]
             receipt = {'schema_version': 1, 'distribution': 'production', 'notarized': True,
                        'version': version, 'build_number': build_number, 'architecture': architecture,
                        'minimum_macos': info['LSMinimumSystemVersion'], 'team_id': signer['team_id'],
                        'release_materials_manifest_sha256': manifest['release_materials_manifest_sha256'],
-                       'notarization': {'app': app_receipt, 'dmg': dmg_receipt}, 'assets': records}
+                       'notarization': {'app': app_receipt, 'dmg': dmg_receipt}, 'assets': records,
+                       'updates': {'feed_url': sparkle.FEED_URL, 'public_key': sparkle.PUBLIC_KEY, 'release_tag': release_tag}}
             for record in records:
                 (temporary / (record['file'] + '.sha256')).write_text(f"{record['sha256']}  {record['file']}\n")
             (temporary / (stem + '-release.json')).write_text(json.dumps(receipt, indent=2) + '\n')
@@ -274,14 +289,17 @@ def main(argv=None):
     parser.add_argument('--signing-identity', help='Existing Developer ID Application name or fingerprint')
     parser.add_argument('--notary-profile', help='Existing notarytool Keychain profile name; never an account password or private key')
     parser.add_argument('--release-materials', type=Path, help='Complete corresponding-source materials matching the app build')
+    parser.add_argument('--update-account', help='Existing Sparkle EdDSA Keychain account reference, never a private key')
+    parser.add_argument('--release-tag', help='Immutable GitHub release tag used for update download URLs')
     args = parser.parse_args(argv)
     identity = args.signing_identity or os.environ.get('DECRUMB_SIGNING_IDENTITY', '-')
     profile = args.notary_profile or os.environ.get('DECRUMB_NOTARY_PROFILE')
     output = package(args.app, args.output_dir, production=args.production, identity=identity,
-                     profile=profile, materials_dir=args.release_materials)
+                     profile=profile, materials_dir=args.release_materials,
+                     update_account=args.update_account, release_tag=args.release_tag)
     print(f'{output}\n{output.stat().st_size / 1_000_000:.2f} MB; SHA-256 checksum file written.')
     if args.production:
-        print('Signed, notarized, stapled and verified. Publish the DMG, source ZIP, checksums and release receipt together.')
+        print('Signed, notarized, stapled and verified. Publish the DMG, source and update ZIPs, checksums, and release receipt together; deploy the signed appcast unchanged.')
 
 
 if __name__ == '__main__':

@@ -11,7 +11,7 @@ prerelease; real-device acceptance remains before stable v1.
 - The standalone Apple Silicon app packages its Python worker, Swift cleaner,
   and checksum-verified signal-cli 0.14.8 dependency. Development signing and
   recursive signature verification pass.
-- The recorded full offline run passed **114 Python tests**. Native status tests
+- The recorded full offline run passed **134 Python tests**. Native status tests
   also passed. See [VALIDATION.md](VALIDATION.md) for the tested scope and limits.
 - Packaged smoke tests use synthetic data and fake Signal to exercise pairing
   cancellation, incoming-message filtering, deduplication, attributed notes,
@@ -36,6 +36,11 @@ prerelease; real-device acceptance remains before stable v1.
   accepted by Apple notarization, stapled, and accepted by Gatekeeper. All five
   uploaded assets match their local SHA-256 hashes, including the matching
   complete-source archive and release receipt.
+- Sparkle updates are implemented with optional automatic checks and installation,
+  signed feeds/archives, durable worker coordination and recovery. Ten isolated
+  signed integration scenarios passed, including actual replacement/relaunch,
+  paused-state preservation, settings/pairing deferral, crash recovery and
+  tampered-input rejection. See [UPDATE-ACCEPTANCE.md](UPDATE-ACCEPTANCE.md).
 
 ## Required before stable v1
 
@@ -64,14 +69,11 @@ and remaining acceptance checks. Promote to stable only after those checks pass.
 
 ## Can follow v1
 
-- **Sparkle automatic updates.** Useful, but not required for an initial release
-  with a documented manual-update path. It needs a stable HTTPS feed, archive
-  signing, worker-aware installation, and update/recovery tests before enabling.
 - **Intel and additional macOS versions.** Add only when builds and acceptance
   tests support the claim.
 - **Further footprint reductions and features.** A replacement worker language,
   extra cleanup policies, additional integrations, and more rules can follow the
   core release. The bundled Signal dependency dominates current app size.
 
-The [distribution design](DISTRIBUTION.md) describes the proposed updater and
+The [distribution design](DISTRIBUTION.md) describes the implemented updater and
 hosting approach; this checklist defines the narrower initial-release gate.

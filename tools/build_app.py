@@ -17,6 +17,11 @@ import tempfile
 import urllib.request
 import venv
 
+try:
+    from tools import sparkle
+except ModuleNotFoundError:
+    import sparkle
+
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / 'build'
 APP = BUILD / 'Decrumb.app'
@@ -121,6 +126,7 @@ def validate_release_materials(folder, version, build_number, *, python_version=
             raise ValueError()
         inputs = manifest.get('app_inputs', {})
         if (inputs.get('signal_cli_bottle_sha256') != SIGNAL_SHA or
+                inputs.get('sparkle_distribution_sha256') != sparkle.SHA256 or
                 inputs.get('python_version') != (python_version or tooling_python_version()) or
                 inputs.get('requirements_build_sha256') != (requirements_hash or sha256(ROOT / 'tools/requirements-build.txt')) or
                 inputs.get('decrumb_source_sha256') != (source_hash or source_inventory_sha256(ROOT)) or
@@ -318,6 +324,9 @@ def main(argv=None):
     for directory in (macos, helpers, resources):
         directory.mkdir(parents=True)
     copy_runtime_components(BUILD, macos, helpers, resources)
+    sparkle_root = sparkle.distribution()
+    framework = sparkle.copy_framework(sparkle_root, APP)
+    shutil.copy2(sparkle_root / 'LICENSE', resources / 'Sparkle-LICENSE.txt')
     with tarfile.open(bottle) as archive:
         # Select only known files; never extract arbitrary archive paths.
         member = archive.getmember('signal-cli/0.14.8/bin/signal-cli')
@@ -350,12 +359,14 @@ def main(argv=None):
             'CFBundleVersion': options['build_number'], 'LSMinimumSystemVersion': minimum, 'LSUIElement': True,
             'NSHighResolutionCapable': True, 'CFBundleIconFile': 'AppIcon',
             'NSHumanReadableCopyright': 'Decrumb contributors. AGPL-3.0-only. See bundled licenses.'}
+    info.update(sparkle.configuration())
     with (contents / 'Info.plist').open('wb') as output:
         plistlib.dump(info, output)
     manifest = {'app_version': options['version'], 'build_number': options['build_number'],
                 'signal_cli_version': SIGNAL_VERSION, 'signal_cli_sha256': SIGNAL_SHA,
                 'signal_cli_package': 'arm64_sonoma', 'python_version': python_version,
                 'architecture': 'arm64', 'minimum_macos': minimum,
+                'sparkle_version': sparkle.VERSION, 'sparkle_sha256': sparkle.SHA256,
                 'signing': 'Developer ID' if signer else ('ad-hoc' if identity == '-' else 'custom development'),
                 'distribution': 'production-candidate' if signer else 'development', 'notarized': False,
                 'dependency_lock_sha256': sha256(ROOT / 'tools/release-dependencies.json'),
@@ -373,6 +384,10 @@ def main(argv=None):
         entitlements = ({'com.apple.security.cs.disable-library-validation': True}
                         if options['production'] and executable.name == 'signal-cli' else None)
         sign_code(executable, identity, options['production'], entitlements=entitlements)
+    for nested in sparkle.nested_code(framework):
+        sign_code(nested, identity, options['production'])
+        if options['production']:
+            verify_distribution_signature(nested, signer['team_id'])
     if options['production']:
         sign_code(APP, identity, True)
         for executable in (APP, helpers / 'signal-cli', helpers / 'url-cleaner', helpers / 'decrumb-worker'):

@@ -41,6 +41,7 @@ class ReleaseFixture(unittest.TestCase):
             'schema_version': 1, 'version': '1.0.0', 'build': '1', 'status': 'ready', 'blockers': [],
             'dependency_lock_sha256': builder.sha256(builder.ROOT / 'tools/release-dependencies.json'),
             'app_inputs': {'signal_cli_bottle_sha256': builder.SIGNAL_SHA,
+                           'sparkle_distribution_sha256': builder.sparkle.SHA256,
                            'python_version': builder.platform.python_version(),
                            'requirements_build_sha256': builder.sha256(builder.ROOT / 'tools/requirements-build.txt'),
                            'decrumb_source_sha256': 'd' * 64},
@@ -58,6 +59,7 @@ class ReleaseFixture(unittest.TestCase):
             (self.resources / 'Source' / name).write_text('# synthetic source\n')
         self.info = {'CFBundleIdentifier': 'com.matthew.decrumb.desktop', 'CFBundleShortVersionString': '1.0.0',
                      'CFBundleVersion': '1', 'LSMinimumSystemVersion': '26.4'}
+        self.info.update(packager.sparkle.configuration())
         with (self.app / 'Contents/Info.plist').open('wb') as output:
             plistlib.dump(self.info, output)
         self.build_manifest = {
@@ -383,7 +385,15 @@ class PackagingSequenceTests(ReleaseFixture):
                 with path.open('ab') as output:
                     output.write(b' stapled ticket')
 
-        with patch.object(packager, 'run', side_effect=command), \
+        def prepare_update(app, folder, stem, info, **kwargs):
+            paths = (folder / (stem + '-update.zip'), folder / (stem + '-appcast.xml'))
+            for path in paths:
+                path.write_bytes(b'synthetic signed update')
+            self.events.append(('prepare-update',))
+            return paths
+
+        with patch.object(packager.prepare_update, 'prepare', side_effect=prepare_update), \
+                patch.object(packager, 'run', side_effect=command), \
                 patch.object(builder, 'resolve_developer_identity', return_value=SIGNER), \
                 patch.object(packager, 'verify_app'), \
                 patch.object(builder, 'verify_native_helper'), \
@@ -391,7 +401,8 @@ class PackagingSequenceTests(ReleaseFixture):
                 patch.object(packager, 'notarize', side_effect=notarize), \
                 patch.object(packager, 'staple', side_effect=staple):
             return packager.package(self.app, self.output, production=production, identity=FINGERPRINT,
-                                    profile='synthetic-profile', materials_dir=self.materials)
+                                    profile='synthetic-profile', materials_dir=self.materials,
+                                    update_account='synthetic-updates', release_tag='v1.0.0')
 
     def test_release_orders_notarization_and_emits_complete_matching_assets(self):
         original = (self.resources / 'build-manifest.json').read_bytes()

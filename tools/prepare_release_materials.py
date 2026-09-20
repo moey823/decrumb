@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOCK = ROOT / "tools/release-dependencies.json"
 HEX = re.compile(r"[0-9a-f]{64}\Z")
 NOTICE = re.compile(r"^(?:LICEN[CS]E|COPYING|NOTICE|COPYRIGHT)(?:$|[._-])", re.I)
-SOURCE_FILES = ("decrumb.py", "notes.py", "desktop.py", "service.py", "build.py", "README.md",
+SOURCE_FILES = ("decrumb.py", "notes.py", "desktop.py", "service.py", "updater.py", "build.py", "README.md",
                 "CONTRIBUTING.md", "SECURITY.md", "LICENSE")
 SOURCE_DIRECTORIES = ("app", "swift", "rules", "tools", "tests", "docs", "branding")
 PRIVATE_SUFFIXES = {".pem", ".key", ".p8", ".p12", ".pfx", ".crt", ".cer", ".der", ".db", ".sqlite",
@@ -466,6 +466,7 @@ def main(argv=None):
                     "status": "blocked" if blockers else "ready", "files": files, "blockers": blockers,
                     "dependency_lock_sha256": digest(args.lock), "app_inputs": {
                         "signal_cli_bottle_sha256": lock["signal_cli_bottle_sha256"], "python_version": lock["python_version"],
+                        "sparkle_distribution_sha256": lock.get("sparkle_distribution_sha256"),
                         "decrumb_source_sha256": source_hash,
                         "requirements_build_sha256": digest(ROOT / "tools/requirements-build.txt")}}
         # Only producer-owned output subdirectories are replaced; no arbitrary deletion.

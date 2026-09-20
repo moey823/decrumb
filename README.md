@@ -105,9 +105,12 @@ python3 -B tools/package_dmg.py
 ```
 
 The image and SHA-256 checksum file stay under `build/`. This does not publish or
-notarize the app. In-app updates are not implemented yet; the recommended route
-is Sparkle 2 with hosted release assets and a stable HTTPS update feed. See
-[distribution plan](docs/DISTRIBUTION.md) for packaging, hosting and update design.
+notarize the app. The native app includes Check for Updates and optional automatic
+checks/downloads using Sparkle 2. Both automatic options start off. Signed updates
+replace the app and bundled helpers together while preserving the Signal account,
+queue, receipts, rules and pause preference. RC1 predates the updater and requires
+one manual installation of an updater-enabled release. See
+[distribution guide](docs/DISTRIBUTION.md) for packaging, hosting and recovery.
 
 ## Cleaning behavior
 

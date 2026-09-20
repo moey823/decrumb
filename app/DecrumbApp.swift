@@ -134,6 +134,7 @@ enum Backend {
     @Published var notesDirty = false
     @Published var notes: [GeneratedNote] = []
     @Published var noteCounts: [String: Int] = [:]
+    var updater: AppUpdater?
     let demo = CommandLine.arguments.contains("--demo") || CommandLine.arguments.contains("--demo-connected")
     private var pairProcess: Process?
     private var pairToken = UUID()
@@ -174,9 +175,15 @@ enum Backend {
             return
         }
         Task { [self] in
-            do { applySnapshot(try await Backend.request("bootstrap"), loadSettings: true) }
+            var updatePending = false
+            do {
+                let value = try await Backend.request("bootstrap")
+                applySnapshot(value, loadSettings: true)
+                updatePending = value["update_pending"] as? Bool ?? false
+            }
             catch { self.error = error.localizedDescription }
             loading = false
+            if updatePending { updater?.resumeInterruptedUpdate() }
             statusWatcher = WorkerStatusWatcher(root: Backend.root) { [weak self] in
                 Task { @MainActor in await self?.refresh() }
             }
@@ -246,6 +253,18 @@ enum Backend {
             defer { busy = false; onChange?() }
             do { applySnapshot(try await Backend.request(paused || !running ? "resume" : "pause")) }
             catch { self.error = error.localizedDescription }
+        }
+    }
+    func discardDrafts() {
+        guard !busy, !pairing else { return }
+        busy = true
+        Task {
+            defer { busy = false }
+            do {
+                applySnapshot(try await Backend.request("snapshot"), loadSettings: true)
+                notesDirty = false
+                notice = "Unsaved preferences discarded."
+            } catch { self.error = error.localizedDescription }
         }
     }
     func draft() -> Settings {
@@ -451,6 +470,7 @@ struct RootView: View {
                     navigation("rules", "Cleaning rules", "slider.horizontal.3")
                     navigation("notes", "Saved notes", "note.text")
                     navigation("preview", "Try a link", "wand.and.stars")
+                    navigation("updates", "App updates", "arrow.down.circle")
                 }
                 Spacer()
                 VStack(alignment: .leading, spacing: 8) {
@@ -466,7 +486,8 @@ struct RootView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
-                        if model.page == "overview" { overview }
+                        if model.page == "updates", let updater = model.updater { UpdatePreferences(updater: updater) }
+                        else if model.page == "overview" { overview }
                         else if model.page == "rules" { rules }
                         else if model.page == "notes" { savedNotes }
                         else { preview }
@@ -479,6 +500,7 @@ struct RootView: View {
                 if model.page == "rules" || model.page == "notes" {
                     Divider()
                     HStack {
+                        if model.dirty || model.notesDirty { Button("Discard changes") { model.discardDrafts() }.disabled(model.busy || model.pairing) }
                         Text((model.page == "notes" ? model.notesDirty : model.dirty) ? "Unsaved changes" : "Preferences saved").foregroundStyle(.secondary).font(.caption)
                         Spacer()
                         Button("Save settings") {
@@ -772,8 +794,11 @@ struct RootView: View {
     let model = AppModel()
     var window: NSWindow!
     var item: NSStatusItem!
+    var updater: AppUpdater!
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        updater = AppUpdater(model: model)
+        model.updater = updater
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.button?.image = NSImage(systemSymbolName: "link", accessibilityDescription: "Decrumb")
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 710), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
@@ -788,6 +813,7 @@ struct RootView: View {
         let appMenu = NSMenu()
         let showItem = appMenu.addItem(withTitle: "Open Decrumb", action: #selector(show), keyEquivalent: "o"); showItem.target = self
         let settingsItem = appMenu.addItem(withTitle: "Settings…", action: #selector(settings), keyEquivalent: ","); settingsItem.target = self
+        let updatesItem = appMenu.addItem(withTitle: "Check for Updates…", action: #selector(checkUpdates), keyEquivalent: ""); updatesItem.target = self
         appMenu.addItem(.separator())
         let quitItem = appMenu.addItem(withTitle: "Quit Decrumb", action: #selector(quit), keyEquivalent: "q"); quitItem.target = self
         appItem.submenu = appMenu; mainMenu.addItem(appItem)
@@ -812,6 +838,7 @@ struct RootView: View {
             let toggle = menu.addItem(withTitle: model.running ? "Pause cleaning" : "Resume cleaning", action: #selector(toggle), keyEquivalent: ""); toggle.target = self; toggle.isEnabled = !model.busy
         }
         let settings = menu.addItem(withTitle: "Settings…", action: #selector(settings), keyEquivalent: ","); settings.target = self
+        let updates = menu.addItem(withTitle: "Check for Updates…", action: #selector(checkUpdates), keyEquivalent: ""); updates.target = self; updates.isEnabled = updater?.canCheck == true
         menu.addItem(.separator())
         let quit = menu.addItem(withTitle: model.running ? "Quit interface (keep cleaning)" : "Quit Decrumb", action: #selector(quit), keyEquivalent: "q"); quit.target = self
         item.menu = menu
@@ -819,11 +846,12 @@ struct RootView: View {
     @objc func show() { NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil) }
     @objc func settings() { model.page = "rules"; show() }
     @objc func toggle() { model.toggle() }
+    @objc func checkUpdates() { updater.checkForUpdates() }
     @objc func quit() {
-        if model.pairing { model.cancelPairing() }
         NSApp.terminate(nil)
     }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if let reply = updater.shouldTerminate() { return reply }
         if model.pairing { model.cancelPairing() }
         return .terminateNow
     }

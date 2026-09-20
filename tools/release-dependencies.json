@@ -133,6 +133,14 @@
       "sha256": "c7bb28cc94b40dd0606507c5010008138193bc7773b86058756a26df1b957b6f",
       "submodule_of": "boring:boring-sys/deps/boringssl",
       "license": "See upstream notices"
+    },
+    {
+      "component": "sparkle",
+      "version": "2.10.0",
+      "license": "MIT AND BSD-2-Clause AND public-domain (see upstream LICENSE)",
+      "filename": "Sparkle-2.10.0-source.tar.gz",
+      "url": "https://github.com/sparkle-project/Sparkle/archive/refs/tags/2.10.0.tar.gz",
+      "sha256": "cf43af1f26a921a8dc0be80834b9c3038bea5fd645708d26375126cbc57c316b"
     }
   ],
   "unresolved": [],
@@ -2531,5 +2539,6 @@
     "cargo": "All external packages in the libsignal workspace Cargo.lock, with registry checksums and pinned git archives, plus the exact BoringSSL submodule. This intentionally over-includes development/other-target dependencies.",
     "native_image": "Pinned GraalVM and Labs OpenJDK source plus exact historical Homebrew build recipe.",
     "frozen_python": "Native binary inventory from the frozen worker must match every locked Homebrew package/version. Exact source archives and installed build recipes are retained."
-  }
+  },
+  "sparkle_distribution_sha256": "c2bf58aa8387266ac179357b1415d6f2635f044da8be41042af32425dae6da0c"
 }

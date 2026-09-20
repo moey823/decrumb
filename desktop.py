@@ -12,6 +12,7 @@ import sys
 
 import service
 import decrumb
+import updater
 
 
 def emit(value):
@@ -87,7 +88,8 @@ def main():
     parser.add_argument('--root', type=Path, default=decrumb.DEFAULT_ROOT)
     parser.add_argument('--resources', type=Path, required=True)
     parser.add_argument('command', choices=['bootstrap', 'snapshot', 'pair', 'pause', 'resume', 'apply', 'preview', 'run',
-                                           'notes-list', 'notes-settings', 'clear-queue', 'cleanup', 'note-lifetime'])
+                                           'notes-list', 'notes-settings', 'clear-queue', 'cleanup', 'note-lifetime',
+                                           'update-prepare', 'update-abort', 'update-claim'])
     args = parser.parse_args()
     root, resources = args.root.expanduser().resolve(), args.resources.resolve()
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -109,87 +111,107 @@ def main():
     entry = [sys.executable] if getattr(sys, 'frozen', False) else [sys.executable, '-B', str(Path(__file__).resolve())]
     control = service.Service(root, entry + ['--root', str(root), '--resources', str(resources), 'run'])
 
-    def snapshot():
-        maintenance = decrumb.maintain_outbox(root)
-        value = decrumb.read_status(root, config)
-        if maintenance:
-            value.update(maintenance)
-            value['needs_attention'] = (value['needs_attention'] or bool(value['counts'].get('uncertain')) or
-                                        any(v for k, v in value['metrics'].items() if k != 'last_sent_at'))
-        value.update({'settings': config['settings'], 'paused': config.get('paused', False),
-                      'start_at_login': config.get('start_at_login', True),
-                      'notes_options': decrumb.notes_settings(config.get('notes'))})
-        value['note_counts'] = decrumb.read_notes(root / 'outbox.sqlite3')['note_counts']
-        value['needs_attention'] = value['needs_attention'] or any(
-            value['note_counts'].get(key, 0) for key in ('delete_uncertain', 'cleanup_failed', 'account_mismatch'))
-        # No account identifiers or key paths are returned to the interface.
-        return value
+    with contextlib.ExitStack() as operations:
+        if args.command not in ('snapshot', 'preview', 'notes-list', 'run'):
+            operations.enter_context(updater.operation(root))
+            if args.command not in ('bootstrap', 'update-prepare', 'update-abort', 'update-claim'):
+                updater.guard(root)
+        def snapshot():
+            maintenance = decrumb.maintain_outbox(root)
+            value = decrumb.read_status(root, config)
+            if maintenance:
+                value.update(maintenance)
+                value['needs_attention'] = (value['needs_attention'] or bool(value['counts'].get('uncertain')) or
+                                            any(v for k, v in value['metrics'].items() if k != 'last_sent_at'))
+            value.update({'settings': config['settings'], 'paused': config.get('paused', False),
+                          'start_at_login': config.get('start_at_login', True),
+                          'notes_options': decrumb.notes_settings(config.get('notes'))})
+            value['note_counts'] = decrumb.read_notes(root / 'outbox.sqlite3')['note_counts']
+            value['needs_attention'] = value['needs_attention'] or any(
+                value['note_counts'].get(key, 0) for key in ('delete_uncertain', 'cleanup_failed', 'account_mismatch'))
+            # No account identifiers or key paths are returned to the interface.
+            return value
 
-    def use_bundled_paths():
-        config['helper'], config['signal_cli'] = str(helper), str(signal_cli)
+        def use_bundled_paths():
+            config['helper'], config['signal_cli'] = str(helper), str(signal_cli)
 
-    if args.command in ('bootstrap', 'snapshot'):
-        emit(snapshot())
-    elif args.command == 'notes-list':
-        emit(decrumb.read_notes(root / 'outbox.sqlite3'))
-    elif args.command in ('notes-settings', 'clear-queue', 'cleanup', 'note-lifetime'):
-        value = {} if args.command == 'clear-queue' else request()
-        result = change_notes(root, config, control, args.command, value)
-        emit({**snapshot(), **decrumb.read_notes(root / 'outbox.sqlite3'), **result})
-    elif args.command == 'preview':
-        value = request()
-        text = value.get('text', '')
-        if not isinstance(text, str) or len(text.encode()) > 64 * 1024:
-            raise decrumb.SafeError('Sample exceeds 64 KiB.')
-        emit(decrumb.clean_result(helper, text, value.get('settings', config['settings'])))
-    elif args.command == 'pair':
-        # Pairing shares the lock with the worker; never forcibly unlinks an account.
-        with decrumb.exclusive(root):
+        if args.command == 'update-claim':
+            emit(updater.claim(root))
+        elif args.command == 'update-prepare':
+            emit(updater.prepare(root, control, resources, request().get('target_build')))
+        elif args.command == 'update-abort':
+            updater.recover(root, resources, control, token=request().get('token'))
+            emit(snapshot())
+        elif args.command == 'bootstrap':
+            updater.recover(root, resources, control, bootstrap=True)
+            config = decrumb.load_config(root, validate_helper=False)
+            emit({**snapshot(), 'update_pending': updater.marker(root) is not None})
+        elif args.command == 'snapshot':
+            emit(snapshot())
+        elif args.command == 'notes-list':
+            emit(decrumb.read_notes(root / 'outbox.sqlite3'))
+        elif args.command in ('notes-settings', 'clear-queue', 'cleanup', 'note-lifetime'):
+            value = {} if args.command == 'clear-queue' else request()
+            result = change_notes(root, config, control, args.command, value)
+            emit({**snapshot(), **decrumb.read_notes(root / 'outbox.sqlite3'), **result})
+        elif args.command == 'preview':
+            value = request()
+            text = value.get('text', '')
+            if not isinstance(text, str) or len(text.encode()) > 64 * 1024:
+                raise decrumb.SafeError('Sample exceeds 64 KiB.')
+            emit(decrumb.clean_result(helper, text, value.get('settings', config['settings'])))
+        elif args.command == 'pair':
+            # Pairing shares the lock with the worker; never forcibly unlinks an account.
+            with decrumb.exclusive(root):
+                use_bundled_paths()
+                decrumb.write_json(root / 'config.json', config)
+            decrumb.pair(root, config, lambda state: emit({'event': state}))
+        elif args.command == 'pause':
+            control.stop(disable_login=True)
+            with decrumb.exclusive(root):
+                config['paused'] = True
+                decrumb.write_json(root / 'config.json', config)
+                if decrumb.notes_settings(config.get('notes'))['discard_on_pause'] and (root / 'outbox.sqlite3').exists():
+                    with contextlib.closing(decrumb.Store(root / 'outbox.sqlite3')) as store:
+                        store.clear_pending()
+            emit(snapshot())
+        elif args.command == 'resume':
+            control.stop()
+            with decrumb.exclusive(root):
+                use_bundled_paths()
+                decrumb.clean(helper, '', config['settings'])
+                config['paused'] = False
+                decrumb.write_json(root / 'config.json', config)
+            control.start(config.get('start_at_login', False))
+            emit(snapshot())
+        elif args.command == 'apply':
+            value = request()
+            settings = decrumb.clean_result(helper, '', value.get('settings', {}))['settings']
+            login = value.get('start_at_login', False)
+            if type(login) is not bool:
+                raise decrumb.SafeError('Start at login must be on or off.')
+            was_running = not config.get('paused', False) and bool(config.get('account'))
+            control.stop(disable_login=True)
             use_bundled_paths()
-            decrumb.write_json(root / 'config.json', config)
-        decrumb.pair(root, config, lambda state: emit({'event': state}))
-    elif args.command == 'pause':
-        control.stop(disable_login=True)
-        with decrumb.exclusive(root):
-            config['paused'] = True
-            decrumb.write_json(root / 'config.json', config)
-            if decrumb.notes_settings(config.get('notes'))['discard_on_pause'] and (root / 'outbox.sqlite3').exists():
-                with contextlib.closing(decrumb.Store(root / 'outbox.sqlite3')) as store:
-                    store.clear_pending()
-        emit(snapshot())
-    elif args.command == 'resume':
-        control.stop()
-        with decrumb.exclusive(root):
-            use_bundled_paths()
-            decrumb.clean(helper, '', config['settings'])
-            config['paused'] = False
-            decrumb.write_json(root / 'config.json', config)
-        control.start(config.get('start_at_login', False))
-        emit(snapshot())
-    elif args.command == 'apply':
-        value = request()
-        settings = decrumb.clean_result(helper, '', value.get('settings', {}))['settings']
-        login = value.get('start_at_login', False)
-        if type(login) is not bool:
-            raise decrumb.SafeError('Start at login must be on or off.')
-        was_running = not config.get('paused', False) and bool(config.get('account'))
-        control.stop(disable_login=True)
-        use_bundled_paths()
-        config['start_at_login'] = login
-        configure(root, config, settings)
-        app_executable = resources.parent / 'MacOS/Decrumb'
-        service.configure_app_login(app_executable, login)
-        if was_running:
-            control.start(login)
-        emit(snapshot())
-    elif args.command == 'run':
-        if config.get('paused', False):
-            return
-        handler = RotatingFileHandler(root / 'worker.log', maxBytes=128 * 1024, backupCount=2)
-        handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
-        decrumb.LOG.addHandler(handler)
-        decrumb.LOG.setLevel(logging.INFO)
-        decrumb.run(root, decrumb.load_config(root))
+            config['start_at_login'] = login
+            configure(root, config, settings)
+            app_executable = resources.parent / 'MacOS/Decrumb'
+            service.configure_app_login(app_executable, login)
+            if was_running:
+                control.start(login)
+            emit(snapshot())
+        elif args.command == 'run':
+            # The worker owns worker.lock, not operation.lock: its parent may
+            # still be in a serialized resume/recovery command while spawning it.
+            # decrumb.run checks the transition after acquiring worker.lock.
+            config = decrumb.load_config(root, validate_helper=False)
+            if config.get('paused', False):
+                return
+            handler = RotatingFileHandler(root / 'worker.log', maxBytes=128 * 1024, backupCount=2)
+            handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
+            decrumb.LOG.addHandler(handler)
+            decrumb.LOG.setLevel(logging.INFO)
+            decrumb.run(root, decrumb.load_config(root))
 
 
 if __name__ == '__main__':
