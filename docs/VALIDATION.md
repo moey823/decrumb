@@ -54,6 +54,13 @@ Python 3.14.6, PyInstaller 6.22.3, bundled native signal-cli 0.14.8.
   26.4, using a temporary copy built with an explicit 26.4 deployment target.
   The copy was removed afterward. No application was installed or real runtime
   opened during this compatibility test.
+- Release candidate 1.0.0, build 1, is Developer ID signed using the personal
+  publisher team. Apple accepted both app and DMG submissions. Both tickets were
+  stapled and validated, and Gatekeeper accepted the app and image. The hosted
+  66,800,212-byte DMG SHA-256 is
+  `e0a937e3b2e2694a0b573b9fdfa65fc811b7b0bf5abbbb0fee0828d5794b53af`.
+  The release tag `v1.0.0-rc.1` identifies its source commit and matching materials;
+  subsequent documentation updates do not alter those immutable artifacts.
 
 macOS graphics and process semaphore operations need normal OS access. The
 restricted tool sandbox failed QR rendering and frozen-runtime startup; both
@@ -72,5 +79,5 @@ are offline remain unverified; the interface describes requests as best effort.
 The release candidate targets Apple Silicon and macOS 26.4 or later. Packaged
 worker checks pass on macOS 26.4 and 27.0; the native interface was inspected on
 27.0. Downloaded installation, real-account behavior, and interface acceptance
-on 26.4 remain separate release checks. Public release also requires successful
-Developer ID signing and Apple notarization of the exact distributed artifact.
+on 26.4 remain separate release checks. Candidate signing and notarization have
+completed successfully; real-device acceptance remains before stable release.

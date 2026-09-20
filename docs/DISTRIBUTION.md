@@ -1,11 +1,10 @@
 # Decrumb distribution and updates
 
-Release plan, 2026-09-20. Development and production packaging paths are implemented. The
-public launch shares source and information pages; the consumer app download is
-**coming soon**. The production path requires an available publisher identity,
-complete source materials, and successful Apple notarization; implementation of
-the path does not mean a production artifact has been produced or tested. See
-[V1-READINESS.md](V1-READINESS.md) for the initial-release gate.
+Release status, 2026-09-20. [Decrumb 1.0.0 RC1](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.1)
+is published with a 66.8 MB Developer ID signed, Apple-notarized and stapled DMG,
+matching corresponding-source archive, checksums, and release receipt. The app
+and DMG passed Gatekeeper assessment. Downloaded installation and real-device
+acceptance precede stable v1; see [V1-READINESS.md](V1-READINESS.md).
 
 ## Installation
 

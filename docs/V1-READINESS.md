@@ -1,8 +1,8 @@
 # Decrumb v1 readiness
 
-Status recorded 2026-09-20. The project is ready to share as open-source
-development work. **The consumer-ready DMG is coming soon**, by release-owner
-choice; a local development image is not presented as a finished public installer.
+Status recorded 2026-09-20. **[Decrumb 1.0.0 RC1 is available](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.1)**
+for download and installation testing. This signed, notarized candidate is a
+prerelease; real-device acceptance remains before stable v1.
 
 ## Completed
 
@@ -32,21 +32,22 @@ choice; a local development image is not presented as a finished public installe
 - The dependency collector has verified corresponding sources, build materials,
   and required notices with no unresolved dependency gaps. Every production
   build must regenerate or validate the packet against its exact source inputs.
+- The actual app and DMG are signed with the publisher's personal Developer ID,
+  accepted by Apple notarization, stapled, and accepted by Gatekeeper. All five
+  uploaded assets match their local SHA-256 hashes, including the matching
+  complete-source archive and release receipt.
 
-## Required before the consumer download
+## Required before stable v1
 
-1. **Distribution signing and notarization.** Configure Developer ID signing and
-   appropriate hardened-runtime settings for nested executables; notarize and
-   staple the release artifacts. Validate a downloaded installation under normal
-   Gatekeeper settings on a clean Mac.
+1. **Downloaded installation.** Validate the hosted candidate under normal
+   Gatekeeper settings on a clean Mac, including first launch from Applications.
 2. **An explicit supported platform.** Choose and test the minimum macOS version
    against the GUI and every bundled executable. The candidate targets Apple
    Silicon and macOS 26.4 or later. Packaged worker checks pass on 26.4 and 27.0;
    downloaded installation and interface acceptance on 26.4 remain to be checked.
-3. **Publish redistributable dependency materials.** Ship the verified
-   corresponding-source packet and notices beside the matching binary release.
-   An upstream source link alone is not the binary release's source package.
-   See [THIRD-PARTY.md](THIRD-PARTY.md).
+3. **Keep release materials matched.** The corresponding-source packet is
+   published beside this candidate. Rebuild and republish matching materials
+   when code or bundled dependencies change. See [THIRD-PARTY.md](THIRD-PARTY.md).
 4. **Real-device acceptance.** On an explicitly authorized test account, verify
    linking, ordinary incoming links, privacy exclusions, sender attribution,
    Note to Self delivery, manual and scheduled removal, offline recovery,
@@ -58,10 +59,8 @@ choice; a local development image is not presented as a finished public installe
    rules, receipts, queued work, and pause preference. Document how to recover
    from an interrupted upgrade without unlinking the account.
 
-The download page should state the actual supported OS and architecture and link
-only to a completed release. Until then it should say **coming soon** and offer
-the source and development instructions without implying a notarized installer
-is available.
+The download page identifies the candidate status, architecture, minimum OS,
+and remaining acceptance checks. Promote to stable only after those checks pass.
 
 ## Can follow v1
 

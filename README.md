@@ -13,12 +13,13 @@ The app includes its own Python worker, Swift URL cleaner, and pinned native
 Signal CLI. Users do not install Python, Java, Homebrew, or Signal CLI separately.
 There is no hosted service, AI provider, browser UI, or local listening port.
 
-**Consumer-ready DMG: coming soon.** The source is available for development;
-the current packaged app is a development build. See
-[v1 readiness](docs/V1-READINESS.md) for completed checks and remaining release work.
+**[Download the signed release candidate](https://mkships.app/decrumb/download/).**
+Decrumb 1.0.0 RC1 is a 66.8 MB, Apple-notarized download for Apple Silicon and
+macOS 26.4 or later. Installation and real-device acceptance testing are underway
+before stable v1. See [v1 readiness](docs/V1-READINESS.md) for the remaining checks.
 
 [Website](https://mkships.app/decrumb/) ·
-[Download status](https://mkships.app/decrumb/download/) ·
+[Download](https://mkships.app/decrumb/download/) ·
 [Source ZIP](https://github.com/moey823/decrumb/archive/refs/heads/main.zip) ·
 [Contributing](CONTRIBUTING.md)
 
