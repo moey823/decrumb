@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Verify the packaged app using only temporary synthetic data and fake Signal."""
+"""Verify a packaged app with synthetic fixtures and an isolated empty native CLI."""
+import argparse
 import contextlib
 import json
 import os
@@ -14,20 +15,22 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import sidelet
 
-APP = ROOT / 'build/Decrumb.app'
-HELPERS = APP / 'Contents/Helpers'
 ENV = {**os.environ, 'PATH': '/usr/bin:/bin'}
 
 
-def main():
-    subprocess.run(['/usr/bin/codesign', '--verify', '--deep', '--strict', str(APP)], check=True)
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--app', type=Path, default=ROOT / 'build/Decrumb.app')
+    app = parser.parse_args(argv).app.resolve()
+    helpers = app / 'Contents/Helpers'
+    subprocess.run(['/usr/bin/codesign', '--verify', '--deep', '--strict', str(app)], check=True)
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory) / 'runtime'
         resources = Path(directory) / 'helpers'
         resources.mkdir()
         for name in ('url-cleaner', 'rules.json'):
-            (resources / name).symlink_to(HELPERS / name)
-        command = [str(HELPERS / 'sidelet-worker'), '--root', str(root), '--resources', str(resources)]
+            (resources / name).symlink_to(helpers / name)
+        command = [str(helpers / 'sidelet-worker'), '--root', str(root), '--resources', str(resources)]
         def call(name, payload=None):
             result = subprocess.run(command + [name], input=json.dumps(payload).encode() if payload else None,
                                     capture_output=True, check=True, env=ENV, timeout=20)
@@ -155,9 +158,17 @@ for line in sys.stdin:
         assert ledger['note_counts']['deletion_requested'] == 1
         assert call('snapshot')['counts'] == {'sent': 1}
         print('Packaged receipt metadata and self-only targeted removal acknowledgement passed with fake Signal.')
-    result = subprocess.run([str(HELPERS / 'signal-cli'), '--version'], capture_output=True, check=True, env=ENV, timeout=30)
+    result = subprocess.run([str(helpers / 'signal-cli'), '--version'], capture_output=True, check=True, env=ENV, timeout=30)
     assert result.stdout.strip() == b'signal-cli 0.14.8'
-    print('Bundled native Signal CLI version verified; no account was opened.')
+    with tempfile.TemporaryDirectory(prefix='decrumb-native-smoke-') as directory:
+        # Native-image libraries are loaded here, unlike --version. Explicit empty
+        # config keeps the real linked account outside this packaging check.
+        result = subprocess.run([str(helpers / 'signal-cli'), '--config', str(Path(directory) / 'empty-state'),
+                                 '--output', 'json', 'listAccounts'], capture_output=True,
+                                check=True, env=ENV, timeout=30)
+        assert result.stdout.strip() == b'[]', 'Isolated native Signal check did not return an empty account list'
+        assert not result.stderr, 'Isolated native Signal check emitted an unexpected diagnostic'
+    print('Bundled native Signal CLI version and library loading verified with an isolated empty configuration.')
 
 
 if __name__ == '__main__':

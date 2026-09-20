@@ -11,7 +11,7 @@ choice; a local development image is not presented as a finished public installe
 - The standalone Apple Silicon app packages its Python worker, Swift cleaner,
   and checksum-verified signal-cli 0.14.8 dependency. Development signing and
   recursive signature verification pass.
-- The recorded full offline run passed **72 Python tests**. Native status tests
+- The recorded full offline run passed **110 Python tests**. Native status tests
   also passed. See [VALIDATION.md](VALIDATION.md) for the tested scope and limits.
 - Packaged smoke tests use synthetic data and fake Signal to exercise pairing
   cancellation, incoming-message filtering, deduplication, attributed notes,
@@ -25,6 +25,13 @@ choice; a local development image is not presented as a finished public installe
   the source checkout and app bundle.
 - Local development DMG packaging creates an Applications shortcut, verifies the
   image and app signature, and writes a SHA-256 checksum sidecar.
+- An explicit production packaging path supports Developer ID signing, hardened
+  runtime, version/build and deployment-target inputs, source-material checks,
+  Apple notarization/stapling, and Gatekeeper assessment. These checks must pass
+  on the actual release; a successful mocked packaging test is not a notarization.
+- The dependency collector has verified corresponding sources, build materials,
+  and required notices with no unresolved dependency gaps. Every production
+  build must regenerate or validate the packet against its exact source inputs.
 
 ## Required before the consumer download
 
@@ -33,20 +40,20 @@ choice; a local development image is not presented as a finished public installe
    staple the release artifacts. Validate a downloaded installation under normal
    Gatekeeper settings on a clean Mac.
 2. **An explicit supported platform.** Choose and test the minimum macOS version
-   against the GUI and every bundled executable. Current development packaging
-   declares macOS 27.0 and Apple Silicon because that is the tested build host;
-   it does not establish support for earlier versions or Intel.
-3. **Complete redistributable dependency materials.** Prepare corresponding
-   source/build materials and required notices for bundled copyleft components,
-   Python, and other dependencies. An upstream source link alone is not the
-   binary release's source package. See [THIRD-PARTY.md](THIRD-PARTY.md).
+   against the GUI and every bundled executable. The candidate targets Apple
+   Silicon and macOS 26.4 or later. Packaged worker checks pass on 26.4 and 27.0;
+   downloaded installation and interface acceptance on 26.4 remain to be checked.
+3. **Publish redistributable dependency materials.** Ship the verified
+   corresponding-source packet and notices beside the matching binary release.
+   An upstream source link alone is not the binary release's source package.
+   See [THIRD-PARTY.md](THIRD-PARTY.md).
 4. **Real-device acceptance.** On an explicitly authorized test account, verify
    linking, ordinary incoming links, privacy exclusions, sender attribution,
    Note to Self delivery, manual and scheduled removal, offline recovery,
    login startup, and pause persistence. Confirm how deleted-message markers
    appear. Fake-Signal tests cannot establish these outcomes.
-5. **A reproducible release identity and recovery path.** Make app version/build
-   numbers explicit release inputs, publish checksums and release notes, and
+5. **A reproducible release identity and recovery path.** Select the explicit
+   app version/build inputs, publish checksums and release notes, and
    verify manual replacement of an existing app preserves the linked account,
    rules, receipts, queued work, and pause preference. Document how to recover
    from an interrupted upgrade without unlinking the account.

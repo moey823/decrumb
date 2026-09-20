@@ -73,7 +73,10 @@ and generated artifacts stay under ignored `build/`. The result is
 
 The packaged smoke test uses an isolated temporary runtime and fake Signal
 process. It tests onboarding cancellation, cleanup, duplicate suppression and
-shutdown; the real bundled Signal executable runs only with `--version`.
+shutdown. The real bundled Signal executable runs `--version` and lists accounts
+using an isolated empty configuration, verifying native library loading without
+opening an existing account. Use `--app /Applications/Decrumb.app` to run these
+same synthetic checks against an installed copy.
 macOS CoreImage and PyInstaller's process semaphores require ordinary OS access;
 a restrictive execution sandbox can fail QR/packaged tests independently of the
 app. The source worker tests use only synthetic offline fixtures.

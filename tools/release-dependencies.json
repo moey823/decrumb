@@ -1,0 +1,2535 @@
+{
+  "schema_version": 1,
+  "signal_cli_bottle_sha256": "3d77c18866fca4366128b2e716c5cffc63ae937af65172e197594d0802faddea",
+  "python_version": "3.14.6",
+  "frozen_libraries": {
+    "python@3.14": "3.14.6",
+    "mpdecimal": "4.0.1",
+    "openssl@3": "3.6.3",
+    "zstd": "1.5.7_1",
+    "xz": "5.8.3",
+    "sqlite": "3.53.4"
+  },
+  "sources": [
+    {
+      "component": "signal-cli",
+      "version": "0.14.8",
+      "license": "GPL-3.0-or-later",
+      "filename": "signal-cli-0.14.8.tar.gz",
+      "url": "https://github.com/AsamK/signal-cli/archive/refs/tags/v0.14.8.tar.gz",
+      "sha256": "acc8d89463b5cdce2cf81ad00e91caf5aec37aab2d5f57d722139f254c0fd816"
+    },
+    {
+      "component": "libsignal",
+      "version": "0.102.1",
+      "license": "AGPL-3.0-only",
+      "filename": "libsignal-0.102.1.tar.gz",
+      "url": "https://github.com/signalapp/libsignal/archive/refs/tags/v0.102.1.tar.gz",
+      "sha256": "6dfd78963083917bf03814243a1e60086a62f3fb5dbb755c194db73dd958f810"
+    },
+    {
+      "component": "cpython",
+      "version": "3.14.6",
+      "license": "Python-2.0",
+      "filename": "Python-3.14.6.tar.xz",
+      "url": "https://www.python.org/ftp/python/3.14.6/Python-3.14.6.tar.xz",
+      "sha256": "143b1dddefaec3bd2e21e3b839b34a2b7fb9842272883c576420d605e9f30c63"
+    },
+    {
+      "component": "pyinstaller",
+      "version": "6.22.3",
+      "license": "GPL-2.0-or-later WITH Bootloader-exception AND Apache-2.0",
+      "filename": "pyinstaller-6.22.3.tar.gz",
+      "url": "https://files.pythonhosted.org/packages/63/41/f90302845945abd4ed647933ff5ee7c6ac93983187be67f897b6cb613331/pyinstaller-6.22.3.tar.gz",
+      "sha256": "05eb2f5615503e72939a7224d68b4aff572c6b0438ee4a17d0a4b481f399362d"
+    },
+    {
+      "component": "mpdecimal",
+      "version": "4.0.1",
+      "license": "BSD-2-Clause",
+      "filename": "mpdecimal-4.0.1.tar.gz",
+      "url": "https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-4.0.1.tar.gz",
+      "sha256": "96d33abb4bb0070c7be0fed4246cd38416188325f820468214471938545b1ac8"
+    },
+    {
+      "component": "openssl",
+      "version": "3.6.3",
+      "license": "Apache-2.0",
+      "filename": "openssl-3.6.3.tar.gz",
+      "url": "https://github.com/openssl/openssl/releases/download/openssl-3.6.3/openssl-3.6.3.tar.gz",
+      "sha256": "243a86649cf6f23eeb6a2ff2456e09e5d77dd9018a54d3d96b0c6bdd6ba6c7f1"
+    },
+    {
+      "component": "zstd",
+      "version": "1.5.7",
+      "license": "BSD-3-Clause OR GPL-2.0-only",
+      "filename": "zstd-1.5.7.tar.gz",
+      "url": "https://github.com/facebook/zstd/archive/refs/tags/v1.5.7.tar.gz",
+      "sha256": "37d7284556b20954e56e1ca85b80226768902e2edabd3b649e9e72c0c9012ee3"
+    },
+    {
+      "component": "xz",
+      "version": "5.8.3",
+      "license": "See upstream COPYING and file-level notices",
+      "filename": "xz-5.8.3.tar.gz",
+      "url": "https://github.com/tukaani-project/xz/releases/download/v5.8.3/xz-5.8.3.tar.gz",
+      "sha256": "3d3a1b973af218114f4f889bbaa2f4c037deaae0c8e815eec381c3d546b974a0"
+    },
+    {
+      "component": "sqlite",
+      "version": "3.53.4",
+      "license": "blessing",
+      "filename": "sqlite-autoconf-3530400.tar.gz",
+      "url": "https://www.sqlite.org/2026/sqlite-autoconf-3530400.tar.gz",
+      "sha256": "0e9483900e92cd5de8fd48d16bf9200145a61f7fd5be542a5ac81d8a9516eb9c"
+    },
+    {
+      "component": "graalvm",
+      "version": "25.3.4.1",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "filename": "graal-25.3.4.1.tar.gz",
+      "url": "https://github.com/oracle/graal/archive/refs/tags/graal-25.3.4.1.tar.gz",
+      "sha256": "b23958094838298a9959d6f189f064915504ba2dd827c07c14fab0febd9e2d8c"
+    },
+    {
+      "component": "labs-openjdk",
+      "version": "jvmci-25.3-b22",
+      "license": "GPL-2.0-only WITH Classpath-exception-2.0",
+      "filename": "labs-openjdk-jvmci-25.3-b22.tar.gz",
+      "url": "https://github.com/graalvm/labs-openjdk/archive/refs/tags/jvmci-25.3-b22.tar.gz",
+      "sha256": "b93afb50b186b69d15c573706fb00d326a35f1a7f05f76b3dd4ac4201df2d98e"
+    },
+    {
+      "component": "signal-service",
+      "version": "2.15.3_unofficial_153",
+      "license": "GPL-3.0-only",
+      "filename": "signal-service-2.15.3_unofficial_153.tar.gz",
+      "url": "https://github.com/Turasa/libsignal-service-java/archive/refs/tags/v2.15.3_unofficial_153.tar.gz",
+      "sha256": "2d255594c1d069347444de557bfe00c1d2587a25647485a32f66a789488e897d"
+    },
+    {
+      "component": "boring",
+      "version": "1405df0a23a0335618f88ed328c76f67646b088f",
+      "filename": "boring-1405df0a23a0335618f88ed328c76f67646b088f.tar.gz",
+      "url": "https://github.com/signalapp/boring/archive/1405df0a23a0335618f88ed328c76f67646b088f.tar.gz",
+      "sha256": "721f8ae0d52ff1b77cfd0579ff305f05df9cddaeea8212b2113a05c0b56b8d66",
+      "cargo_source": "git+https://github.com/signalapp/boring?tag=signal-v5.2.0#1405df0a23a0335618f88ed328c76f67646b088f",
+      "license": "See upstream notices"
+    },
+    {
+      "component": "spqr",
+      "version": "fd320484dcec89004021e6fdc7481825f5f261fa",
+      "filename": "spqr-fd320484dcec89004021e6fdc7481825f5f261fa.tar.gz",
+      "url": "https://github.com/signalapp/SparsePostQuantumRatchet/archive/fd320484dcec89004021e6fdc7481825f5f261fa.tar.gz",
+      "sha256": "16d181182ea4f176403952aa9ec7c71314efea0210a207cce7edb5618084b350",
+      "cargo_source": "git+https://github.com/signalapp/SparsePostQuantumRatchet.git?tag=v1.5.3#fd320484dcec89004021e6fdc7481825f5f261fa",
+      "license": "See upstream notices"
+    },
+    {
+      "component": "boringssl",
+      "version": "e2a57cfb4d915b4ba820585aef9fdee7bca13fe5",
+      "filename": "boringssl-e2a57cfb4d915b4ba820585aef9fdee7bca13fe5.tar.gz",
+      "url": "https://github.com/google/boringssl/archive/e2a57cfb4d915b4ba820585aef9fdee7bca13fe5.tar.gz",
+      "sha256": "c7bb28cc94b40dd0606507c5010008138193bc7773b86058756a26df1b957b6f",
+      "submodule_of": "boring:boring-sys/deps/boringssl",
+      "license": "See upstream notices"
+    }
+  ],
+  "unresolved": [],
+  "materials": [
+    {
+      "component": "graalvm",
+      "filename": "graalvm.rb",
+      "role": "build_recipe",
+      "url": "https://raw.githubusercontent.com/Homebrew/homebrew-core/87b31c623462c05a194d2d73a964e25cfe1ab9a0/Formula/g/graalvm.rb",
+      "sha256": "df125706770ae0d1e5e69d21004b36b2e72974cfe3b4feee4732059ee958a5ef"
+    },
+    {
+      "component": "signal-network",
+      "filename": "signal-network-2.15.3_unofficial_153.pom",
+      "role": "inventory",
+      "url": "https://repo.maven.apache.org/maven2/com/github/turasa/signal-network/2.15.3_unofficial_153/signal-network-2.15.3_unofficial_153.pom",
+      "sha256": "1eeaf656da6fe666b7bbedeff80a2c8dfa85837583f5854e90e08a8f1f7e74dc"
+    },
+    {
+      "component": "net.sourceforge.argparse4j:argparse4j-root:0.9.0",
+      "filename": "net.sourceforge.argparse4j_argparse4j-root-0.9.0.pom",
+      "url": "https://repo.maven.apache.org/maven2/net/sourceforge/argparse4j/argparse4j-root/0.9.0/argparse4j-root-0.9.0.pom",
+      "sha256": "0c8dd4a71d6fe7a3c48bc4d965948e12260d21ed6577eea59c8359ed44d0aaad",
+      "role": "inventory"
+    },
+    {
+      "component": "com.google.zxing:zxing-parent:3.5.4",
+      "filename": "com.google.zxing_zxing-parent-3.5.4.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/google/zxing/zxing-parent/3.5.4/zxing-parent-3.5.4.pom",
+      "sha256": "9133f322d86101c5c478c08ea3d6734dc376423937ddab1aa2a06aae24fc85c9",
+      "role": "inventory"
+    },
+    {
+      "component": "com.github.hypfvieh:dbus-java-parent:5.0.0",
+      "filename": "com.github.hypfvieh_dbus-java-parent-5.0.0.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/github/hypfvieh/dbus-java-parent/5.0.0/dbus-java-parent-5.0.0.pom",
+      "sha256": "24eced1582d9b2ac3f2c424e89c1a339515f7950dba2ad60df7d913b19b54a9f",
+      "role": "inventory"
+    },
+    {
+      "component": "org.slf4j:slf4j-parent:2.0.19",
+      "filename": "org.slf4j_slf4j-parent-2.0.19.pom",
+      "url": "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-parent/2.0.19/slf4j-parent-2.0.19.pom",
+      "sha256": "452831ef96fbebe64d855dd5c98ec6086d7478a9e568422c8343c6da00b2750d",
+      "role": "inventory"
+    },
+    {
+      "component": "org.slf4j:slf4j-bom:2.0.19",
+      "filename": "org.slf4j_slf4j-bom-2.0.19.pom",
+      "url": "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-bom/2.0.19/slf4j-bom-2.0.19.pom",
+      "sha256": "e14a9ab180f60247f347de369b7a44ccd591d0c47f4d96bc644056c4f83b51a0",
+      "role": "inventory"
+    },
+    {
+      "component": "com.googlecode.libphonenumber:libphonenumber-parent:9.0.29",
+      "filename": "com.googlecode.libphonenumber_libphonenumber-parent-9.0.29.pom",
+      "url": "https://repo.maven.apache.org/maven2/com/googlecode/libphonenumber/libphonenumber-parent/9.0.29/libphonenumber-parent-9.0.29.pom",
+      "sha256": "6a6b9023d6da2cfd96ad9d2e80f5a690e7cd0cc1cc61b587322510caf9e8bd16",
+      "role": "inventory"
+    },
+    {
+      "component": "ch.qos.logback:logback-parent:1.6.3",
+      "filename": "ch.qos.logback_logback-parent-1.6.3.pom",
+      "url": "https://repo.maven.apache.org/maven2/ch/qos/logback/logback-parent/1.6.3/logback-parent-1.6.3.pom",
+      "sha256": "dedded5245795552fc2d810533f33af8d0262bafcb0865797ac58b91da6b54ad",
+      "role": "inventory"
+    },
+    {
+      "component": "standard-license:Apache-2.0",
+      "filename": "standard-license-Apache-2.0.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/Apache-2.0.txt",
+      "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:BSD-3-Clause",
+      "filename": "standard-license-BSD-3-Clause.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/BSD-3-Clause.txt",
+      "sha256": "5a93d5831e1297ab10fe643e1a631e83be392896da14ee2951285a79012df69d",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:MIT",
+      "filename": "standard-license-MIT.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/MIT.txt",
+      "sha256": "b05785f9f18e6716bab63424b11454513b9943a222595b70411009202fc592b5",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:MIT-0",
+      "filename": "standard-license-MIT-0.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/MIT-0.txt",
+      "sha256": "59746d6285ffa44bfc7ecada352aa5d6a20dc8eab418a60ce091cc739012c135",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:EPL-1.0",
+      "filename": "standard-license-EPL-1.0.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/EPL-1.0.txt",
+      "sha256": "f3d8dc494be2e7ea9cd31ac2fb902e35dce7ff8181b9b30d05861b47c339cb25",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:EPL-2.0",
+      "filename": "standard-license-EPL-2.0.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/EPL-2.0.txt",
+      "sha256": "61616a4066701bc7888ad910de1633dbc55eb4d4d30d930feef55afb9492e33c",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:LGPL-2.1-only",
+      "filename": "standard-license-LGPL-2.1-only.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/LGPL-2.1-only.txt",
+      "sha256": "5749785c8bdefafcb5d798270ed0a967036fe2ca63dcedade1627565dfef81d2",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:LGPL-3.0-only",
+      "filename": "standard-license-LGPL-3.0-only.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/LGPL-3.0-only.txt",
+      "sha256": "996af0513df21f7496288951c41428a03c174e9e4a9d63665c57d670f845ccb1",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:GPL-2.0-only",
+      "filename": "standard-license-GPL-2.0-only.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/GPL-2.0-only.txt",
+      "sha256": "aaf135472f81c5b4a0dca9367e5bb5e9750032b5bebe5442b36e4c0a47430df3",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:GPL-3.0-only",
+      "filename": "standard-license-GPL-3.0-only.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/GPL-3.0-only.txt",
+      "sha256": "fb981668c18a279e285fc4d83fba1e836cc84dd4daa73c9697d3cfd2d8aca6e0",
+      "role": "notice"
+    },
+    {
+      "component": "standard-license:Classpath-exception-2.0",
+      "filename": "standard-license-Classpath-exception-2.0.txt",
+      "url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/Classpath-exception-2.0.txt",
+      "sha256": "f36ecd7d28dc3c49854d3908a3824696972aed34f5ffe426174f35fb03c5f194",
+      "role": "notice"
+    }
+  ],
+  "jvm_distribution": {
+    "component": "signal-cli-jvm-inventory",
+    "filename": "signal-cli-0.14.8-jvm-distribution.tar.gz",
+    "url": "https://github.com/AsamK/signal-cli/releases/download/v0.14.8/signal-cli-0.14.8.tar.gz",
+    "sha256": "ccd408e831eff7e41ebaaf309704840bb00d78a7869f35ad700dbae5b5a5bb65"
+  },
+  "jvm_artifacts": [
+    {
+      "filename": "HikariCP-7.1.0.jar",
+      "jar_sha256": "2be45c641b841e81df87292e181f2c203500c5f0e9a1676f135927387f3cf40b",
+      "artifact": "HikariCP",
+      "version": "7.1.0",
+      "group": "com.zaxxer",
+      "materials": [
+        {
+          "component": "com.zaxxer:HikariCP:7.1.0",
+          "filename": "HikariCP-7.1.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/zaxxer/HikariCP/7.1.0/HikariCP-7.1.0.pom",
+          "sha256": "5b8df2699933ea898aa50d4def4fc2226b15e6f4d993e373a16070f7ed480216",
+          "role": "inventory"
+        },
+        {
+          "component": "com.zaxxer:HikariCP:7.1.0",
+          "filename": "HikariCP-7.1.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/zaxxer/HikariCP/7.1.0/HikariCP-7.1.0-sources.jar",
+          "sha256": "b4ebc50e39b1f18f7add905232fd55c564539ed7890d8b20318836be339a4897",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "annotations-23.0.0.jar",
+      "jar_sha256": "7b0f19724082cbfcbc66e5abea2b9bc92cf08a1ea11e191933ed43801eb3cd05",
+      "artifact": "annotations",
+      "version": "23.0.0",
+      "group": "org.jetbrains",
+      "materials": [
+        {
+          "component": "org.jetbrains:annotations:23.0.0",
+          "filename": "annotations-23.0.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/23.0.0/annotations-23.0.0.pom",
+          "sha256": "c9490f655132328df2cfbcfdf743f53fc3916d6c1d10437175a6ca6e3a67771c",
+          "role": "inventory"
+        },
+        {
+          "component": "org.jetbrains:annotations:23.0.0",
+          "filename": "annotations-23.0.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/annotations/23.0.0/annotations-23.0.0-sources.jar",
+          "sha256": "ff2309b42f7584520497bb48bc609aca04c9886cf48708f14be83f00423ec144",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "argparse4j-0.9.0.jar",
+      "jar_sha256": "9eb3b54043038bc111bf0e15a8f69895244f92e3c2bc2800158578ca711f6117",
+      "artifact": "argparse4j",
+      "version": "0.9.0",
+      "group": "net.sourceforge.argparse4j",
+      "materials": [
+        {
+          "component": "net.sourceforge.argparse4j:argparse4j:0.9.0",
+          "filename": "argparse4j-0.9.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0.pom",
+          "sha256": "2aaf731b1df8f1985258c5202a7c1c0617f0e92715b35d5cd482c180aabb04b5",
+          "role": "inventory"
+        },
+        {
+          "component": "net.sourceforge.argparse4j:argparse4j:0.9.0",
+          "filename": "argparse4j-0.9.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/net/sourceforge/argparse4j/argparse4j/0.9.0/argparse4j-0.9.0-sources.jar",
+          "sha256": "db1ffc94cbf631bb2f977d3856ef9bf14957af15e77e945f5bb6dd2800d6a103",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "MIT",
+          "url": "https://raw.github.com/argparse4j/argparse4j/master/LICENSE.txt"
+        }
+      ]
+    },
+    {
+      "filename": "arrow-annotations-jvm-2.2.2.1.jar",
+      "jar_sha256": "579e6b6918fab3a2ce4fe7b72d70afdef71c4097ef075ca4fc5db032973b9040",
+      "artifact": "arrow-annotations-jvm",
+      "version": "2.2.2.1",
+      "group": "io.arrow-kt",
+      "materials": [
+        {
+          "component": "io.arrow-kt:arrow-annotations-jvm:2.2.2.1",
+          "filename": "arrow-annotations-jvm-2.2.2.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/arrow-kt/arrow-annotations-jvm/2.2.2.1/arrow-annotations-jvm-2.2.2.1.pom",
+          "sha256": "e2facaada8410c098a203e7cb79895317461379770fe3df39da39f15c807f72b",
+          "role": "inventory"
+        },
+        {
+          "component": "io.arrow-kt:arrow-annotations-jvm:2.2.2.1",
+          "filename": "arrow-annotations-jvm-2.2.2.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/arrow-kt/arrow-annotations-jvm/2.2.2.1/arrow-annotations-jvm-2.2.2.1-sources.jar",
+          "sha256": "a4825c79040982344bbceaf11cf9c8881cfe852ffd7fce3edc60d209f47cacdb",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "arrow-atomic-jvm-2.2.2.1.jar",
+      "jar_sha256": "4bda03d528a74ff76b215487afab361ef9038de5fef669de9f75e337f63d978e",
+      "artifact": "arrow-atomic-jvm",
+      "version": "2.2.2.1",
+      "group": "io.arrow-kt",
+      "materials": [
+        {
+          "component": "io.arrow-kt:arrow-atomic-jvm:2.2.2.1",
+          "filename": "arrow-atomic-jvm-2.2.2.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/arrow-kt/arrow-atomic-jvm/2.2.2.1/arrow-atomic-jvm-2.2.2.1.pom",
+          "sha256": "17c0b58763bd2c23c618e33f305f5f24e1bea528f50af68e82d1064aecb031a3",
+          "role": "inventory"
+        },
+        {
+          "component": "io.arrow-kt:arrow-atomic-jvm:2.2.2.1",
+          "filename": "arrow-atomic-jvm-2.2.2.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/arrow-kt/arrow-atomic-jvm/2.2.2.1/arrow-atomic-jvm-2.2.2.1-sources.jar",
+          "sha256": "1d1a7089d1028bc29b007a246b2e18c6318e023ac657fd45414f0e895b3abf51",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "arrow-core-jvm-2.2.2.1.jar",
+      "jar_sha256": "0c7fafac17508f5c50571b7b7730278852e928f0906883936e707d4520a4b557",
+      "artifact": "arrow-core-jvm",
+      "version": "2.2.2.1",
+      "group": "io.arrow-kt",
+      "materials": [
+        {
+          "component": "io.arrow-kt:arrow-core-jvm:2.2.2.1",
+          "filename": "arrow-core-jvm-2.2.2.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/arrow-kt/arrow-core-jvm/2.2.2.1/arrow-core-jvm-2.2.2.1.pom",
+          "sha256": "00de18d1e84726cac426c7c31685f9255c0eb6fc83d1b0990c1e7a674226357d",
+          "role": "inventory"
+        },
+        {
+          "component": "io.arrow-kt:arrow-core-jvm:2.2.2.1",
+          "filename": "arrow-core-jvm-2.2.2.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/arrow-kt/arrow-core-jvm/2.2.2.1/arrow-core-jvm-2.2.2.1-sources.jar",
+          "sha256": "339a4b555cfa264ae4571b700e3d5b4aad4560189ab918ddd8519238985ee930",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "arrow-exception-utils-jvm-2.2.2.1.jar",
+      "jar_sha256": "bd59b9e8b93e3006bb2c8849bd39238e0e9559fd2c0532678983644e56ffad16",
+      "artifact": "arrow-exception-utils-jvm",
+      "version": "2.2.2.1",
+      "group": "io.arrow-kt",
+      "materials": [
+        {
+          "component": "io.arrow-kt:arrow-exception-utils-jvm:2.2.2.1",
+          "filename": "arrow-exception-utils-jvm-2.2.2.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/arrow-kt/arrow-exception-utils-jvm/2.2.2.1/arrow-exception-utils-jvm-2.2.2.1.pom",
+          "sha256": "7a19cf2b7fe06ef748f14d717c3d815058e5c2878731ff891e718e23d13898b0",
+          "role": "inventory"
+        },
+        {
+          "component": "io.arrow-kt:arrow-exception-utils-jvm:2.2.2.1",
+          "filename": "arrow-exception-utils-jvm-2.2.2.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/arrow-kt/arrow-exception-utils-jvm/2.2.2.1/arrow-exception-utils-jvm-2.2.2.1-sources.jar",
+          "sha256": "48a77aa5172e6d37db75cf4a0322d64501396f44c2a80b793d7bf643045bd4cb",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "asm-9.9.1.jar",
+      "jar_sha256": "6f3828a215c920059a5efa2fb55c233d6c54ec5cadca99ce1b1bdd10077c7ddd",
+      "artifact": "asm",
+      "version": "9.9.1",
+      "group": "org.ow2.asm",
+      "materials": [
+        {
+          "component": "org.ow2.asm:asm:9.9.1",
+          "filename": "asm-9.9.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/ow2/asm/asm/9.9.1/asm-9.9.1.pom",
+          "sha256": "aca68dee9ba2f6cd90ffde728efdc7e3ebfcf59f3f41fbfe248d2d01d5b866af",
+          "role": "inventory"
+        },
+        {
+          "component": "org.ow2.asm:asm:9.9.1",
+          "filename": "asm-9.9.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/ow2/asm/asm/9.9.1/asm-9.9.1-sources.jar",
+          "sha256": "057e39aa1800b25bc8944846a376509990f49b7fe1e07192b1d6e48e1a780eb2",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "BSD-3-Clause",
+          "url": "https://asm.ow2.io/license.html"
+        }
+      ]
+    },
+    {
+      "filename": "bcprov-jdk18on-1.85.2.jar",
+      "jar_sha256": "986b0fb92ec10e0c66b43e036ce0077e6150cfaecd1db9fb92b56672e157afe5",
+      "artifact": "bcprov-jdk18on",
+      "version": "1.85.2",
+      "group": "org.bouncycastle",
+      "materials": [
+        {
+          "component": "org.bouncycastle:bcprov-jdk18on:1.85.2",
+          "filename": "bcprov-jdk18on-1.85.2.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/bouncycastle/bcprov-jdk18on/1.85.2/bcprov-jdk18on-1.85.2.pom",
+          "sha256": "774ffb514ef342d7e7543805944fec32e4da2c4292ba5d7d8560f05a65a7c2dd",
+          "role": "inventory"
+        },
+        {
+          "component": "org.bouncycastle:bcprov-jdk18on:1.85.2",
+          "filename": "bcprov-jdk18on-1.85.2-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/bouncycastle/bcprov-jdk18on/1.85.2/bcprov-jdk18on-1.85.2-sources.jar",
+          "sha256": "b37ac84b1d5435ab7b8d166c16ab9f75e09f68f8ec50479bae433939b241b03f",
+          "role": "source"
+        }
+      ],
+      "license_declarations": []
+    },
+    {
+      "filename": "checker-qual-3.53.0.jar",
+      "jar_sha256": "7ca002815d92fad79e966b375c2ee7b2b4bf953024bc9a5d5e0c59df13ff5af8",
+      "artifact": "checker-qual",
+      "version": "3.53.0",
+      "group": "org.checkerframework",
+      "materials": [
+        {
+          "component": "org.checkerframework:checker-qual:3.53.0",
+          "filename": "checker-qual-3.53.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.53.0/checker-qual-3.53.0.pom",
+          "sha256": "f95e6a4f5fd5d6d5c52caed9e64ba9d26a58ab71f65712ebab4deab4f478e8c8",
+          "role": "inventory"
+        },
+        {
+          "component": "org.checkerframework:checker-qual:3.53.0",
+          "filename": "checker-qual-3.53.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/checkerframework/checker-qual/3.53.0/checker-qual-3.53.0-sources.jar",
+          "sha256": "8e0fc17e3ed2e60f3aea6204149a086f4a448d0275088fc199bac27a3611874b",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The MIT License",
+          "url": "http://opensource.org/licenses/MIT"
+        }
+      ]
+    },
+    {
+      "filename": "core-3.5.4.jar",
+      "jar_sha256": "71de5d89341b5fcf5dd89da7f44e84d825d0e084cdf3ec77c9abe26b0f0ceb13",
+      "artifact": "core",
+      "version": "3.5.4",
+      "group": "com.google.zxing",
+      "materials": [
+        {
+          "component": "com.google.zxing:core:3.5.4",
+          "filename": "core-3.5.4.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/google/zxing/core/3.5.4/core-3.5.4.pom",
+          "sha256": "502c7368ae869f15428c020a2432eec9dde7436454f3edd1816e0d4b3d0609bf",
+          "role": "inventory"
+        },
+        {
+          "component": "com.google.zxing:core:3.5.4",
+          "filename": "core-3.5.4-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/google/zxing/core/3.5.4/core-3.5.4-sources.jar",
+          "sha256": "a611e3b63b661aeb2a81b8b4f4bde2daace1e2976adbb37917a674a0019c8fac",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "core-network-2.15.3_unofficial_153.jar",
+      "jar_sha256": "a7e38888affeed4ee9d18a598e2ec9c9c53b3a0f9126b1dc96e302437f7ddb68",
+      "artifact": "core-network",
+      "version": "2.15.3_unofficial_153",
+      "group": "com.github.turasa",
+      "materials": [
+        {
+          "component": "com.github.turasa:core-network:2.15.3_unofficial_153",
+          "filename": "core-network-2.15.3_unofficial_153.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/core-network/2.15.3_unofficial_153/core-network-2.15.3_unofficial_153.pom",
+          "sha256": "9bcb7f1c57ad61f56cea4e51e0306c9901953b9e02f5b430073dcaa9e33e0b8e",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.turasa:core-network:2.15.3_unofficial_153",
+          "filename": "core-network-2.15.3_unofficial_153-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/core-network/2.15.3_unofficial_153/core-network-2.15.3_unofficial_153-sources.jar",
+          "sha256": "3316ac5d6888b77b4b93dff13e7425ca0c2fda80f7e0cb4c41f8600f0b6ea241",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "GPLv3",
+          "url": "https://www.gnu.org/licenses/gpl-3.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "dbus-java-core-5.0.0.jar",
+      "jar_sha256": "ad975d1a17d3778ddebd631e3d9d5337294aa915bc65fde6e9087d90729bbb45",
+      "artifact": "dbus-java-core",
+      "version": "5.0.0",
+      "group": "com.github.hypfvieh",
+      "materials": [
+        {
+          "component": "com.github.hypfvieh:dbus-java-core:5.0.0",
+          "filename": "dbus-java-core-5.0.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/hypfvieh/dbus-java-core/5.0.0/dbus-java-core-5.0.0.pom",
+          "sha256": "919542530d70665c9ee9a1c2d566b063e506f075f83ca4b659d27382d46a982c",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.hypfvieh:dbus-java-core:5.0.0",
+          "filename": "dbus-java-core-5.0.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/hypfvieh/dbus-java-core/5.0.0/dbus-java-core-5.0.0-sources.jar",
+          "sha256": "15a1caccf44e555f9b7c89a1480b1551c1a9115b7eceeca5ba61914eebe8dbd5",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "MIT License",
+          "url": "https://github.com/hypfvieh/dbus-java/blob/master/LICENSE"
+        }
+      ]
+    },
+    {
+      "filename": "dbus-java-transport-native-unixsocket-5.0.0.jar",
+      "jar_sha256": "ef70874968340139a70903bd08bfa6e4eceb9e811df89a78a6c8b1640612e067",
+      "artifact": "dbus-java-transport-native-unixsocket",
+      "version": "5.0.0",
+      "group": "com.github.hypfvieh",
+      "materials": [
+        {
+          "component": "com.github.hypfvieh:dbus-java-transport-native-unixsocket:5.0.0",
+          "filename": "dbus-java-transport-native-unixsocket-5.0.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/hypfvieh/dbus-java-transport-native-unixsocket/5.0.0/dbus-java-transport-native-unixsocket-5.0.0.pom",
+          "sha256": "d59971db9a0b35986c9f936c116c37e8b0c6027295573c72945b8c9668507060",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.hypfvieh:dbus-java-transport-native-unixsocket:5.0.0",
+          "filename": "dbus-java-transport-native-unixsocket-5.0.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/hypfvieh/dbus-java-transport-native-unixsocket/5.0.0/dbus-java-transport-native-unixsocket-5.0.0-sources.jar",
+          "sha256": "c782ac59ffcf2e37873e640bdbc73ff37f1671259298225d6d39b37626a75e10",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "MIT License",
+          "url": "https://github.com/hypfvieh/dbus-java/blob/master/LICENSE"
+        }
+      ]
+    },
+    {
+      "filename": "jackson-annotations-2.22.jar",
+      "jar_sha256": "21ddb598807d3a51a876704eb979d9296e1c6a6f47ab1826ff88c6d6a127a2d0",
+      "artifact": "jackson-annotations",
+      "version": "2.22",
+      "group": "com.fasterxml.jackson.core",
+      "materials": [
+        {
+          "component": "com.fasterxml.jackson.core:jackson-annotations:2.22",
+          "filename": "jackson-annotations-2.22.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22.pom",
+          "sha256": "38c3ba52a0eade3e3eacc5b13499d56e1038ccbad8ec4bb79426dc21432b46d0",
+          "role": "inventory"
+        },
+        {
+          "component": "com.fasterxml.jackson.core:jackson-annotations:2.22",
+          "filename": "jackson-annotations-2.22-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.22/jackson-annotations-2.22-sources.jar",
+          "sha256": "f5375c756ee3c585808f9937eb087d074743fd3f05f6aeff9b183cf19230c9f7",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "jackson-core-2.22.2.jar",
+      "jar_sha256": "ff167a6317be15895706c26668f45b898efe40ab8780970658210fe1393d52a6",
+      "artifact": "jackson-core",
+      "version": "2.22.2",
+      "group": "com.fasterxml.jackson.core",
+      "materials": [
+        {
+          "component": "com.fasterxml.jackson.core:jackson-core:2.22.2",
+          "filename": "jackson-core-2.22.2.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.2/jackson-core-2.22.2.pom",
+          "sha256": "d2829cfef4c30d200e04d7f65009b4b112a46382aadf4534a30dd7f90cb164e5",
+          "role": "inventory"
+        },
+        {
+          "component": "com.fasterxml.jackson.core:jackson-core:2.22.2",
+          "filename": "jackson-core-2.22.2-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-core/2.22.2/jackson-core-2.22.2-sources.jar",
+          "sha256": "544f2df3406129f9d99e090b05a5417ef8421608644b6b46a084325c6bde4de4",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "jackson-core-3.1.5.jar",
+      "jar_sha256": "9431b7fa2673bbb618c11d865fe15e13222fd182a214ff998cb7e56afd8f35d2",
+      "artifact": "jackson-core",
+      "version": "3.1.5",
+      "group": "tools.jackson.core",
+      "materials": [
+        {
+          "component": "tools.jackson.core:jackson-core:3.1.5",
+          "filename": "jackson-core-3.1.5.pom",
+          "url": "https://repo.maven.apache.org/maven2/tools/jackson/core/jackson-core/3.1.5/jackson-core-3.1.5.pom",
+          "sha256": "d05c1f9f436866306d26b8f482ce49507d2a5f5e0816e3a07f35096b9f83e1ba",
+          "role": "inventory"
+        },
+        {
+          "component": "tools.jackson.core:jackson-core:3.1.5",
+          "filename": "jackson-core-3.1.5-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/tools/jackson/core/jackson-core/3.1.5/jackson-core-3.1.5-sources.jar",
+          "sha256": "a2d65efe5d675802d737d200e4d256db98b2ef7d27ae81fb216759bde90b2a4d",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "jackson-databind-2.22.2.jar",
+      "jar_sha256": "d0da14c12b16b5d54719aa172d83b542ff4abeb8b0fb7db476fde8ceece760ca",
+      "artifact": "jackson-databind",
+      "version": "2.22.2",
+      "group": "com.fasterxml.jackson.core",
+      "materials": [
+        {
+          "component": "com.fasterxml.jackson.core:jackson-databind:2.22.2",
+          "filename": "jackson-databind-2.22.2.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.2/jackson-databind-2.22.2.pom",
+          "sha256": "a903aac4221725783341c8c7d30ccee43c1b5af67ff01325d2c5bc886d00941f",
+          "role": "inventory"
+        },
+        {
+          "component": "com.fasterxml.jackson.core:jackson-databind:2.22.2",
+          "filename": "jackson-databind-2.22.2-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.22.2/jackson-databind-2.22.2-sources.jar",
+          "sha256": "c14e77fd28bedde121ad260f84a9c52f13b72063e40030c464bd9f5f95e7274c",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "jackson-databind-3.1.5.jar",
+      "jar_sha256": "3a2338d996fd3056791df8d335fa9ba8a62a706ed4245ecf81b3e583df37d08a",
+      "artifact": "jackson-databind",
+      "version": "3.1.5",
+      "group": "tools.jackson.core",
+      "materials": [
+        {
+          "component": "tools.jackson.core:jackson-databind:3.1.5",
+          "filename": "jackson-databind-3.1.5.pom",
+          "url": "https://repo.maven.apache.org/maven2/tools/jackson/core/jackson-databind/3.1.5/jackson-databind-3.1.5.pom",
+          "sha256": "936e8997b549de56212543c2abf9e91fba0946be514afa956d714c2dc29ea2c8",
+          "role": "inventory"
+        },
+        {
+          "component": "tools.jackson.core:jackson-databind:3.1.5",
+          "filename": "jackson-databind-3.1.5-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/tools/jackson/core/jackson-databind/3.1.5/jackson-databind-3.1.5-sources.jar",
+          "sha256": "9040ab36a4b8ff6a39b1e647558897ab4c8723c2df57fe7f76884d7fc9e0c220",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "jackson-module-kotlin-2.22.2.jar",
+      "jar_sha256": "174e917ea64c0559df824e92317782a92eba7278de488d4a11df0b8597791874",
+      "artifact": "jackson-module-kotlin",
+      "version": "2.22.2",
+      "group": "com.fasterxml.jackson.module",
+      "materials": [
+        {
+          "component": "com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2",
+          "filename": "jackson-module-kotlin-2.22.2.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/module/jackson-module-kotlin/2.22.2/jackson-module-kotlin-2.22.2.pom",
+          "sha256": "443fe0919228d4fdabffb73b0df8b2cc6236c5d240aef47a0326971a028d4020",
+          "role": "inventory"
+        },
+        {
+          "component": "com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2",
+          "filename": "jackson-module-kotlin-2.22.2-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/fasterxml/jackson/module/jackson-module-kotlin/2.22.2/jackson-module-kotlin-2.22.2-sources.jar",
+          "sha256": "db204895bb2f68d62c261f08e44c54aaffde85f247d2d65631786817637efbbe",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "jakarta.annotation-api-2.1.1.jar",
+      "jar_sha256": "5f65fdaf424eee2b55e1d882ba9bb376be93fb09b37b808be6e22e8851c909fe",
+      "artifact": "jakarta.annotation-api",
+      "version": "2.1.1",
+      "group": "jakarta.annotation",
+      "materials": [
+        {
+          "component": "jakarta.annotation:jakarta.annotation-api:2.1.1",
+          "filename": "jakarta.annotation-api-2.1.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1.pom",
+          "sha256": "af650eca1de1b98741006acd82507e4408cffedd2fee33a0ea463d61508db7ec",
+          "role": "inventory"
+        },
+        {
+          "component": "jakarta.annotation:jakarta.annotation-api:2.1.1",
+          "filename": "jakarta.annotation-api-2.1.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/jakarta/annotation/jakarta.annotation-api/2.1.1/jakarta.annotation-api-2.1.1-sources.jar",
+          "sha256": "4b8abc5d33e33ad0cc53588532dafece90135cc83629429534af1c0900747094",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "EPL 2.0",
+          "url": "http://www.eclipse.org/legal/epl-2.0"
+        },
+        {
+          "name": "GPL2 w/ CPE",
+          "url": "https://www.gnu.org/software/classpath/license.html"
+        }
+      ]
+    },
+    {
+      "filename": "jakarta.inject-api-2.0.1.jar",
+      "jar_sha256": "f7dc98062fccf14126abb751b64fab12c312566e8cbdc8483598bffcea93af7c",
+      "artifact": "jakarta.inject-api",
+      "version": "2.0.1",
+      "group": "jakarta.inject",
+      "materials": [
+        {
+          "component": "jakarta.inject:jakarta.inject-api:2.0.1",
+          "filename": "jakarta.inject-api-2.0.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.pom",
+          "sha256": "e7fd7232e96307a575b2494c9367d68cf43ec98244aace3ccc23e1773ffa6fda",
+          "role": "inventory"
+        },
+        {
+          "component": "jakarta.inject:jakarta.inject-api:2.0.1",
+          "filename": "jakarta.inject-api-2.0.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1-sources.jar",
+          "sha256": "44f4c73fda69f8b7d87136f0f789f042f54e8ff506d40aa126199baf3752d1c9",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "javaparser-core-3.28.0.jar",
+      "jar_sha256": "d3852d78461c02602eb9bfc15e9fc21ad7c765e6013a1b6d5809a5d0e7db5309",
+      "artifact": "javaparser-core",
+      "version": "3.28.0",
+      "group": "com.github.javaparser",
+      "materials": [
+        {
+          "component": "com.github.javaparser:javaparser-core:3.28.0",
+          "filename": "javaparser-core-3.28.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/javaparser/javaparser-core/3.28.0/javaparser-core-3.28.0.pom",
+          "sha256": "013ddf1becace85b9f24b80c992eeb6f1021fb757b70bfc34d1ec37d784c2d77",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.javaparser:javaparser-core:3.28.0",
+          "filename": "javaparser-core-3.28.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/javaparser/javaparser-core/3.28.0/javaparser-core-3.28.0-sources.jar",
+          "sha256": "f9e998cde659ebfbdab9facd9ac047754d568b1c3399f6e6606dbcb6a8b2023c",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "GNU Lesser General Public License",
+          "url": "http://www.gnu.org/licenses/lgpl-3.0.html"
+        },
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "javaparser-symbol-solver-core-3.28.0.jar",
+      "jar_sha256": "f7bd9d75c66977d8888851f75dc031397274e73f96e5352472edd4cd3a56a790",
+      "artifact": "javaparser-symbol-solver-core",
+      "version": "3.28.0",
+      "group": "com.github.javaparser",
+      "materials": [
+        {
+          "component": "com.github.javaparser:javaparser-symbol-solver-core:3.28.0",
+          "filename": "javaparser-symbol-solver-core-3.28.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/javaparser/javaparser-symbol-solver-core/3.28.0/javaparser-symbol-solver-core-3.28.0.pom",
+          "sha256": "e0156f3099b882d8bd7e320a7dc7444fa6ff4710d7e73f150138c02a7df8c6b5",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.javaparser:javaparser-symbol-solver-core:3.28.0",
+          "filename": "javaparser-symbol-solver-core-3.28.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/javaparser/javaparser-symbol-solver-core/3.28.0/javaparser-symbol-solver-core-3.28.0-sources.jar",
+          "sha256": "dcb62ca5708224b6bdda9a575367339de68d605ca63b7d26026dd635af1aacbd",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "GNU Lesser General Public License",
+          "url": "http://www.gnu.org/licenses/lgpl-3.0.html"
+        },
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "javapoet-1.13.0.jar",
+      "jar_sha256": "4c7517e848a71b36d069d12bb3bf46a70fd4cda3105d822b0ed2e19c00b69291",
+      "artifact": "javapoet",
+      "version": "1.13.0",
+      "group": "com.squareup",
+      "materials": [
+        {
+          "component": "com.squareup:javapoet:1.13.0",
+          "filename": "javapoet-1.13.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/javapoet/1.13.0/javapoet-1.13.0.pom",
+          "sha256": "54a34fa8502a46bc90efdb49262600591fa80bf9a34f5a4c798311aec16ca977",
+          "role": "inventory"
+        },
+        {
+          "component": "com.squareup:javapoet:1.13.0",
+          "filename": "javapoet-1.13.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/javapoet/1.13.0/javapoet-1.13.0-sources.jar",
+          "sha256": "d1699067787846453fdcc104aeba3946f070fb2c167cfb3445838e4c86bb1f11",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "jspecify-1.0.0.jar",
+      "jar_sha256": "1fad6e6be7557781e4d33729d49ae1cdc8fdda6fe477bb0cc68ce351eafdfbab",
+      "artifact": "jspecify",
+      "version": "1.0.0",
+      "group": "org.jspecify",
+      "materials": [
+        {
+          "component": "org.jspecify:jspecify:1.0.0",
+          "filename": "jspecify-1.0.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0.pom",
+          "sha256": "cdab929a3b95211f43d2090c5e2d0dfe8465960e378bc32b35841dab324433a6",
+          "role": "inventory"
+        },
+        {
+          "component": "org.jspecify:jspecify:1.0.0",
+          "filename": "jspecify-1.0.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/jspecify/jspecify/1.0.0/jspecify-1.0.0-sources.jar",
+          "sha256": "adf0898191d55937fb3192ba971826f4f294292c4a960740f3c27310e7b70296",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "jsr305-3.0.2.jar",
+      "jar_sha256": "766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7",
+      "artifact": "jsr305",
+      "version": "3.0.2",
+      "group": "com.google.code.findbugs",
+      "materials": [
+        {
+          "component": "com.google.code.findbugs:jsr305:3.0.2",
+          "filename": "jsr305-3.0.2.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.pom",
+          "sha256": "19889dbdf1b254b2601a5ee645b8147a974644882297684c798afe5d63d78dfe",
+          "role": "inventory"
+        },
+        {
+          "component": "com.google.code.findbugs:jsr305:3.0.2",
+          "filename": "jsr305-3.0.2-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar",
+          "sha256": "1c9e85e272d0708c6a591dc74828c71603053b48cc75ae83cce56912a2aa063b",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "jul-to-slf4j-2.0.19.jar",
+      "jar_sha256": "a5764fbd2f0053399ef75d40653c4e7c97e733b45676946b0a072416fc56ff30",
+      "artifact": "jul-to-slf4j",
+      "version": "2.0.19",
+      "group": "org.slf4j",
+      "materials": [
+        {
+          "component": "org.slf4j:jul-to-slf4j:2.0.19",
+          "filename": "jul-to-slf4j-2.0.19.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/slf4j/jul-to-slf4j/2.0.19/jul-to-slf4j-2.0.19.pom",
+          "sha256": "95f6346440eb27a0a8da8672935a2a6501343bc20087156c00468ea04e3f7257",
+          "role": "inventory"
+        },
+        {
+          "component": "org.slf4j:jul-to-slf4j:2.0.19",
+          "filename": "jul-to-slf4j-2.0.19-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/slf4j/jul-to-slf4j/2.0.19/jul-to-slf4j-2.0.19-sources.jar",
+          "sha256": "db775bf5a3a0b9627a1a17ffe37cd02b56ba2a5e85ec3759c8bb6daa0d2c8b48",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "MIT",
+          "url": "https://opensource.org/license/mit"
+        }
+      ]
+    },
+    {
+      "filename": "kotlin-reflect-2.3.21.jar",
+      "jar_sha256": "33e37d9dfa86c7a29ab34e975b5f4a1287b458878611051f3485652220c1a2cb",
+      "artifact": "kotlin-reflect",
+      "version": "2.3.21",
+      "group": "org.jetbrains.kotlin",
+      "materials": [
+        {
+          "component": "org.jetbrains.kotlin:kotlin-reflect:2.3.21",
+          "filename": "kotlin-reflect-2.3.21.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/2.3.21/kotlin-reflect-2.3.21.pom",
+          "sha256": "7e3c2fe5cf3494a9b47525580c38c35c43d6e3682e6a0b2f565954e19a72d639",
+          "role": "inventory"
+        },
+        {
+          "component": "org.jetbrains.kotlin:kotlin-reflect:2.3.21",
+          "filename": "kotlin-reflect-2.3.21-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-reflect/2.3.21/kotlin-reflect-2.3.21-sources.jar",
+          "sha256": "8cbdca65092aa6888901e23c08c7d69d141544107a9bcc9aa47b5453d4dbcf7e",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache-2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "kotlin-stdlib-2.3.21.jar",
+      "jar_sha256": "6f64eac736db9434dd6925b4a518b9d1d17177652320c37916cf9ba3ce7d7d7a",
+      "artifact": "kotlin-stdlib",
+      "version": "2.3.21",
+      "group": "org.jetbrains.kotlin",
+      "materials": [
+        {
+          "component": "org.jetbrains.kotlin:kotlin-stdlib:2.3.21",
+          "filename": "kotlin-stdlib-2.3.21.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.3.21/kotlin-stdlib-2.3.21.pom",
+          "sha256": "3e0b48daa14dc73f8029d8d9e15ed32940377caf7b915510f88d33219b350186",
+          "role": "inventory"
+        },
+        {
+          "component": "org.jetbrains.kotlin:kotlin-stdlib:2.3.21",
+          "filename": "kotlin-stdlib-2.3.21-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.3.21/kotlin-stdlib-2.3.21-sources.jar",
+          "sha256": "8693386ae174f7e4a91eb82c5c632d169d236704da24f78b9c8c84d87af2fd64",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache-2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "kotlin-stdlib-jdk7-2.3.21.jar",
+      "jar_sha256": "e2243abac2bed6e0b47be18b2b7fe1c1b4cf6a431480353dcd49d1ed35f31199",
+      "artifact": "kotlin-stdlib-jdk7",
+      "version": "2.3.21",
+      "group": "org.jetbrains.kotlin",
+      "materials": [
+        {
+          "component": "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.21",
+          "filename": "kotlin-stdlib-jdk7-2.3.21.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/2.3.21/kotlin-stdlib-jdk7-2.3.21.pom",
+          "sha256": "f42fc1241fca14334f6a990edac7a4f7452a1f02c697d855a3fcf8ede51f015d",
+          "role": "inventory"
+        },
+        {
+          "component": "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.21",
+          "filename": "kotlin-stdlib-jdk7-2.3.21-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/2.3.21/kotlin-stdlib-jdk7-2.3.21-sources.jar",
+          "sha256": "2534c8908432e06de73177509903d405b55f423dd4c2f747e16b92a2162611e6",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache-2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "kotlin-stdlib-jdk8-2.3.21.jar",
+      "jar_sha256": "63091929246beba86b5fb2b020a6f5d06e01693a960b58a59959c8713667991c",
+      "artifact": "kotlin-stdlib-jdk8",
+      "version": "2.3.21",
+      "group": "org.jetbrains.kotlin",
+      "materials": [
+        {
+          "component": "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.3.21",
+          "filename": "kotlin-stdlib-jdk8-2.3.21.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/2.3.21/kotlin-stdlib-jdk8-2.3.21.pom",
+          "sha256": "d2b8b9d649cbdbcfb21e91cb53b4da46dd34d22d757a8f88c1d1650030f820eb",
+          "role": "inventory"
+        },
+        {
+          "component": "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.3.21",
+          "filename": "kotlin-stdlib-jdk8-2.3.21-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/2.3.21/kotlin-stdlib-jdk8-2.3.21-sources.jar",
+          "sha256": "3cb6895054a0985bba591c165503fe4dd63a215af53263b67a071ccdc242bf6e",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache-2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "kotlinpoet-javapoet-2.2.0.jar",
+      "jar_sha256": "228dd31de97447209f1cc03d648117fbc4f7c39aa2ffab34f12b474921026fb0",
+      "artifact": "kotlinpoet-javapoet",
+      "version": "2.2.0",
+      "group": "com.squareup",
+      "materials": [
+        {
+          "component": "com.squareup:kotlinpoet-javapoet:2.2.0",
+          "filename": "kotlinpoet-javapoet-2.2.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/kotlinpoet-javapoet/2.2.0/kotlinpoet-javapoet-2.2.0.pom",
+          "sha256": "90f1020ef40b369b18ec2869b49b5befdae15e63dd8c3727284c911fb1e1d08c",
+          "role": "inventory"
+        },
+        {
+          "component": "com.squareup:kotlinpoet-javapoet:2.2.0",
+          "filename": "kotlinpoet-javapoet-2.2.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/kotlinpoet-javapoet/2.2.0/kotlinpoet-javapoet-2.2.0-sources.jar",
+          "sha256": "1acdd180209d91ce0f2a9ddf633ff52e6104909859c1bb52dfc57c46b0fe5586",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "kotlinpoet-jvm-2.3.0.jar",
+      "jar_sha256": "696c9ad8c08d9363c63f06d87054c6159de620829b83cd1b9f9d3abfa04257dc",
+      "artifact": "kotlinpoet-jvm",
+      "version": "2.3.0",
+      "group": "com.squareup",
+      "materials": [
+        {
+          "component": "com.squareup:kotlinpoet-jvm:2.3.0",
+          "filename": "kotlinpoet-jvm-2.3.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/kotlinpoet-jvm/2.3.0/kotlinpoet-jvm-2.3.0.pom",
+          "sha256": "2e365b94a15104bce1d825d162d3b208cf23e71f30beb5b2c8a67b850f4bcac1",
+          "role": "inventory"
+        },
+        {
+          "component": "com.squareup:kotlinpoet-jvm:2.3.0",
+          "filename": "kotlinpoet-jvm-2.3.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/kotlinpoet-jvm/2.3.0/kotlinpoet-jvm-2.3.0-sources.jar",
+          "sha256": "6a0fcec1b1b97b4a521dce839aaee82c207e621f7db20f6ff3ce7f4847cc55a7",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "kotlinx-coroutines-core-jvm-1.10.2.jar",
+      "jar_sha256": "5ca175b38df331fd64155b35cd8cae1251fa9ee369709b36d42e0a288ccce3fd",
+      "artifact": "kotlinx-coroutines-core-jvm",
+      "version": "1.10.2",
+      "group": "org.jetbrains.kotlinx",
+      "materials": [
+        {
+          "component": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2",
+          "filename": "kotlinx-coroutines-core-jvm-1.10.2.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2.pom",
+          "sha256": "658f576b96c832e7382406adb197d64d8e2e97de10e96dfa3700decfa2a60def",
+          "role": "inventory"
+        },
+        {
+          "component": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2",
+          "filename": "kotlinx-coroutines-core-jvm-1.10.2-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.10.2/kotlinx-coroutines-core-jvm-1.10.2-sources.jar",
+          "sha256": "cd86e9635cc7ac1b7d9854ed589e3041fb11cc67d2273e7d312278ba5628e2c8",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache-2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "kotlinx-serialization-core-jvm-1.9.0.jar",
+      "jar_sha256": "1f0afa172110e45a7231ef1b44ae8fd84c1ebaff96f3fc3ad68ef8c48120b59c",
+      "artifact": "kotlinx-serialization-core-jvm",
+      "version": "1.9.0",
+      "group": "org.jetbrains.kotlinx",
+      "materials": [
+        {
+          "component": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.9.0",
+          "filename": "kotlinx-serialization-core-jvm-1.9.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.9.0/kotlinx-serialization-core-jvm-1.9.0.pom",
+          "sha256": "87190d434e6272fed605af0fced15f6bc082d8a55040c5198e6d4b2d6a2fcac2",
+          "role": "inventory"
+        },
+        {
+          "component": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.9.0",
+          "filename": "kotlinx-serialization-core-jvm-1.9.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-core-jvm/1.9.0/kotlinx-serialization-core-jvm-1.9.0-sources.jar",
+          "sha256": "72ad8ca04529d29cb144f845858f650ad8f06ca3a43c637967ca88b733c06f19",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache-2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "kotlinx-serialization-json-jvm-1.9.0.jar",
+      "jar_sha256": "d94cc34cae39246a1af74fda63f9c4812ce12216ef641d5fa3bbbb539a6922d8",
+      "artifact": "kotlinx-serialization-json-jvm",
+      "version": "1.9.0",
+      "group": "org.jetbrains.kotlinx",
+      "materials": [
+        {
+          "component": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.9.0",
+          "filename": "kotlinx-serialization-json-jvm-1.9.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.9.0/kotlinx-serialization-json-jvm-1.9.0.pom",
+          "sha256": "6b3433c2aa9eb26628dbabf16c96334caab30f6e07710d10ee7f87906ce730dd",
+          "role": "inventory"
+        },
+        {
+          "component": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.9.0",
+          "filename": "kotlinx-serialization-json-jvm-1.9.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-serialization-json-jvm/1.9.0/kotlinx-serialization-json-jvm-1.9.0-sources.jar",
+          "sha256": "6c231ddcd95b1023ffb72cfd98023a035f666e46b4479d68eff83cc30892396c",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache-2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "libphonenumber-9.0.29.jar",
+      "jar_sha256": "897a23bfe809456b9ca6b602502572a84b49be5966cb1fd84e5cf061a41cf13f",
+      "artifact": "libphonenumber",
+      "version": "9.0.29",
+      "group": "com.googlecode.libphonenumber",
+      "materials": [
+        {
+          "component": "com.googlecode.libphonenumber:libphonenumber:9.0.29",
+          "filename": "libphonenumber-9.0.29.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/googlecode/libphonenumber/libphonenumber/9.0.29/libphonenumber-9.0.29.pom",
+          "sha256": "e2a11af00052d2918f81ab1ff89c041991597837cae20c09d5e4df9f41ebcf0a",
+          "role": "inventory"
+        },
+        {
+          "component": "com.googlecode.libphonenumber:libphonenumber:9.0.29",
+          "filename": "libphonenumber-9.0.29-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/googlecode/libphonenumber/libphonenumber/9.0.29/libphonenumber-9.0.29-sources.jar",
+          "sha256": "9a9fd0248d118d528ea823c996a7464b6c4892dcd772d933f77f3bc26cc2b682",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "libsignal-cli-0.14.8.jar",
+      "jar_sha256": "df83014a28575ccfd70015b69d39e4c0f9237ed824a3aac431c8d75cc3424f0f",
+      "artifact": "libsignal-cli",
+      "version": "0.14.8",
+      "covered_by": "signal-cli"
+    },
+    {
+      "filename": "libsignal-client-0.102.1.jar",
+      "jar_sha256": "d92f2b221ec7438cfe4efa2af79c5b2f49748783f4bdea553116c6250430132e",
+      "artifact": "libsignal-client",
+      "version": "0.102.1",
+      "covered_by": "libsignal"
+    },
+    {
+      "filename": "logback-classic-1.6.3.jar",
+      "jar_sha256": "beebede8db065fe1b72909ecc66bb49acda618901635d86c25fce14a5915e37e",
+      "artifact": "logback-classic",
+      "version": "1.6.3",
+      "group": "ch.qos.logback",
+      "materials": [
+        {
+          "component": "ch.qos.logback:logback-classic:1.6.3",
+          "filename": "logback-classic-1.6.3.pom",
+          "url": "https://repo.maven.apache.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3.pom",
+          "sha256": "7033abb784acbc5cc15e8dd7e2f60041b358787245664a2d2f1894829d21081b",
+          "role": "inventory"
+        },
+        {
+          "component": "ch.qos.logback:logback-classic:1.6.3",
+          "filename": "logback-classic-1.6.3-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/ch/qos/logback/logback-classic/1.6.3/logback-classic-1.6.3-sources.jar",
+          "sha256": "b4d64c359c95e6d046f690ab66e725f865732bf8a00d466ed96ac401ce2b6989",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "EPL-2.0",
+          "url": "https://www.eclipse.org/legal/epl-v20.html"
+        },
+        {
+          "name": "LGPL-2.1-only",
+          "url": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+        }
+      ]
+    },
+    {
+      "filename": "logback-core-1.6.3.jar",
+      "jar_sha256": "a6967a28c8b086dee75a694d2f6fb8830c71153539866d7d8af065c9b6df91e0",
+      "artifact": "logback-core",
+      "version": "1.6.3",
+      "group": "ch.qos.logback",
+      "materials": [
+        {
+          "component": "ch.qos.logback:logback-core:1.6.3",
+          "filename": "logback-core-1.6.3.pom",
+          "url": "https://repo.maven.apache.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3.pom",
+          "sha256": "ef6f1bbae2ead4b255830c083a2dbb33224b0aab50dc1148c7e4e71089cf860b",
+          "role": "inventory"
+        },
+        {
+          "component": "ch.qos.logback:logback-core:1.6.3",
+          "filename": "logback-core-1.6.3-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/ch/qos/logback/logback-core/1.6.3/logback-core-1.6.3-sources.jar",
+          "sha256": "7afd223fa3c2cd7539f1c65842009749d4b7d0d20c4aa0107c7454adbb49d9fa",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "EPL-2.0",
+          "url": "https://www.eclipse.org/legal/epl-v20.html"
+        },
+        {
+          "name": "LGPL-2.1-only",
+          "url": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-aop-5.1.11.jar",
+      "jar_sha256": "77eaeccd65e8857520e888a7a20273439525f27489f67c3f26c397e03f6ad597",
+      "artifact": "micronaut-aop",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-aop:5.1.11",
+          "filename": "micronaut-aop-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-aop/5.1.11/micronaut-aop-5.1.11.pom",
+          "sha256": "546af0dc74f067eb0a45858982387a542b76cd11c81c17fee74d7cb310b58c1c",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-aop:5.1.11",
+          "filename": "micronaut-aop-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-aop/5.1.11/micronaut-aop-5.1.11-sources.jar",
+          "sha256": "a837b4a140e22668c6da259435bfb83601a34cb4f0fadcb218723808c9943948",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-context-5.1.11.jar",
+      "jar_sha256": "6ee31bbad4c0dc76224ea0b570f89b2ca31ac33c5195c8e7006042a42cd79f7d",
+      "artifact": "micronaut-context",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-context:5.1.11",
+          "filename": "micronaut-context-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-context/5.1.11/micronaut-context-5.1.11.pom",
+          "sha256": "92080ac2491a974f5f6d58eb65885651fca2b12347dece06281ed2e00fe6634e",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-context:5.1.11",
+          "filename": "micronaut-context-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-context/5.1.11/micronaut-context-5.1.11-sources.jar",
+          "sha256": "5f2a3c25818d364352a990b928e2b78c4909a1c84feebe5bba9bffdd38df3f3a",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-context-propagation-5.1.11.jar",
+      "jar_sha256": "91e129dd79ecb6c06a9c7f5de15cfdbc896d7ca2e67f98f65590ea87cca06745",
+      "artifact": "micronaut-context-propagation",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-context-propagation:5.1.11",
+          "filename": "micronaut-context-propagation-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-context-propagation/5.1.11/micronaut-context-propagation-5.1.11.pom",
+          "sha256": "8cb179b4f94844c20648d1a5ac17c2f6b4d2b36312ee6302e2389785190cee46",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-context-propagation:5.1.11",
+          "filename": "micronaut-context-propagation-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-context-propagation/5.1.11/micronaut-context-propagation-5.1.11-sources.jar",
+          "sha256": "cb7ea80e13fae749f84fec7d7189bcd93abf61373aef77005b019e44ff9adda4",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-core-5.1.11.jar",
+      "jar_sha256": "9efdb625c7790326e548502fbc7af34e47059e477544ea6647dc7fe80bf302ce",
+      "artifact": "micronaut-core",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-core:5.1.11",
+          "filename": "micronaut-core-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-core/5.1.11/micronaut-core-5.1.11.pom",
+          "sha256": "452ae98877747d74a64a78f59aefc6a17ab4c912aa0d1b9e88ffe2bb3a9dee8a",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-core:5.1.11",
+          "filename": "micronaut-core-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-core/5.1.11/micronaut-core-5.1.11-sources.jar",
+          "sha256": "ee8c3c5f393ee43bf5d48cb04bb4c15de6b4986492665a18fb73c9eef3608d7b",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-core-processor-5.1.11.jar",
+      "jar_sha256": "a776d11109a3b1f30217775af30e0bb76ae10fdb9c4e2bfcb6b9bb89eacdef48",
+      "artifact": "micronaut-core-processor",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-core-processor:5.1.11",
+          "filename": "micronaut-core-processor-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-core-processor/5.1.11/micronaut-core-processor-5.1.11.pom",
+          "sha256": "2ffdedaae1c984454b534923d34ba7351d82d380545cbca37555f44867f83ebe",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-core-processor:5.1.11",
+          "filename": "micronaut-core-processor-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-core-processor/5.1.11/micronaut-core-processor-5.1.11-sources.jar",
+          "sha256": "4e6ff093e5766b23c7ead9af2a5902fb0b1733c569480a667f015c12d731a1ac",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-core-reactive-5.1.11.jar",
+      "jar_sha256": "c88bf79059397c84a4ee79f1cc47ad0b06abf7b31288ea7ee8ca8ffd9b551d06",
+      "artifact": "micronaut-core-reactive",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-core-reactive:5.1.11",
+          "filename": "micronaut-core-reactive-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-core-reactive/5.1.11/micronaut-core-reactive-5.1.11.pom",
+          "sha256": "f581b613915371d4a360dc47d3d1488e49cdff2adca4aef8831c32a7c97aebd1",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-core-reactive:5.1.11",
+          "filename": "micronaut-core-reactive-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-core-reactive/5.1.11/micronaut-core-reactive-5.1.11-sources.jar",
+          "sha256": "f2902fedddcc8a344127408fddc295d2f8fda4357ef4b70bb39fd539c3b9387c",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-http-5.1.11.jar",
+      "jar_sha256": "9bef8d4ccc8e5cc7bf070cc49c6f423682287edbcab8f4002b4560e95af01512",
+      "artifact": "micronaut-http",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-http:5.1.11",
+          "filename": "micronaut-http-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-http/5.1.11/micronaut-http-5.1.11.pom",
+          "sha256": "8659f95bca305ebeace2b460bf345342b9a87b1f61b43b62f329435ea4728dc4",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-http:5.1.11",
+          "filename": "micronaut-http-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-http/5.1.11/micronaut-http-5.1.11-sources.jar",
+          "sha256": "f4c63ee272e12741249f6523f7b3c4313b56fbb3afb429c952af9b48f4f037db",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-inject-5.1.11.jar",
+      "jar_sha256": "5e2eca0314a8e3ae0b7c00ac4a85f28515a4f38852677671a5afb3a7dc52b493",
+      "artifact": "micronaut-inject",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-inject:5.1.11",
+          "filename": "micronaut-inject-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-inject/5.1.11/micronaut-inject-5.1.11.pom",
+          "sha256": "7bcc23d23eb1fb4afecc7e4a91524c78e58d0601334ab086a9cd32f9d04fe42a",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-inject:5.1.11",
+          "filename": "micronaut-inject-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-inject/5.1.11/micronaut-inject-5.1.11-sources.jar",
+          "sha256": "9c1fb5d276c49001db47c3b94c240198eb6f1b762da52748721cb1b851686377",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-jackson-core-5.1.11.jar",
+      "jar_sha256": "5df4026de8c708965c34a89e421f18053be95189f664d910a305b875a970d506",
+      "artifact": "micronaut-jackson-core",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-jackson-core:5.1.11",
+          "filename": "micronaut-jackson-core-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-jackson-core/5.1.11/micronaut-jackson-core-5.1.11.pom",
+          "sha256": "4710674e9a7402e59ca7613236925667372d016da50450e4ee9e4e5e49244ba2",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-jackson-core:5.1.11",
+          "filename": "micronaut-jackson-core-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-jackson-core/5.1.11/micronaut-jackson-core-5.1.11-sources.jar",
+          "sha256": "c421e545ba4091e92c1fa8f0177e4d0e2966cf70f4bfab2feaf5b37ab5a34d4d",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-json-core-5.1.11.jar",
+      "jar_sha256": "53546a8486497cacf782eb1ee708bea6175f61b9337e949a087b3c19b1a65c24",
+      "artifact": "micronaut-json-core",
+      "version": "5.1.11",
+      "group": "io.micronaut",
+      "materials": [
+        {
+          "component": "io.micronaut:micronaut-json-core:5.1.11",
+          "filename": "micronaut-json-core-5.1.11.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-json-core/5.1.11/micronaut-json-core-5.1.11.pom",
+          "sha256": "6a55864bb078d3012d4948eb1b689df90299dfaed251c92268883e80e6a550a0",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut:micronaut-json-core:5.1.11",
+          "filename": "micronaut-json-core-5.1.11-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/micronaut-json-core/5.1.11/micronaut-json-core-5.1.11-sources.jar",
+          "sha256": "bb09b1e2a2c55b3fc7377bce0ea2de5ddd837e3881e7e8a2528ea9274b3e077c",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-json-schema-annotations-2.2.0.jar",
+      "jar_sha256": "6799ba5e09bf2c610f3bd5d313f1eba11eff0a092db9c6156020e301fbfcb53f",
+      "artifact": "micronaut-json-schema-annotations",
+      "version": "2.2.0",
+      "group": "io.micronaut.jsonschema",
+      "materials": [
+        {
+          "component": "io.micronaut.jsonschema:micronaut-json-schema-annotations:2.2.0",
+          "filename": "micronaut-json-schema-annotations-2.2.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/jsonschema/micronaut-json-schema-annotations/2.2.0/micronaut-json-schema-annotations-2.2.0.pom",
+          "sha256": "b9db112475e0f114fe46495281b263407f8c5960b5b130ca78ec02800372cac8",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.jsonschema:micronaut-json-schema-annotations:2.2.0",
+          "filename": "micronaut-json-schema-annotations-2.2.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/jsonschema/micronaut-json-schema-annotations/2.2.0/micronaut-json-schema-annotations-2.2.0-sources.jar",
+          "sha256": "e2c34e03c5f424a435bda6cb561f1b43930618e038e1af47a55e6bc45355f459",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-json-schema-common-2.2.0.jar",
+      "jar_sha256": "d2d21c616dde868ac3593de182a5f09c09ed447e301835d668d74627fa5b4460",
+      "artifact": "micronaut-json-schema-common",
+      "version": "2.2.0",
+      "group": "io.micronaut.jsonschema",
+      "materials": [
+        {
+          "component": "io.micronaut.jsonschema:micronaut-json-schema-common:2.2.0",
+          "filename": "micronaut-json-schema-common-2.2.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/jsonschema/micronaut-json-schema-common/2.2.0/micronaut-json-schema-common-2.2.0.pom",
+          "sha256": "d6f51932825edce2a15d49e660186cc78ff233eb128c2a602b9cc67805f9fbda",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.jsonschema:micronaut-json-schema-common:2.2.0",
+          "filename": "micronaut-json-schema-common-2.2.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/jsonschema/micronaut-json-schema-common/2.2.0/micronaut-json-schema-common-2.2.0-sources.jar",
+          "sha256": "b60b830d7349e00e4ed41815c9dc54529fbadbafd9776506959e5c1f49e2b542",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-json-schema-generator-2.2.0.jar",
+      "jar_sha256": "edb198864ac61fd953a1d4b23613b509d9b661410d0abaa3e2ea8913c8e02e20",
+      "artifact": "micronaut-json-schema-generator",
+      "version": "2.2.0",
+      "group": "io.micronaut.jsonschema",
+      "materials": [
+        {
+          "component": "io.micronaut.jsonschema:micronaut-json-schema-generator:2.2.0",
+          "filename": "micronaut-json-schema-generator-2.2.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/jsonschema/micronaut-json-schema-generator/2.2.0/micronaut-json-schema-generator-2.2.0.pom",
+          "sha256": "0439a3f80caad74fb6372c446a1a4c6426a1013abeaadc5f9575ae25cd200979",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.jsonschema:micronaut-json-schema-generator:2.2.0",
+          "filename": "micronaut-json-schema-generator-2.2.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/jsonschema/micronaut-json-schema-generator/2.2.0/micronaut-json-schema-generator-2.2.0-sources.jar",
+          "sha256": "69e8c7d6ed191de9ebe94735c926abfe9ef52d3625e49a4e8b91eb59a45cc57d",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-serde-api-3.1.1.jar",
+      "jar_sha256": "061bdce5ed9574bf4f2c969545dfe9f4f1541ef0311645f5df85c1d2e2677f55",
+      "artifact": "micronaut-serde-api",
+      "version": "3.1.1",
+      "group": "io.micronaut.serde",
+      "materials": [
+        {
+          "component": "io.micronaut.serde:micronaut-serde-api:3.1.1",
+          "filename": "micronaut-serde-api-3.1.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/serde/micronaut-serde-api/3.1.1/micronaut-serde-api-3.1.1.pom",
+          "sha256": "8c8d2db950dd739474c3ce43844a34004a0d565fcc766d58414011819abe5adf",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.serde:micronaut-serde-api:3.1.1",
+          "filename": "micronaut-serde-api-3.1.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/serde/micronaut-serde-api/3.1.1/micronaut-serde-api-3.1.1-sources.jar",
+          "sha256": "70ab2d1e2f1bad406461b14d9b72f3b9dc3bcc8cdeefffe3dff59b4e210803d2",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-serde-jackson-3.1.1.jar",
+      "jar_sha256": "e813e423a7621f9a7d7f68875c19ba1db8340831a8733582be8648b454903f78",
+      "artifact": "micronaut-serde-jackson",
+      "version": "3.1.1",
+      "group": "io.micronaut.serde",
+      "materials": [
+        {
+          "component": "io.micronaut.serde:micronaut-serde-jackson:3.1.1",
+          "filename": "micronaut-serde-jackson-3.1.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/serde/micronaut-serde-jackson/3.1.1/micronaut-serde-jackson-3.1.1.pom",
+          "sha256": "fc3b2f4d1466a8507fc7555d64da8b82236fecce99da5dd58e835df7bd65c6b4",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.serde:micronaut-serde-jackson:3.1.1",
+          "filename": "micronaut-serde-jackson-3.1.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/serde/micronaut-serde-jackson/3.1.1/micronaut-serde-jackson-3.1.1-sources.jar",
+          "sha256": "30ab5fcebafbcffb1da45688c2967136f6db7272777f085ed1bd098712376664",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-serde-support-3.1.1.jar",
+      "jar_sha256": "b4980d7d8f7f4df4c62b9989421c9793273205d93616bf0ccb8dbb35a2d7ab2c",
+      "artifact": "micronaut-serde-support",
+      "version": "3.1.1",
+      "group": "io.micronaut.serde",
+      "materials": [
+        {
+          "component": "io.micronaut.serde:micronaut-serde-support:3.1.1",
+          "filename": "micronaut-serde-support-3.1.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/serde/micronaut-serde-support/3.1.1/micronaut-serde-support-3.1.1.pom",
+          "sha256": "8d42246daa87166cdb96e475b55a7ae4879cde4ca854713debbdf99669464e1c",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.serde:micronaut-serde-support:3.1.1",
+          "filename": "micronaut-serde-support-3.1.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/serde/micronaut-serde-support/3.1.1/micronaut-serde-support-3.1.1-sources.jar",
+          "sha256": "f72d7e0e2e3159f91e11c2da6b010862f1ba8de1510e6c0ae53e403a5fe390d7",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-sourcegen-annotations-2.1.0.jar",
+      "jar_sha256": "135583586dc9778b434d73ec7a0c898a3295033f22e4611e08780e85c21e50a2",
+      "artifact": "micronaut-sourcegen-annotations",
+      "version": "2.1.0",
+      "group": "io.micronaut.sourcegen",
+      "materials": [
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-annotations:2.1.0",
+          "filename": "micronaut-sourcegen-annotations-2.1.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-annotations/2.1.0/micronaut-sourcegen-annotations-2.1.0.pom",
+          "sha256": "bd9b43dfc261c596eb5ccc510a6b79fc20156ce93457a21f6cc17d2a651ea80f",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-annotations:2.1.0",
+          "filename": "micronaut-sourcegen-annotations-2.1.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-annotations/2.1.0/micronaut-sourcegen-annotations-2.1.0-sources.jar",
+          "sha256": "33182f5e78503923e3133e5949b17baa1e4461cd4161b37175227f2851484d28",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-sourcegen-generator-2.1.0.jar",
+      "jar_sha256": "35ac4d57d45a8627a9100cdc18e7f5fa49ec789d4dd701ff830ff9cbf5d71fc2",
+      "artifact": "micronaut-sourcegen-generator",
+      "version": "2.1.0",
+      "group": "io.micronaut.sourcegen",
+      "materials": [
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-generator:2.1.0",
+          "filename": "micronaut-sourcegen-generator-2.1.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-generator/2.1.0/micronaut-sourcegen-generator-2.1.0.pom",
+          "sha256": "ea26d22491059eb55e17d43e91883a70ffd6456de7dc52d4e0a3a8f25a6d7842",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-generator:2.1.0",
+          "filename": "micronaut-sourcegen-generator-2.1.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-generator/2.1.0/micronaut-sourcegen-generator-2.1.0-sources.jar",
+          "sha256": "15c40cc74b467f18ede05d0ca5a3b4a2699b056fb5b445727f81f46bb3e529e2",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-sourcegen-generator-java-2.1.0.jar",
+      "jar_sha256": "e801edd050f88af98ab81f86fdb89071ffaa956c20bba565a97cc5fae4ab00d2",
+      "artifact": "micronaut-sourcegen-generator-java",
+      "version": "2.1.0",
+      "group": "io.micronaut.sourcegen",
+      "materials": [
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-generator-java:2.1.0",
+          "filename": "micronaut-sourcegen-generator-java-2.1.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-generator-java/2.1.0/micronaut-sourcegen-generator-java-2.1.0.pom",
+          "sha256": "77e94ffb962f776e9120ef210bc2dfd8a38bdc2fcb6db464a7d972ab4319359c",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-generator-java:2.1.0",
+          "filename": "micronaut-sourcegen-generator-java-2.1.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-generator-java/2.1.0/micronaut-sourcegen-generator-java-2.1.0-sources.jar",
+          "sha256": "0d65540d6d251ab9fc055c25eac0785be680a4625859e4f03cb96a83fbd8a3d9",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-sourcegen-generator-kotlin-2.1.0.jar",
+      "jar_sha256": "75bdf36288f94503aa6d14d9d83bfab89c7ac61dead2450dbb1dad54ba5164ce",
+      "artifact": "micronaut-sourcegen-generator-kotlin",
+      "version": "2.1.0",
+      "group": "io.micronaut.sourcegen",
+      "materials": [
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-generator-kotlin:2.1.0",
+          "filename": "micronaut-sourcegen-generator-kotlin-2.1.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-generator-kotlin/2.1.0/micronaut-sourcegen-generator-kotlin-2.1.0.pom",
+          "sha256": "cb485c08a8b1532598088df242e2888a1d9a5d840fd6cb01bf4cc3a5bbc176dc",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-generator-kotlin:2.1.0",
+          "filename": "micronaut-sourcegen-generator-kotlin-2.1.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-generator-kotlin/2.1.0/micronaut-sourcegen-generator-kotlin-2.1.0-sources.jar",
+          "sha256": "150a08b1b4e6ac715e309ed12e5408a0efca4d31aa30b0a8309a9e2e88b05c7e",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "micronaut-sourcegen-model-2.1.0.jar",
+      "jar_sha256": "00c7bd1fece8676a64872a6d45b837e37519a2bd2e5b5734c9de7c0333bd0984",
+      "artifact": "micronaut-sourcegen-model",
+      "version": "2.1.0",
+      "group": "io.micronaut.sourcegen",
+      "materials": [
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-model:2.1.0",
+          "filename": "micronaut-sourcegen-model-2.1.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-model/2.1.0/micronaut-sourcegen-model-2.1.0.pom",
+          "sha256": "9b7481256477874dcf2592f04b3b7596fab557f6413c8f4627305e51d73e135c",
+          "role": "inventory"
+        },
+        {
+          "component": "io.micronaut.sourcegen:micronaut-sourcegen-model:2.1.0",
+          "filename": "micronaut-sourcegen-model-2.1.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/micronaut/sourcegen/micronaut-sourcegen-model/2.1.0/micronaut-sourcegen-model-2.1.0-sources.jar",
+          "sha256": "b8a2db1394f069f30a1b14fe9eba5eaa09ef9291aff5656b94e43f3842637fb2",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "models-jvm-2.15.3_unofficial_153.jar",
+      "jar_sha256": "c95dfe8c8bf59343a03990ba69a369cb2087932fbd4a39050a43b3372779f529",
+      "artifact": "models-jvm",
+      "version": "2.15.3_unofficial_153",
+      "group": "com.github.turasa",
+      "materials": [
+        {
+          "component": "com.github.turasa:models-jvm:2.15.3_unofficial_153",
+          "filename": "models-jvm-2.15.3_unofficial_153.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/models-jvm/2.15.3_unofficial_153/models-jvm-2.15.3_unofficial_153.pom",
+          "sha256": "634051a88bb6ffc0c0647d00e4d81bff3b3a37dd8f7428b7d552af2d106d3e8a",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.turasa:models-jvm:2.15.3_unofficial_153",
+          "filename": "models-jvm-2.15.3_unofficial_153-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/models-jvm/2.15.3_unofficial_153/models-jvm-2.15.3_unofficial_153-sources.jar",
+          "sha256": "6c7814032d98b83ff8cc768df4e89dbffd52d937a37981ece284e6dadda0b931",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "GPLv3",
+          "url": "https://www.gnu.org/licenses/gpl-3.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "okhttp-coroutines-5.3.2.jar",
+      "jar_sha256": "44371091a9a5821f58cc8149781f5f8a05691dc562fa3f96775f4310e6aa277e",
+      "artifact": "okhttp-coroutines",
+      "version": "5.3.2",
+      "group": "com.squareup.okhttp3",
+      "materials": [
+        {
+          "component": "com.squareup.okhttp3:okhttp-coroutines:5.3.2",
+          "filename": "okhttp-coroutines-5.3.2.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-coroutines/5.3.2/okhttp-coroutines-5.3.2.pom",
+          "sha256": "92db4dba6a0478bf46a868f115df5bb7ec4e7ff670cb206bbf8ea2e54b4f114e",
+          "role": "inventory"
+        },
+        {
+          "component": "com.squareup.okhttp3:okhttp-coroutines:5.3.2",
+          "filename": "okhttp-coroutines-5.3.2-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-coroutines/5.3.2/okhttp-coroutines-5.3.2-sources.jar",
+          "sha256": "48c91248eb46c6eb0b33cc871ef7e626db2cc848129d25e069b5d1ced758c28d",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "okhttp-jvm-5.3.2.jar",
+      "jar_sha256": "c771f48075b763f6c322055e21129a94b7de4c1faf3f8f58ace320b0c9517a30",
+      "artifact": "okhttp-jvm",
+      "version": "5.3.2",
+      "group": "com.squareup.okhttp3",
+      "materials": [
+        {
+          "component": "com.squareup.okhttp3:okhttp-jvm:5.3.2",
+          "filename": "okhttp-jvm-5.3.2.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.3.2/okhttp-jvm-5.3.2.pom",
+          "sha256": "aee87197bbfb2d7424b6241d300eb0cbffb1844c9cab0129cae5390408b33fa4",
+          "role": "inventory"
+        },
+        {
+          "component": "com.squareup.okhttp3:okhttp-jvm:5.3.2",
+          "filename": "okhttp-jvm-5.3.2-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/okhttp3/okhttp-jvm/5.3.2/okhttp-jvm-5.3.2-sources.jar",
+          "sha256": "c44c549707d30d56084d0bc1bc00f36c7c326e30664b40c20c1ff8ab657afa5b",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "okio-jvm-3.17.0.jar",
+      "jar_sha256": "3b13dcc3e1573047c2d507fc4f7fcb0bb0cbcd9d395da21d20e09406e2cd6a73",
+      "artifact": "okio-jvm",
+      "version": "3.17.0",
+      "group": "com.squareup.okio",
+      "materials": [
+        {
+          "component": "com.squareup.okio:okio-jvm:3.17.0",
+          "filename": "okio-jvm-3.17.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.17.0/okio-jvm-3.17.0.pom",
+          "sha256": "e4e44237a66f4091bc0f5b1d5a2bbe228ac014ab3c0f918cd6fc02ba31999030",
+          "role": "inventory"
+        },
+        {
+          "component": "com.squareup.okio:okio-jvm:3.17.0",
+          "filename": "okio-jvm-3.17.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/okio/okio-jvm/3.17.0/okio-jvm-3.17.0-sources.jar",
+          "sha256": "5603dfecfe4c71b36d6a591616be345fdd9d41a0a63553a3bd883d5ab6ee09a6",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "reactive-streams-1.0.4.jar",
+      "jar_sha256": "f75ca597789b3dac58f61857b9ac2e1034a68fa672db35055a8fb4509e325f28",
+      "artifact": "reactive-streams",
+      "version": "1.0.4",
+      "group": "org.reactivestreams",
+      "materials": [
+        {
+          "component": "org.reactivestreams:reactive-streams:1.0.4",
+          "filename": "reactive-streams-1.0.4.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.pom",
+          "sha256": "54ba23d87a2d438540c99ef8794a0856fc573a256b498678283c3c67ef18ada8",
+          "role": "inventory"
+        },
+        {
+          "component": "org.reactivestreams:reactive-streams:1.0.4",
+          "filename": "reactive-streams-1.0.4-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4-sources.jar",
+          "sha256": "5a7a36ae9536698c434ebe119feb374d721210fee68eb821a37ef3859b64b708",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "MIT-0",
+          "url": "https://spdx.org/licenses/MIT-0.html"
+        }
+      ]
+    },
+    {
+      "filename": "reactor-core-3.7.12.jar",
+      "jar_sha256": "474f94cabe5fda8877147521f37c791c95ef6b4a9dd59e589a6ddcc21b0d8e39",
+      "artifact": "reactor-core",
+      "version": "3.7.12",
+      "group": "io.projectreactor",
+      "materials": [
+        {
+          "component": "io.projectreactor:reactor-core:3.7.12",
+          "filename": "reactor-core-3.7.12.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/projectreactor/reactor-core/3.7.12/reactor-core-3.7.12.pom",
+          "sha256": "ddbb0b8f33675ba58adf7928f722d5943cf6e392b584a5625a635eea01f3ae32",
+          "role": "inventory"
+        },
+        {
+          "component": "io.projectreactor:reactor-core:3.7.12",
+          "filename": "reactor-core-3.7.12-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/projectreactor/reactor-core/3.7.12/reactor-core-3.7.12-sources.jar",
+          "sha256": "5a82d79f95cef8c1696591b2b5a4de894dc45458377c241cc994212a59841c09",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "rxjava-3.1.12.jar",
+      "jar_sha256": "1808a433ef55dcc2965523e512ab914a5d0d727228a2683ed7559d7cccf44e37",
+      "artifact": "rxjava",
+      "version": "3.1.12",
+      "group": "io.reactivex.rxjava3",
+      "materials": [
+        {
+          "component": "io.reactivex.rxjava3:rxjava:3.1.12",
+          "filename": "rxjava-3.1.12.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/reactivex/rxjava3/rxjava/3.1.12/rxjava-3.1.12.pom",
+          "sha256": "72126bafb80a12c7b558524d091923e69612383c4741acb7e00c35c9b0546b34",
+          "role": "inventory"
+        },
+        {
+          "component": "io.reactivex.rxjava3:rxjava:3.1.12",
+          "filename": "rxjava-3.1.12-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/reactivex/rxjava3/rxjava/3.1.12/rxjava-3.1.12-sources.jar",
+          "sha256": "9658c659f8ae1fbd61d81bd1c265728d37a9ad21b04ace5bb3deac6f3387bd2b",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "rxkotlin-3.0.1.jar",
+      "jar_sha256": "c142e3460b676ac51d9e04152173a44e469a95fe220264fde0e6fb38653aff64",
+      "artifact": "rxkotlin",
+      "version": "3.0.1",
+      "group": "io.reactivex.rxjava3",
+      "materials": [
+        {
+          "component": "io.reactivex.rxjava3:rxkotlin:3.0.1",
+          "filename": "rxkotlin-3.0.1.pom",
+          "url": "https://repo.maven.apache.org/maven2/io/reactivex/rxjava3/rxkotlin/3.0.1/rxkotlin-3.0.1.pom",
+          "sha256": "28fd4e05b081f03c24091061003eee1cdb8a770430801edb633ca4dc3140673d",
+          "role": "inventory"
+        },
+        {
+          "component": "io.reactivex.rxjava3:rxkotlin:3.0.1",
+          "filename": "rxkotlin-3.0.1-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/io/reactivex/rxjava3/rxkotlin/3.0.1/rxkotlin-3.0.1-sources.jar",
+          "sha256": "907f4af16a146010307d0efdfd4fc8b58abe99cfa5efbbaea62be43e4e648e5c",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache License, Version 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "serialization-2.15.3_unofficial_153.jar",
+      "jar_sha256": "6dadab6a8ad4d6d8744ee820490954a57f21b3754f155a2bff14bafa8f9119f3",
+      "artifact": "serialization",
+      "version": "2.15.3_unofficial_153",
+      "group": "com.github.turasa",
+      "materials": [
+        {
+          "component": "com.github.turasa:serialization:2.15.3_unofficial_153",
+          "filename": "serialization-2.15.3_unofficial_153.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/serialization/2.15.3_unofficial_153/serialization-2.15.3_unofficial_153.pom",
+          "sha256": "f34002782d708c58dfecb8521fbdf86a1013759696af63f5e95779022528eae2",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.turasa:serialization:2.15.3_unofficial_153",
+          "filename": "serialization-2.15.3_unofficial_153-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/serialization/2.15.3_unofficial_153/serialization-2.15.3_unofficial_153-sources.jar",
+          "sha256": "0c9174a4d328face4f4a8b76b59efc2db0b4f3900aeaaed02f06e1ad95e22850",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "GPLv3",
+          "url": "https://www.gnu.org/licenses/gpl-3.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "signal-cli-0.14.8.jar",
+      "jar_sha256": "5a6f736499daa8e2ae5f18957d61b6c9b1462f2acbd63983e7a0c70e8474f058",
+      "artifact": "signal-cli",
+      "version": "0.14.8",
+      "covered_by": "signal-cli"
+    },
+    {
+      "filename": "signal-network-2.15.3_unofficial_153.jar",
+      "jar_sha256": "903560b1152fccaa4655ec489915acfcc2d55a713054e5d5d531fb6adb370871",
+      "artifact": "signal-network",
+      "version": "2.15.3_unofficial_153",
+      "group": "com.github.turasa",
+      "materials": [
+        {
+          "component": "com.github.turasa:signal-network:2.15.3_unofficial_153",
+          "filename": "signal-network-2.15.3_unofficial_153.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/signal-network/2.15.3_unofficial_153/signal-network-2.15.3_unofficial_153.pom",
+          "sha256": "1eeaf656da6fe666b7bbedeff80a2c8dfa85837583f5854e90e08a8f1f7e74dc",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.turasa:signal-network:2.15.3_unofficial_153",
+          "filename": "signal-network-2.15.3_unofficial_153-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/signal-network/2.15.3_unofficial_153/signal-network-2.15.3_unofficial_153-sources.jar",
+          "sha256": "33a724084e240e86ba77d7fdf0bac3d4977e0e8201cacfc08a5a5d92730c54f0",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "GPLv3",
+          "url": "https://www.gnu.org/licenses/gpl-3.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "signal-service-java-2.15.3_unofficial_153.jar",
+      "jar_sha256": "5d4ecd187ed4bc97d4107816f591aed38df58b1803cf621a9ef784d9f5cf0a5c",
+      "artifact": "signal-service-java",
+      "version": "2.15.3_unofficial_153",
+      "group": "com.github.turasa",
+      "materials": [
+        {
+          "component": "com.github.turasa:signal-service-java:2.15.3_unofficial_153",
+          "filename": "signal-service-java-2.15.3_unofficial_153.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/signal-service-java/2.15.3_unofficial_153/signal-service-java-2.15.3_unofficial_153.pom",
+          "sha256": "c7c3f47c37a9b8d8ec0d7c998534f4a1ab2163a7566d7095148f5fb085ae71e8",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.turasa:signal-service-java:2.15.3_unofficial_153",
+          "filename": "signal-service-java-2.15.3_unofficial_153-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/signal-service-java/2.15.3_unofficial_153/signal-service-java-2.15.3_unofficial_153-sources.jar",
+          "sha256": "2f95f5709fc53cc6d4830e5400553b7248add068afd49b818852761dcaad614e",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "GPLv3",
+          "url": "https://www.gnu.org/licenses/gpl-3.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "slf4j-api-2.0.19.jar",
+      "jar_sha256": "e91ff6d720609e7a194ffe758c3ed5c84e798617ae07b0a0f6a4fe229741b4bb",
+      "artifact": "slf4j-api",
+      "version": "2.0.19",
+      "group": "org.slf4j",
+      "materials": [
+        {
+          "component": "org.slf4j:slf4j-api:2.0.19",
+          "filename": "slf4j-api-2.0.19.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19.pom",
+          "sha256": "b04a4843eaa29966807cc9508a9f2513fa563d0d0794cb0edd6a8d2c8f4620d0",
+          "role": "inventory"
+        },
+        {
+          "component": "org.slf4j:slf4j-api:2.0.19",
+          "filename": "slf4j-api-2.0.19-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/2.0.19/slf4j-api-2.0.19-sources.jar",
+          "sha256": "5653861a44b3865dd6a2d42c0a7c953568c06c4e36a9b172328d0341e9aaab41",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "MIT",
+          "url": "https://opensource.org/license/mit"
+        }
+      ]
+    },
+    {
+      "filename": "sqlite-jdbc-3.53.4.0.jar",
+      "jar_sha256": "bcb1f51e36f940867e83342f9efbf5968ac44a6bef4d397bb4af7b17b45cd2fb",
+      "artifact": "sqlite-jdbc",
+      "version": "3.53.4.0",
+      "group": "org.xerial",
+      "materials": [
+        {
+          "component": "org.xerial:sqlite-jdbc:3.53.4.0",
+          "filename": "sqlite-jdbc-3.53.4.0.pom",
+          "url": "https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.53.4.0/sqlite-jdbc-3.53.4.0.pom",
+          "sha256": "ff588556ba06aa68a568062f2cb9d243dde1f631eafd2010cfef23cab06a7ab9",
+          "role": "inventory"
+        },
+        {
+          "component": "org.xerial:sqlite-jdbc:3.53.4.0",
+          "filename": "sqlite-jdbc-3.53.4.0-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.53.4.0/sqlite-jdbc-3.53.4.0-sources.jar",
+          "sha256": "6f3fca1257fd02891e9b17b296b4e888cdd6af6d3e077ff7e50991657d69ed46",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "The Apache Software License, Version 2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "util-jvm-2.15.3_unofficial_153.jar",
+      "jar_sha256": "486e3755ebfa213aec876b0d925232ada7a0fcfc618922b81636f709e3fe7566",
+      "artifact": "util-jvm",
+      "version": "2.15.3_unofficial_153",
+      "group": "com.github.turasa",
+      "materials": [
+        {
+          "component": "com.github.turasa:util-jvm:2.15.3_unofficial_153",
+          "filename": "util-jvm-2.15.3_unofficial_153.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/util-jvm/2.15.3_unofficial_153/util-jvm-2.15.3_unofficial_153.pom",
+          "sha256": "8205f3d6bb8f7c65aaa6dc289e919fe04c94bf15eec14104b59a2cf06bd42fd6",
+          "role": "inventory"
+        },
+        {
+          "component": "com.github.turasa:util-jvm:2.15.3_unofficial_153",
+          "filename": "util-jvm-2.15.3_unofficial_153-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/github/turasa/util-jvm/2.15.3_unofficial_153/util-jvm-2.15.3_unofficial_153-sources.jar",
+          "sha256": "e2197bfb02500bfb58c3a50de0a7b2b56d1b027085ee00c337ba1283e68e53b2",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "GPLv3",
+          "url": "https://www.gnu.org/licenses/gpl-3.0.txt"
+        }
+      ]
+    },
+    {
+      "filename": "wire-runtime-jvm-6.0.0-alpha02.jar",
+      "jar_sha256": "750aa2aac9e923b6388b57fecc53c526d10efee868395ac7f15ccbb95f781520",
+      "artifact": "wire-runtime-jvm",
+      "version": "6.0.0-alpha02",
+      "group": "com.squareup.wire",
+      "materials": [
+        {
+          "component": "com.squareup.wire:wire-runtime-jvm:6.0.0-alpha02",
+          "filename": "wire-runtime-jvm-6.0.0-alpha02.pom",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/wire/wire-runtime-jvm/6.0.0-alpha02/wire-runtime-jvm-6.0.0-alpha02.pom",
+          "sha256": "7d6bb21decf6e28000ccde914e3e8027e49ae0c36e4d9adbb20703ab12ae81a0",
+          "role": "inventory"
+        },
+        {
+          "component": "com.squareup.wire:wire-runtime-jvm:6.0.0-alpha02",
+          "filename": "wire-runtime-jvm-6.0.0-alpha02-sources.jar",
+          "url": "https://repo.maven.apache.org/maven2/com/squareup/wire/wire-runtime-jvm/6.0.0-alpha02/wire-runtime-jvm-6.0.0-alpha02-sources.jar",
+          "sha256": "7104cc748d08aadf519bad3b56e880331f15c8f3d7a86c01ea6694a8530dec16",
+          "role": "source"
+        }
+      ],
+      "license_declarations": [
+        {
+          "name": "Apache-2.0",
+          "url": "https://www.apache.org/licenses/LICENSE-2.0"
+        }
+      ]
+    }
+  ],
+  "coverage": {
+    "jvm": "Conservative full official upstream JVM distribution inventory; the Homebrew recipe substitutes only the pinned libsignal-client build. JVM source JARs and POMs match every remaining upstream artifact. This is source coverage, not a claim all distribution classes survive native-image reachability.",
+    "cargo": "All external packages in the libsignal workspace Cargo.lock, with registry checksums and pinned git archives, plus the exact BoringSSL submodule. This intentionally over-includes development/other-target dependencies.",
+    "native_image": "Pinned GraalVM and Labs OpenJDK source plus exact historical Homebrew build recipe.",
+    "frozen_python": "Native binary inventory from the frozen worker must match every locked Homebrew package/version. Exact source archives and installed build recipes are retained."
+  }
+}
