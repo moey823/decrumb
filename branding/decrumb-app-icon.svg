@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-License-Identifier: AGPL-3.0-only. Original Decrumb artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100.00 100.00" role="img" aria-labelledby="title">
+<title id="title">Decrumb app icon</title>
+<defs><linearGradient id="surface" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#3E4CC1"/><stop offset="1" stop-color="#6673E4"/></linearGradient></defs>
+<rect x="6" y="6" width="88" height="88" rx="20" fill="url(#surface)"/>
+<g transform="translate(10 9) scale(.8)"><g fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M44.00 40.00 L53.00 31.00 C59.00 25.00 69.00 25.00 75.00 31.00 C81.00 37.00 81.00 47.00 75.00 53.00 L66.00 62.00"/>
+<path d="M52.00 62.00 L43.00 71.00 C37.00 77.00 27.00 77.00 21.00 71.00 C15.00 65.00 15.00 55.00 21.00 49.00 L30.00 40.00"/>
+<path d="M35.00 63.00 L61.00 37.00"/>
+</g>
+<g fill="#F5B76C">
+<rect x="-3.50" y="-3.50" width="7.00" height="7.00" rx="1.68" transform="translate(80.00 17.00) rotate(14.00)"/>
+<rect x="-2.00" y="-2.00" width="4.00" height="4.00" rx="0.96" transform="translate(89.00 7.00) rotate(-9.00)"/>
+<rect x="-1.50" y="-1.50" width="3.00" height="3.00" rx="0.72" transform="translate(70.00 7.00) rotate(8.00)"/>
+</g></g>
+</svg>

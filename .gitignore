@@ -1,0 +1,26 @@
+# Generated output and Python caches
+/build/
+__pycache__/
+*.py[cod]
+.venv/
+.DS_Store
+
+# Private local state must never enter this repository
+.env
+.env.*
+/runtime/
+/data/
+/vendor/
+/signal-cli/
+config.json
+status.json
+verification.json
+worker.lock
+worker.log*
+pairing*.png
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.key
+*.pem

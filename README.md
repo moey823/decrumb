@@ -1,0 +1,269 @@
+# Decrumb for macOS
+
+![Decrumb](branding/decrumb-wordmark.png)
+
+A native menu bar app that cleans incoming Signal links and saves the result to
+**Note to Self**. Stock Signal stays on your phone. Decrumb links as an additional
+device; it never replies to contacts or groups.
+
+The app includes its own Python worker, Swift URL cleaner, and pinned native
+Signal CLI. Users do not install Python, Java, Homebrew, or Signal CLI separately.
+There is no hosted service, AI provider, browser UI, or local listening port.
+
+**Consumer-ready DMG: coming soon.** The source is available for development;
+the current packaged app is a development build. See
+[v1 readiness](docs/V1-READINESS.md) for completed checks and remaining release work.
+
+[Website](https://mkships.app/decrumb/) ·
+[Download status](https://mkships.app/decrumb/download/) ·
+[Source ZIP](https://github.com/moey823/decrumb/archive/refs/heads/main.zip) ·
+[Contributing](CONTRIBUTING.md)
+
+## The app
+
+- **Connect Signal:** display a locally generated QR code, scan it from Signal on
+  your phone under Settings → Linked devices → Link a new device, and confirm.
+  The QR expires and is removed on completion or cancellation. Generate another
+  code from the same screen if needed. Existing linked accounts are recovered
+  without registering a new primary account.
+- **Overview:** see worker status, sent/queued/unconfirmed counts, and loss/error
+  counters. Resume starts cleaning; Pause persists across login.
+- **Generated notes:** include an optional sender display name and a searchable
+  `#decrumb_` code. Manage tracked notes, request removal, set a lifetime, or choose
+  periodic cleanup. Clear queued links locally without removing sent notes.
+- **Cleaning rules:** choose all sites, selected sites, or off. Exclude sites;
+  remove or preserve exact parameter names per site. Save validates the rules and
+  clears pending links authorized under the previous settings.
+- **Try a link:** preview unsaved settings locally. Shows before/after and removed
+  parameter names. Nothing is fetched, sent, or saved by the preview.
+- **Import/export:** transfer versioned JSON rules without account keys or state.
+- **Start at login:** optionally run the menu bar interface and enabled worker at
+  login. Quitting the interface leaves an active worker running; use Pause to stop
+  cleaning. The Mac must remain awake, online and logged in.
+
+Copy the app to its final location (normally `/Applications`) before connecting
+and enabling login startup. If moved later, open it at its new location and save
+settings/resume to refresh its helper and LaunchAgent paths.
+
+## Build and validate
+
+Development needs Apple command-line tools and Python 3.13 or newer. Build the
+Swift components and run the offline tests:
+
+```sh
+python3 build.py
+build/status-tests
+python3 -B -m unittest discover -s tests -p 'test_*.py' -v
+```
+
+Build the standalone Apple Silicon app:
+
+```sh
+python3 build.py --app
+python3 -B tools/smoke_app.py
+```
+
+The packaging build uses a local virtual environment, pinned PyInstaller, and a
+checksum-verified native signal-cli 0.14.8 Homebrew `arm64_sonoma` bottle. Downloads
+and generated artifacts stay under ignored `build/`. The result is
+`build/Decrumb.app`. Subsequent builds reuse the verified download.
+
+The packaged smoke test uses an isolated temporary runtime and fake Signal
+process. It tests onboarding cancellation, cleanup, duplicate suppression and
+shutdown; the real bundled Signal executable runs only with `--version`.
+macOS CoreImage and PyInstaller's process semaphores require ordinary OS access;
+a restrictive execution sandbox can fail QR/packaged tests independently of the
+app. The source worker tests use only synthetic offline fixtures.
+
+To inspect the interface without touching any account or runtime:
+
+```sh
+open build/Decrumb.app --args --demo
+# Or show the connected overview with synthetic counts:
+open build/Decrumb.app --args --demo-connected
+```
+
+**Development distribution:** builds are ad-hoc signed by default and restricted
+to the build host's macOS version until compatibility testing is done. The build
+manifest records that version. This is not a notarized public release. A public
+release requires a supported-OS build/test matrix, Developer ID signing with the
+appropriate hardened-runtime settings, notarization, and complete third-party
+source/notices. `DECRUMB_SIGNING_IDENTITY` selects a signing identity for packaging;
+the previous `SIDELET_SIGNING_IDENTITY` variable remains a fallback. Selecting an
+identity does not by itself perform the remaining release steps.
+
+Create a local development DMG with an Applications shortcut after building:
+
+```sh
+python3 -B tools/package_dmg.py
+```
+
+The image and SHA-256 sidecar stay under `build/`. This does not publish or
+notarize the app. In-app updates are not implemented yet; the recommended route
+is Sparkle 2 with hosted release assets and a stable HTTPS update feed. See
+[distribution plan](docs/DISTRIBUTION.md) for packaging, hosting and update design.
+
+## Cleaning behavior
+
+Defaults live in [rules/defaults.json](rules/defaults.json). They include 19 exact
+global tracking parameter names and Instagram-specific `stkn`, `igsh`, and
+`igshid`. Custom rules are bounded data, not executable plugins or regexes.
+
+Rule precedence: recognized signature parameters protect the whole link;
+excluded sites stay untouched; the mode and selected sites determine eligibility;
+explicit keep rules override removals; built-in and custom removals then apply.
+Host matching includes subdomains and path prefixes match on a path boundary.
+Parameter names are case-insensitive. Functional values, encoding, duplicate
+fields, fragments and paths are preserved. Links are never fetched or expanded.
+See [URL-CLEANUP.md](docs/URL-CLEANUP.md) for the schema and sources.
+
+- Only fresh incoming text/captions are processed. Messages from before first
+  worker startup or more than 24 hours old are skipped.
+- Only changed URLs are sent, once per incoming message. Repeated links in one
+  message are collapsed. A later message with the same link can produce a note.
+  Notes identify Decrumb, include a searchable random code and optionally the
+  sender's display name, and contain at most ten cleaned links and 8 KiB.
+- Outgoing/synced messages and Note to Self are ignored to prevent loops.
+  Writing a link to Note to Self will intentionally do nothing.
+- Disappearing messages, view-once content, spoilers, edits, story replies and
+  control messages are excluded. Unknown privacy/style metadata fails closed.
+  Ordinary attachments, avatars, stories and stickers are skipped. Signal CLI
+  0.14.8 makes an exception for long-text attachments: it downloads them through a
+  temporary file and reconstructs the message body. Decrumb can process that body
+  when it is within the 64 KiB limit. Normal temporary-file cleanup is not a
+  guarantee against leftovers after a hard crash.
+- No read receipts are requested. Normal Signal delivery receipts still occur.
+- Deleting/editing a source message does not retract a note already sent.
+
+## Generated notes and cleanup
+
+New notes use a compact format:
+
+```text
+Decrumb · From Alex
+https://example.com/article
+#decrumb_7f12a096a143fa60eb729fa1
+```
+
+Sender names are optional, enabled by default, and omitted when a suitable display
+name is unavailable. Decrumb never substitutes a raw phone number or account ID.
+The code helps you find the note in Signal. It is not a deletion permission.
+
+Cleanup is manual by default. Choose a 1, 6, 12, or 23-hour default lifetime for
+new notes, or periodic cleanup every 1, 6, or 12 hours. Individual notes can have
+their own lifetime or a **Keep** preference. Automatic cleanup needs the worker
+running with Signal connectivity. Pausing also pauses automatic cleanup.
+
+Decrumb can request removal only of notes for which this installation recorded
+an acknowledged send, using that note's original send timestamp and linked-account
+binding. Older notes without receipts and ambiguous sends cannot be managed.
+Signal's supported removal window is 24 hours; a missed window is shown rather
+than reported as success. **Removal requested** means Signal CLI acknowledged the
+request, not that every device erased the note. A deleted-message marker can remain.
+
+**Clear queued links** discards local unattempted notes. **Discard queued links on
+pause** is optional and off by default. These controls preserve the Signal account
+and other personal notes. See [note lifecycle](docs/NOTE-LIFECYCLE.md) for policy,
+storage details, limits, and verified upstream behavior.
+
+## Privacy and delivery
+
+Private runtime files stay in `~/Library/Application Support/SideletLinkCleaner`
+with restrictive permissions. They never belong in Git or the application bundle.
+This includes Signal keys/state, configuration, temporary pairing images and the
+outbox. Signal CLI's outgoing message resend log is disabled. That flag does not
+disable its incoming `msg-cache`: encrypted received envelopes are written before
+acknowledgment and normally deleted after processing. Crashes or identity-trust
+failures can leave them for later handling. There is no ordinary conversation
+history UI/database maintained by Decrumb, but it is not a zero-storage client.
+
+The worker retains cleaned URLs and optional sender attribution in a **plaintext
+SQLite outbox** while queued and clears payloads after attempts. Pending payloads
+become eligible for cleanup after 24 hours; hashed event IDs, timestamps, delivery
+states and generated-note receipt metadata after 30 days. Receipts contain no
+URLs, message bodies, display names or raw account identifiers. Local cleanup
+runs during processing, before the worker connects, and on app bootstrap, explicit
+status requests, or pausing (when the worker lock is free). Data can remain longer
+while the app/worker are stopped or paused without another maintenance action.
+Pause preserves valid queued notes unless discard-on-pause is enabled. Aggregate
+loss counters persist separately.
+SQLite secure deletion is enabled; backups and APFS may retain old data.
+Rotating logs contain fixed event names only; upstream stderr is discarded.
+
+Signal CLI also retains keys, credentials, contacts, groups, profiles and protocol
+state. The private folder permissions do not encrypt these files or the outbox.
+Cleaned notes delivered to Note to Self have their own lifetime on Signal devices.
+See [storage audit](docs/FOOTPRINT-REVIEW.md) for version-matched upstream evidence.
+
+The queue holds up to 256 notes with at most one send every two seconds. Ambiguous
+or interrupted sends become `uncertain` and are never automatically replayed.
+Pre-dispatch cancellation preserves unattempted notes. Per-message helper errors
+are counted without stopping subsequent processing. Queue/receive overflow is
+counted, but exceptional bursts can still lose work. There is no exactly-once
+or guaranteed-delivery claim.
+
+Status reports the local worker's heartbeat and counters. A running process does
+not prove uninterrupted Signal connectivity. Sent means Signal CLI acknowledged
+the send, not that the phone displayed it. A real incoming message from another
+contact remains the live end-to-end acceptance check.
+
+The interface watches the content-free status file natively and uses a coarse
+60-second fallback to detect a stale worker. It does not launch Python for idle
+status updates. Local previews call the Swift cleaner directly. Initial setup,
+settings changes and explicit controls still use the bundled Python command.
+
+## Optional CLI installation
+
+The standalone app bundles its dependencies. A separate manual CLI installation
+requires Python 3.13 or newer and a compatible, isolated signal-cli installation.
+Source builds do not automatically deploy to an existing installation. Preserve
+its linked account and unrelated services; do not copy account files from another
+Signal installation or register a primary account.
+
+Install `sidelet.py`, **`notes.py`**, and `service.py` together in the runtime's
+`bin/` directory. Place `build/url-cleaner` and **`build/rules.json` beside that
+helper** in the same directory. Keep the runtime directory private (mode 0700).
+Use the absolute paths to Python and the isolated Signal executable on your Mac;
+replace the example Signal path below:
+
+```sh
+DECRUMB_ROOT="$HOME/Library/Application Support/SideletLinkCleaner"
+DECRUMB_PY="$(command -v python3)"
+DECRUMB_SIGNAL_CLI="/absolute/path/to/isolated/signal-cli"
+"$DECRUMB_PY" "$DECRUMB_ROOT/bin/sidelet.py" init --helper "$DECRUMB_ROOT/bin/url-cleaner" \
+  --signal-cli "$DECRUMB_SIGNAL_CLI"
+"$DECRUMB_PY" "$DECRUMB_ROOT/bin/sidelet.py" pair
+"$DECRUMB_PY" "$DECRUMB_ROOT/bin/service.py" install
+"$DECRUMB_PY" "$DECRUMB_ROOT/bin/service.py" start
+"$DECRUMB_PY" "$DECRUMB_ROOT/bin/sidelet.py" status
+```
+
+While CLI pairing runs, manually open the temporary `pairing.png` and scan it.
+Stop the worker before `configure --mode selected --base-url example.com/news`,
+then restart. `preview` reads sample text on stdin. `service.py stop` retains the
+CLI login preference; the GUI's Pause also disables worker startup at next login.
+Stopped LaunchAgent installations can be updated by running `install` again.
+
+Signal CLI is unofficial and needs updates as Signal's service evolves.
+Unlink only this app's linked device from your phone to revoke its account access.
+New links use the Decrumb name; an existing linked device can still be named Sidelet.
+
+## Name and upgrade compatibility
+
+Decrumb is the public name of the standalone macOS app, previously named Sidelet.
+The bundle and executable are `Decrumb.app` and `Decrumb`. The existing runtime
+directory `~/Library/Application Support/SideletLinkCleaner`, bundle identifier
+`com.matthew.sidelet.desktop`, service identifiers, `sidelet-worker` helper and
+Python module names remain stable. The public rename does not move private files,
+copy keys, relink an account, or rename an existing linked device. Source history
+and references to the separate Sidelet iOS prototype retain their original names.
+
+## Sources and license
+
+- [Signal CLI JSON-RPC documentation](https://github.com/AsamK/signal-cli/blob/v0.14.8/man/signal-cli-jsonrpc.5.adoc)
+- [Signal linked devices](https://support.signal.org/hc/en-us/articles/360007320551-Linked-Devices)
+- [Provenance](docs/PROVENANCE.md)
+- [Third-party software and release materials](docs/THIRD-PARTY.md)
+
+AGPL-3.0-only. Preserve upstream attribution and licenses with modified source or
+binaries. Signal CLI and other bundled components retain their respective licenses.
