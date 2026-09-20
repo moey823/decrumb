@@ -61,6 +61,13 @@ Python 3.14.6, PyInstaller 6.22.3, bundled native signal-cli 0.14.8.
   `e0a937e3b2e2694a0b573b9fdfa65fc811b7b0bf5abbbb0fee0828d5794b53af`.
   The release tag `v1.0.0-rc.1` identifies its source commit and matching materials;
   subsequent documentation updates do not alter those immutable artifacts.
+- The exact public DMG was downloaded independently on macOS 26.4 (Apple
+  Silicon). Its published checksum, image integrity, app/image signatures,
+  stapled tickets, and Gatekeeper assessments passed. The complete synthetic
+  packaged smoke passed from its read-only mount using system Python 3.9.6,
+  including Decrumb names, resource loading, pairing cancellation, self-only
+  delivery/removal, and native Signal library loading. The mount and temporary
+  files were removed. This was not an installation or real-account test.
 
 macOS graphics and process semaphore operations need normal OS access. The
 restricted tool sandbox failed QR rendering and frozen-runtime startup; both
