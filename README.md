@@ -1,6 +1,9 @@
 # Decrumb for macOS
 
-![Decrumb](branding/decrumb-wordmark.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="branding/decrumb-wordmark-inverse.svg">
+  <img src="branding/decrumb-wordmark.svg" alt="Decrumb" width="600">
+</picture>
 
 A native menu bar app that cleans incoming Signal links and saves the result to
 **Note to Self**. Stock Signal stays on your phone. Decrumb links as an additional
