@@ -153,6 +153,9 @@ root=Path(__file__).parent
 for line in sys.stdin:
  request=json.loads(line); method=request['method']; result={}
  if method=='listAccounts': result=[{'number':'+15550000001'}]
+ elif method=='listContacts':
+  assert request['params']=={'account':'+15550000001','recipient':['+15550000001'],'allRecipients':True}
+  result=[{'number':'+15550000001','uuid':'00000000-0000-4000-8000-000000000001'}]
  elif method=='subscribeReceive': result=0
  elif method=='send':
   params=request['params']
