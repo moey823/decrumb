@@ -1,4 +1,4 @@
-# Decrumb for Mac, Raspberry Pi, and Umbrel
+# Decrumb for Mac, Raspberry Pi, Umbrel, and Windows
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="branding/decrumb-wordmark-inverse.svg">
@@ -9,9 +9,10 @@ A helper that cleans incoming Signal links and saves the result to
 **Note to Self**. Stock Signal stays on your phone. Decrumb links as an additional
 device; it never replies to contacts or groups.
 
-Run the native menu bar app on a Mac, or the background service on a Raspberry Pi.
+Run the native menu bar app on a Mac, the background service on a Raspberry Pi,
+the Umbrel dashboard, or the experimental Windows CLI.
 **The machine must stay awake and online.** An always-on Mac mini or Pi is a good
-fit; a sleeping laptop cannot clean links. Both platforms use the same rules,
+fit; a sleeping laptop cannot clean links. All platforms use the same rules,
 message privacy filters, delivery queue, and note-removal controls.
 
 The Mac app includes its own Python worker, Swift URL cleaner, and pinned native
@@ -24,9 +25,10 @@ private browser dashboard for an always-on server; see the
 [Umbrel guide](docs/UMBREL.md) for its release and validation status.
 
 **[Decrumb downloads](https://mkships.app/decrumb/download/).**
-The current source version is **Decrumb 1.1.0** (build 7; `1.1.0` in Umbrel),
-shared by Mac, Raspberry Pi, Umbrel and Windows. Published downloads may precede
-the current source; see the [release notes](docs/RELEASE-NOTES.md).
+The current release is **Decrumb 1.1.0** (build 7; `1.1.0` in Umbrel),
+shared by Mac, Raspberry Pi, Umbrel and Windows. Matching Mac/Pi downloads and
+the Umbrel image are published; Windows is a source-build preview.
+See the [release notes](docs/RELEASE-NOTES.md).
 The release targets Apple Silicon Macs with macOS 26.4 or later,
 Raspberry Pi OS 64-bit (Bookworm or later), and ARM64 or Intel/AMD Umbrel servers.
 Mac releases are signed and

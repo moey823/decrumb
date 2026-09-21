@@ -12,9 +12,11 @@
 - Mac, Pi, Umbrel and Windows use one version: **1.1.0**, build **7**. Shared
   privacy filters, duplicate protection and Note-to-Self-only sending are unchanged.
 
-Windows remains experimental pending live pairing and sleep/wake validation.
-The source version does not replace previously published signed Mac/Pi assets;
-see [distribution status](DISTRIBUTION.md).
+Published with a signed, notarized Mac app and update, matching Pi installer,
+and tested Umbrel image. Existing v1/RC6 Mac users can update to build 7.
+Windows is an unsigned source-build preview pending its public-release checks,
+including live pairing and sleep/wake validation. See
+[distribution status](DISTRIBUTION.md).
 
 ## 1.0.0 — first stable release
 

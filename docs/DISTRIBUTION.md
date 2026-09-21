@@ -34,9 +34,24 @@ background controls, optional login startup, and shared rules/note management.
 All platform packages derive their version from the same metadata. Windows
 builds are unsigned and experimental; see [WINDOWS.md](WINDOWS.md).
 
-Committing the version does not publish replacement Mac/Pi downloads or a Mac
-update feed. Existing signed v1.0.0 artifacts and historical tags stay immutable;
-new artifacts require their platform's existing release checks.
+Published 2026-09-21: [Decrumb 1.1.0](https://github.com/moey823/decrumb/releases/tag/v1.1.0),
+from source `27c41e493a462d9d201be15b5e688b8fbe83b821`. The 67.6 MB Mac DMG
+is Developer ID signed, Apple-notarized and stapled. Its corresponding-source
+archive, signed Sparkle archive/feed, checksums and release receipt accompany
+the matching Pi installer. Mac v1/RC6 users can update to build 7. Existing
+v1.0.0 artifacts and historical tags stay immutable.
+
+Windows is available as an unsigned source-build preview; the tested development
+ZIP is not promoted to a supported public binary. Windows signing, Java/JNI
+source-and-notice review, live pairing and sleep/wake checks remain separate gates.
+
+Both Umbrel architectures passed their native dependency and lifecycle checks
+and are published at the pinned digest in [UMBREL.md](UMBREL.md). The shared
+source passed [Mac/Linux release checks](https://github.com/moey823/decrumb/actions/runs/35630767712)
+and [native Windows checks](https://github.com/moey823/decrumb/actions/runs/35630558407).
+Packaged Mac smoke covered bootstrap, previews, pairing cancellation, incoming
+processing, deduplication, Note-to-Self delivery, removal and phone commands using
+synthetic fixtures; the real Signal client was probed with an empty account.
 
 ## V1: promotion of build 6
 
