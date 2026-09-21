@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 import subprocess
 import tarfile
 from urllib.request import urlopen
@@ -68,7 +69,9 @@ def verify(path, arch):
     path.chmod(0o700)
     result = subprocess.run([str(path), '--version'], stdout=subprocess.PIPE,
                             stderr=subprocess.DEVNULL, timeout=45, check=True)
-    if result.stdout.decode().strip() != 'signal-cli 0.14.8':
+    # Community native builds append their build metadata to the same version.
+    # The archive hash, above, pins the exact bytes rather than this display text.
+    if not re.match(r'\Asignal-cli 0\.14\.8(?:[ +(-]|$)', result.stdout.decode().strip()):
         raise decrumb.SafeError('Signal dependency version does not match.')
 
 

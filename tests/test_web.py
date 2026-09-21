@@ -5,6 +5,7 @@ import gzip
 import io
 import json
 import os
+import sys
 from pathlib import Path
 import tarfile
 import tempfile
@@ -282,6 +283,19 @@ class DependencyTests(unittest.TestCase):
             verify.assert_not_called()
             self.assertFalse((root / 'dependency/signal-cli').exists())
             self.assertFalse((root / 'dependency/download.part').exists())
+
+
+class ProcessGroupTests(unittest.TestCase):
+    def test_container_rpc_shares_worker_group_and_closes_its_child(self):
+        with tempfile.TemporaryDirectory() as folder:
+            for inherited in ('0', '1'):
+                with self.subTest(inherited=inherited), patch.dict(os.environ, {'DECRUMB_INHERIT_PROCESS_GROUP': inherited}):
+                    rpc = decrumb.Rpc(Path(folder), {}, command=[sys.executable, '-c', 'import time; time.sleep(60)'])
+                    try:
+                        self.assertEqual(os.getpgid(rpc.process.pid), os.getpgrp() if inherited == '1' else rpc.process.pid)
+                    finally:
+                        rpc.close()
+                    self.assertIsNotNone(rpc.process.poll())
 
 
 if __name__ == '__main__':

@@ -64,9 +64,15 @@ def main():
     # A second startup must use the verified cache without downloading again.
     container_dependency.install(native)
     print('Container smoke: reading the isolated empty account.', flush=True)
+    (native / 'empty-account').mkdir(mode=0o700)
     result = subprocess.run([str(native / 'dependency/signal-cli'), '--config', str(native / 'empty-account'),
                              '--scrub-log', '--disable-send-log', '--output', 'json', 'listAccounts'],
-                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30, check=True)
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
+    if result.returncode:
+        # This directory was created exclusively above and has never been linked.
+        # Only this empty-account probe may expose upstream dependency diagnostics.
+        print(result.stderr.decode(errors='replace')[:4096], file=sys.stderr)
+        raise RuntimeError('Isolated native account listing failed.')
     require(json.loads(result.stdout) == [], 'Isolated native account listing did not return an empty account.')
     print('Verified native dependency and empty account on ' + container_dependency.architecture() + '.', flush=True)
 
