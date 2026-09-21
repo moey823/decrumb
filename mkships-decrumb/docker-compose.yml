@@ -6,7 +6,7 @@ services:
       APP_PORT: 8080
 
   web:
-    image: ghcr.io/moey823/decrumb:umbrel-dcd4195c379fd0585f82b54f06db8d6e8c000385@sha256:f49c757583e2f279af1680f34aca719b1d02c6a6822b60caab1e56962f6e728f
+    image: ghcr.io/moey823/decrumb:umbrel-27c41e493a462d9d201be15b5e688b8fbe83b821@sha256:d116eb7708246447df10cd945912744f40aa821ffbbdf17c56f02394b7289193
     user: "1000:1000"
     init: true
     restart: on-failure

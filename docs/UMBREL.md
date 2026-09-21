@@ -123,6 +123,12 @@ for a private server behind Umbrel's authentication proxy, not public hosting.
 Native Signal pairing and delivery are covered by the maintainer's separate
 live-test confirmation; synthetic tests do not establish that result.
 
+Decrumb 1.1.0 uses source commit
+`27c41e493a462d9d201be15b5e688b8fbe83b821`, with multiarchitecture digest
+`sha256:d116eb7708246447df10cd945912744f40aa821ffbbdf17c56f02394b7289193`.
+The [native container build, tests and publication](https://github.com/moey823/decrumb/actions/runs/35631881616)
+passed on ARM64 and AMD64. Both images carry the shared `1.1.0` release label.
+
 The previous Decrumb 1.0.0 release used the image built from source commit
 `dcd4195c379fd0585f82b54f06db8d6e8c000385`, with multiarchitecture digest
 `sha256:f49c757583e2f279af1680f34aca719b1d02c6a6822b60caab1e56962f6e728f`.
