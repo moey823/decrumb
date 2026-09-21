@@ -56,6 +56,13 @@ updater test does not establish real-account behavior.
 
 ## Publishing
 
+RC3/build 3 is published from `79e54b98bf7399199eae3ee19c59f1cb2d6ee1bf`.
+Active install, paused install, crash recovery, and cancellation passed signed
+integration again for the new startup behavior. Reopening after installation
+now ends a pause; cancelling without reopening preserves it. Hosted RC3 artifacts
+passed checksums, official Sparkle signature checks, Gatekeeper, stapled tickets,
+and packaged synthetic smoke. See [VALIDATION.md](VALIDATION.md).
+
 Recorded September 20, 2026: all ten signed integration scenarios passed on
 macOS 27.0, alongside 134 offline regression tests. RC2/build 2 is published with
 the signed feed live at the URL below. Its public update archive and feed passed

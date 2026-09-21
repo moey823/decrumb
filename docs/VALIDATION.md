@@ -101,7 +101,7 @@ passed when run with normal OS access. These are not skipped application tests.
 
 ## RC3 automatic-start validation
 
-The next candidate starts cleaning after successful pairing and every time the
+RC3 starts cleaning after successful pairing and every time the
 linked app is opened, including Finder/menu-bar reopen and update relaunch.
 Pause now lasts until reopening or choosing Resume cleaning. Start at login
 remains optional. Opening an already running cleaner does not restart it.
@@ -118,6 +118,16 @@ remains optional. Opening an already running cleaner does not restart it.
 - Four signed Sparkle scenarios passed again: active install, paused install
   that starts on relaunch, forced GUI interruption/recovery, and cancellation.
   Synthetic account, queue, and receipt bytes survived unchanged.
+
+- RC3/build 3 is published from source commit
+  `79e54b98bf7399199eae3ee19c59f1cb2d6ee1bf`. Apple accepted both app and DMG;
+  their tickets were stapled and verified. The 67,772,336-byte public DMG SHA-256
+  is `803f4ec233079fa5af1d1044384d095b14037d3ed6bf70733d5caf8bf262c21c`.
+- All nine GitHub asset sizes and SHA-256 digests match the local artifacts. The
+  public DMG, update archive and feed were downloaded independently and verified.
+  The downloaded DMG passed integrity, stapled-ticket, Gatekeeper and packaged
+  synthetic smoke checks from a read-only mount, then was detached. Official
+  Sparkle tools accepted the downloaded feed and archive signatures.
 
 These checks do not establish real-account or actual login-session behavior.
 

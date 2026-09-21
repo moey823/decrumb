@@ -1,10 +1,12 @@
 # Decrumb distribution and updates
 
-Release status, 2026-09-20. [Decrumb 1.0.0 RC1](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.1)
-is published with a 66.8 MB Developer ID signed, Apple-notarized and stapled DMG,
-matching corresponding-source archive, checksums, and release receipt. The app
-and DMG passed Gatekeeper assessment. Downloaded installation and real-device
-acceptance precede stable v1; see [V1-READINESS.md](V1-READINESS.md).
+Release status, 2026-09-20. [Decrumb 1.0.0 RC3](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.3)
+is published with a 67.8 MB Developer ID signed, Apple-notarized and stapled DMG,
+matching corresponding-source archive, checksums, release receipt, and signed
+Sparkle update archive/feed. The hosted app and DMG passed Gatekeeper and
+synthetic packaged smoke. RC3 starts cleaning after pairing and every time the
+app opens, including after a pause. Real-device acceptance remains before stable
+v1; see [V1-READINESS.md](V1-READINESS.md).
 
 ## Installation
 

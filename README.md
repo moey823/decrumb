@@ -14,7 +14,7 @@ Signal CLI. Users do not install Python, Java, Homebrew, or Signal CLI separatel
 There is no hosted message-processing service, AI provider, browser UI, or local listening port.
 
 **[Download the signed release candidate](https://mkships.app/decrumb/download/).**
-Decrumb 1.0.0 RC2 is a 67.6 MB, Apple-notarized download for Apple Silicon and
+Decrumb 1.0.0 RC3 is a 67.8 MB, Apple-notarized download for Apple Silicon and
 macOS 26.4 or later. Installation and real-device acceptance testing are underway
 before stable v1. See [v1 readiness](docs/V1-READINESS.md) for the remaining checks.
 
