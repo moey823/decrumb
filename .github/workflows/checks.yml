@@ -1,4 +1,4 @@
-name: Offline checks
+name: Release checks
 
 on:
   push:
@@ -28,3 +28,42 @@ jobs:
         run: build/status-tests
       - name: Run synthetic offline tests
         run: python3 -B -m unittest discover -s tests -p 'test_*.py' -v
+
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+      - name: Install QR dependency
+        run: sudo apt-get update -qq && sudo apt-get install -y qrencode
+      - name: Build portable helper
+        run: python3 build.py
+      - name: Run synthetic offline tests
+        run: python3 -B -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Package Pi release and fetch pinned ARM dependency
+        if: matrix.runner == 'ubuntu-24.04-arm'
+        run: |
+          python3 -B tools/package_pi.py --version 1.0.0 --build-number 4
+          python3 - <<'PY'
+          import hashlib, json, pathlib, urllib.request
+          dep = json.loads(pathlib.Path('linux/dependencies.json').read_text())['signal_cli']
+          with urllib.request.urlopen(dep['url'], timeout=90) as response:
+              data = response.read(150 * 1024 * 1024 + 1)
+          assert hashlib.sha256(data).hexdigest() == dep['sha256']
+          pathlib.Path('build/signal-cli-arm64.gz').write_bytes(data)
+          PY
+      - name: Verify ARM install, QR, dependency and synthetic systemd lifecycle
+        if: matrix.runner == 'ubuntu-24.04-arm'
+        run: |
+          sudo loginctl enable-linger "$USER"
+          sudo systemctl start "user@$(id -u).service"
+          export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+          export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
+          python3 -B tools/smoke_pi.py --archive build/Decrumb-1.0.0-4-linux-arm64.tar.gz --signal-archive build/signal-cli-arm64.gz --systemd

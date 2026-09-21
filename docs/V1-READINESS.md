@@ -1,8 +1,8 @@
 # Decrumb v1 readiness
 
-Status recorded 2026-09-20. **[Decrumb 1.0.0 RC2 is available](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.2)**
-for download and installation testing. This signed, notarized candidate is a
-prerelease; real-device acceptance remains before stable v1.
+Status recorded 2026-09-20. RC4 adds Raspberry Pi support and optional phone
+commands. [Release candidates](https://github.com/moey823/decrumb/releases) are
+for installation testing; real-device acceptance remains before stable v1.
 
 ## Completed
 
@@ -11,7 +11,7 @@ prerelease; real-device acceptance remains before stable v1.
 - The standalone Apple Silicon app packages its Python worker, Swift cleaner,
   and checksum-verified signal-cli 0.14.8 dependency. Development signing and
   recursive signature verification pass.
-- The recorded full offline run passed **134 Python tests**. Native status tests
+- The recorded RC4 offline run passed **208 Python tests**. Native status tests
   also passed. See [VALIDATION.md](VALIDATION.md) for the tested scope and limits.
 - Packaged smoke tests use synthetic data and fake Signal to exercise pairing
   cancellation, incoming-message filtering, deduplication, attributed notes,
@@ -41,6 +41,13 @@ prerelease; real-device acceptance remains before stable v1.
   signed integration scenarios passed, including actual replacement/relaunch,
   pause handling, settings/pairing deferral, crash recovery and
   tampered-input rejection. See [UPDATE-ACCEPTANCE.md](UPDATE-ACCEPTANCE.md).
+- The experimental Pi edition has a portable helper, systemd user service,
+  terminal QR pairing, checksum-pinned native dependency download, and upgrade
+  rollback. Its packaged installer, QR output, dependency library loading, and
+  synthetic state preservation pass on ARM64 Debian Bookworm.
+- Optional phone commands are off by default and accept only fresh owner-to-self
+  transcripts. Authentication, privacy exclusions, replay, and self-only replies
+  are covered by synthetic transport tests. No shell or AI actions are exposed.
 
 ## Required before stable v1
 
@@ -56,13 +63,17 @@ prerelease; real-device acceptance remains before stable v1.
 4. **Real-device acceptance.** On an explicitly authorized test account, verify
    linking, ordinary incoming links, privacy exclusions, sender attribution,
    Note to Self delivery, manual and scheduled removal, offline recovery,
-   login startup, and pause persistence. Confirm how deleted-message markers
+   login startup, pause/reopen behavior, and optional phone commands. Confirm how deleted-message markers
    appear. Fake-Signal tests cannot establish these outcomes.
 5. **A reproducible release identity and recovery path.** Select the explicit
    app version/build inputs, publish checksums and release notes, and
    verify manual replacement of an existing app preserves the linked account,
    rules, receipts, queued work, and pause preference. Document how to recover
    from an interrupted upgrade without unlinking the account.
+6. **Physical Raspberry Pi acceptance.** On Raspberry Pi OS 64-bit, verify pairing
+   from a second screen, boot startup with lingering, SSH logout, pause across
+   reboot, network recovery, manual upgrades, and long-running resource use.
+   ARM Linux containers and CI runners do not establish these hardware outcomes.
 
 The download page identifies the candidate status, architecture, minimum OS,
 and remaining acceptance checks. Promote to stable only after those checks pass.

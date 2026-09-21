@@ -52,3 +52,19 @@ accounts. Development bundles are ad-hoc signed; distribution signing and
 notarization are separate release steps. Current validation and remaining release
 work are recorded in [VALIDATION.md](VALIDATION.md) and
 [V1-READINESS.md](V1-READINESS.md).
+
+## Raspberry Pi and phone commands, 2026-09-20
+
+`portable_cleaner.py` implements the shared JSON rule schema in Python for Linux.
+It preserves query spelling and retained fields while applying the same ordered
+rules as the Swift implementation. The text detector is a separate, bounded
+implementation; conformance fixtures cover supported links on both platforms.
+`pi.py` and `tools/install_pi.py` provide per-user systemd controls and installation.
+`phone_commands.py` adds optional, owner-to-self commands shared by both platforms.
+These additions retain this repository's AGPL-3.0-only license.
+
+The Pi archive distributes Decrumb source. Its installer downloads a separate,
+checksum-pinned ARM64 signal-cli build from the provider referenced in
+`linux/dependencies.json`; it does not claim that binary is an official Signal
+release. Exact binary metadata and source references are recorded in the
+[Raspberry Pi guide](RASPBERRY-PI.md).

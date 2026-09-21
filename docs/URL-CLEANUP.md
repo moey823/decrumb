@@ -1,11 +1,18 @@
 # URL cleanup rules
 
-The standalone worker uses `swift/DecrumbURLCleaner.swift`, extracted from the
+The Mac worker uses `swift/DecrumbURLCleaner.swift`, extracted from the
 personal Signal-iOS prototype with its original default tracking rules plus the
 configurable overrides described below. Modes are `all`, `selected`, and `off`.
 Base domains include subdomains; path prefixes match whole path boundaries.
 Unspecified ports match normal HTTP
 and HTTPS ports. Only HTTP and HTTPS URLs are processed.
+
+The Pi worker uses `portable_cleaner.py` with the same bundled rules and override
+schema. Its text detector is conservative and differs from Apple's detector.
+It accepts ASCII and Punycode hostnames; raw Unicode hostnames stay untouched and
+Unicode rule hosts are rejected. Use the domain's explicit Punycode form for Pi
+rules. This avoids mapping distinct internationalized domains onto one rule.
+Malformed links are skipped without preventing other links from being cleaned.
 
 The worker sends only changed URLs to Note to Self; it does not edit the source
 message or retain a copy of the original message body. See the main README for
@@ -31,7 +38,7 @@ Instagram references: [ClearURLs' Instagram share-token proposal](https://github
 (open at the time of implementation), [AdGuard's report](https://github.com/AdguardTeam/AdguardFilters/issues/240901),
 and [FixupXer's implemented Instagram cleanup](https://github.com/NeatCode-Labs/fixupxer-telegram-bot#changes-in-032-2026-09-05).
 
-## Extensible rules (macOS app)
+## Extensible rules
 
 The lists now live in `rules/defaults.json`, copied beside the helper as
 `rules.json`. The bundled document has `version`, `revision`, `globalRemove`,
@@ -54,6 +61,10 @@ export format is:
   }
 }
 ```
+
+The Pi `configure` command accepts this versioned export or the inner `settings`
+object. Both platforms validate the rules and discard queued notes authorized
+under the previous rules when you apply a change.
 
 Site values are normalized: surrounding whitespace and trailing slashes are
 removed. Exclusions override all cleaning. Preserve rules override removals,

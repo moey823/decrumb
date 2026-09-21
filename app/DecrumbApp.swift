@@ -117,6 +117,7 @@ enum Backend {
     @Published var state = "not_started"
     @Published var settings = Settings()
     @Published var startAtLogin = false
+    @Published var phoneCommandsEnabled = false
     @Published var busy = false
     @Published var loading = true
     @Published var pairing = false
@@ -219,6 +220,7 @@ enum Backend {
         if loadSettings, let raw = value["settings"], let data = try? JSONSerialization.data(withJSONObject: raw), let decoded = try? JSONDecoder().decode(Settings.self, from: data) {
             settings = decoded
             startAtLogin = value["start_at_login"] as? Bool ?? false
+            phoneCommandsEnabled = value["phone_commands_enabled"] as? Bool ?? false
             dirty = false
         }
         if (loadSettings || !notesDirty), let raw = value["notes_options"],
@@ -304,7 +306,8 @@ enum Backend {
             defer { busy = false }
             do {
                 let raw = try JSONSerialization.jsonObject(with: JSONEncoder().encode(draft()))
-                let input = try JSONSerialization.data(withJSONObject: ["settings": raw, "start_at_login": startAtLogin])
+                let input = try JSONSerialization.data(withJSONObject: ["settings": raw, "start_at_login": startAtLogin,
+                                                                       "phone_commands": ["enabled": phoneCommandsEnabled]])
                 if demo { _ = try await localPreview(text: ""); dirty = false; notice = "Rules validated. Demo settings stay in memory."; return }
                 applySnapshot(try await Backend.request("apply", input: input), loadSettings: true)
                 notice = "Settings saved. Previously queued links were cleared."
@@ -682,6 +685,12 @@ struct RootView: View {
                     }.font(.callout)
                 }
                 Text("Exact parameter names, separated by commas. Keep wins over remove. Recognized signed links are always protected.").font(.caption).foregroundStyle(.secondary)
+            }
+            card {
+                Toggle("Enable commands from Note to Self", isOn: $model.phoneCommandsEnabled)
+                    .onChange(of: model.phoneCommandsEnabled) { model.dirty = true }
+                Text("Send /decrumb help, /decrumb status, or /decrumb clean followed by a link to Note to Self. Replies stay in Note to Self and use your cleaning rules.").font(.callout).foregroundStyle(.secondary)
+                Text("The helper must already be running and online. Commands sent while it is stopped are ignored. Disappearing messages and spoilers are excluded. Commands never run shell commands, open files, or fetch links.").font(.caption).foregroundStyle(.secondary)
             }
             card {
                 Toggle("Start Decrumb at login", isOn: $model.startAtLogin).onChange(of: model.startAtLogin) { model.dirty = true }

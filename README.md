@@ -1,21 +1,30 @@
-# Decrumb for macOS
+# Decrumb for Mac and Raspberry Pi
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="branding/decrumb-wordmark-inverse.svg">
   <img src="branding/decrumb-wordmark.svg" alt="Decrumb" width="600">
 </picture>
 
-A native menu bar app that cleans incoming Signal links and saves the result to
+A helper that cleans incoming Signal links and saves the result to
 **Note to Self**. Stock Signal stays on your phone. Decrumb links as an additional
 device; it never replies to contacts or groups.
 
-The app includes its own Python worker, Swift URL cleaner, and pinned native
+Run the native menu bar app on a Mac, or the background service on a Raspberry Pi.
+**The machine must stay awake and online.** An always-on Mac mini or Pi is a good
+fit; a sleeping laptop cannot clean links. Both platforms use the same rules,
+message privacy filters, delivery queue, and note-removal controls.
+
+The Mac app includes its own Python worker, Swift URL cleaner, and pinned native
 Signal CLI. Users do not install Python, Java, Homebrew, or Signal CLI separately.
+The Pi installer uses Python 3.11+, `qrencode`, and a checksum-pinned ARM64 Signal
+CLI download. It pairs through a QR code in the terminal, including over SSH.
 There is no hosted message-processing service, AI provider, browser UI, or local listening port.
 
 **[Download the signed release candidate](https://mkships.app/decrumb/download/).**
-Decrumb 1.0.0 RC3 is a 67.8 MB, Apple-notarized download for Apple Silicon and
-macOS 26.4 or later. Installation and real-device acceptance testing are underway
+Decrumb 1.0.0 RC4 targets Apple Silicon Macs with macOS 26.4 or later, and
+Raspberry Pi OS 64-bit (Bookworm or later). Mac releases are signed and
+Apple-notarized; the Pi edition is an experimental command-line release.
+Installation and real-device acceptance testing are underway
 before stable v1. See [v1 readiness](docs/V1-READINESS.md) for the remaining checks.
 
 [Website](https://mkships.app/decrumb/) ·
@@ -48,14 +57,43 @@ before stable v1. See [v1 readiness](docs/V1-READINESS.md) for the remaining che
   login. Quitting the interface leaves an active worker running; use Pause to stop
   cleaning. The Mac must remain awake, online and logged in.
 
-Copy the app to its final location (normally `/Applications`) before connecting
+## Raspberry Pi
+
+The Pi edition targets **Raspberry Pi OS 64-bit, Bookworm or later** and runs as a
+per-user systemd service. It has a command-line interface, terminal QR pairing,
+private local storage, rule previews and imports, and generated-note management.
+It does not require a monitor, Java, or a desktop environment. See the
+[Pi installation and upgrade guide](docs/RASPBERRY-PI.md) for prerequisites,
+verified dependency sources, boot startup, and removal instructions.
+
+## Optional phone commands
+
+Enable **Phone commands** in the Mac app, or use `decrumb phone-commands enable`
+on the Pi. Then write one of these commands in Signal's **Note to Self**:
+
+```text
+/decrumb help
+/decrumb status
+/decrumb clean https://example.com/article?utm_source=share&id=42
+```
+
+`clean` uses your current cleaning rules and replies with changed links, or
+explains that no links changed. `status` returns cleaning mode and
+queue counts, without machine names, account identifiers, or message content.
+Replies go through the same bounded queue and note-removal controls as cleaned
+links. Nothing visits the URL, reads machine files, runs a shell command, or calls
+an AI provider. This feature is off by default and accepts only your own self-to-self
+messages while the helper is running. Commands sent while stopped are skipped.
+Disappearing, view-once, spoiler, group, and edited commands are excluded.
+
+On Mac, copy the app to its final location (normally `/Applications`) before connecting
 and enabling login startup. If moved later, open it at its new location to
 refresh its helper and LaunchAgent paths when cleaning
 starts. Reopening also ends a pause.
 
 ## Build and validate
 
-Development needs Apple command-line tools and Python 3.13 or newer. Build the
+Mac development needs Apple command-line tools and Python 3.13 or newer. Build the
 Swift components and run the offline tests:
 
 ```sh
@@ -63,6 +101,11 @@ python3 build.py
 build/status-tests
 python3 -B -m unittest discover -s tests -p 'test_*.py' -v
 ```
+
+On Linux, Python 3.11+ and `qrencode` are sufficient: `python3 build.py` prepares
+the portable helper without downloading a compiler. Run the same Python suite;
+`build/status-tests` is Mac-only. Linux and Mac use different text detectors,
+with shared conformance fixtures for cleaning rules and query preservation.
 
 Build the standalone Apple Silicon app:
 
@@ -136,8 +179,10 @@ See [URL-CLEANUP.md](docs/URL-CLEANUP.md) for the schema and sources.
   message are collapsed. A later message with the same link can produce a note.
   Notes identify Decrumb, include a searchable random code and optionally the
   sender's display name, and contain at most ten cleaned links and 8 KiB.
-- Outgoing/synced messages and Note to Self are ignored to prevent loops.
-  Writing a link to Note to Self will intentionally do nothing.
+- Ordinary outgoing/synced messages and Note to Self are ignored to prevent
+  loops. Writing a bare link to Note to Self does nothing. If you enable phone
+  commands, the explicit `/decrumb` commands described above are accepted from
+  your own self-to-self sync transcripts; generated replies cannot trigger them.
 - Disappearing messages, view-once content, spoilers, edits, story replies and
   control messages are excluded. Unknown privacy/style metadata fails closed.
   Ordinary attachments, avatars, stories and stickers are skipped. Signal CLI
@@ -181,7 +226,8 @@ storage details, limits, and verified upstream behavior.
 
 ## Privacy and delivery
 
-Private runtime files stay in `~/Library/Application Support/Decrumb`
+Private runtime files stay in `~/Library/Application Support/Decrumb` on Mac,
+or `${XDG_STATE_HOME:-~/.local/state}/decrumb` on Linux,
 with restrictive permissions. They never belong in Git or the application bundle.
 This includes Signal keys/state, configuration, temporary pairing images and the
 outbox. Signal CLI's outgoing message resend log is disabled. That flag does not
@@ -190,8 +236,8 @@ acknowledgment and normally deleted after processing. Crashes or identity-trust
 failures can leave them for later handling. There is no ordinary conversation
 history UI/database maintained by Decrumb, but it is not a zero-storage client.
 
-The worker retains cleaned URLs and optional sender attribution in a **plaintext
-SQLite outbox** while queued and clears payloads after attempts. Pending payloads
+The worker retains cleaned URLs, optional sender attribution, and phone-command
+replies in a **plaintext SQLite outbox** while queued and clears payloads after attempts. Pending payloads
 become eligible for cleanup after 24 hours; hashed event IDs, timestamps, delivery
 states and generated-note receipt metadata after 30 days. Receipts contain no
 URLs, message bodies, display names or raw account identifiers. Local cleanup

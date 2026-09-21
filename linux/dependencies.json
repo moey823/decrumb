@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "signal_cli": {
+    "version": "0.14.8",
+    "build": "0.14.8+2",
+    "url": "https://media.projektzentrisch.de/temp/signal-cli/signal-cli0148+2_ubuntu2004_arm64.gz",
+    "sha256": "e2a9f6c6402ab2453538d08e922eae3003614fc8b6f2431eca3ce5644e2e90f6",
+    "provider": "Markus Ueberall / projektzentrisch.de (community build linked by signal-cli)",
+    "metadata_url": "https://media.projektzentrisch.de/temp/signal-cli/signal-cli0148+2_ubuntu2004_arm64.meta",
+    "discovery_url": "https://github.com/AsamK/signal-cli/wiki/Binary-distributions",
+    "source": "https://github.com/AsamK/signal-cli/tree/22b028bbb9cee8f6aa22af71c6b3e9d09028a16a",
+    "patches": [
+      "https://github.com/AsamK/signal-cli/commit/752f63a5e639997de0c0d0f08b6b39e1b9156c29",
+      "https://github.com/AsamK/signal-cli/commit/a255a7fecfe80452fde83c1709086fcbf900716a"
+    ],
+    "libsignal_source": "https://github.com/signalapp/libsignal/tree/ea42ed0ed3e2ae119282d98253c35a28cce02414",
+    "libsignal_version": "0.102.1",
+    "minimum_glibc": "2.30",
+    "license": "GPL-3.0-only",
+    "distribution": "Downloaded directly from the provider by the installer; not redistributed in the Decrumb Pi source archive."
+  }
+}

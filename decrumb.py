@@ -20,9 +20,18 @@ import time
 import uuid
 
 import notes
+import phone_commands
 from notes import read_notes
 
-DEFAULT_ROOT = Path.home() / "Library/Application Support/Decrumb"
+def default_root():
+    if sys.platform == "darwin":
+        return Path.home() / "Library/Application Support/Decrumb"
+    configured = os.environ.get("XDG_STATE_HOME")
+    base = Path(configured) if configured and Path(configured).is_absolute() else Path.home() / ".local/state"
+    return base / "decrumb"
+
+
+DEFAULT_ROOT = default_root()
 MAX_AGE_MS = 24 * 60 * 60 * 1000
 LOG = logging.getLogger("decrumb")
 
@@ -94,6 +103,7 @@ def load_config(root, validate_helper=True):
         if validate_helper:
             clean(config["helper"], "", config["settings"])
         config["notes"] = notes_settings(config.get("notes"))
+        config["phone_commands"] = phone_commands.normalize_settings(config.get("phone_commands"))
         return config
     except (OSError, KeyError, TypeError, ValueError):
         raise SafeError("Missing or invalid configuration. Run init first.") from None
@@ -114,7 +124,7 @@ class Rpc:
             "--ignore-attachments", "--ignore-stories", "--ignore-avatars", "--ignore-stickers",
         ]
         environment = dict(os.environ)
-        environment["PATH"] = "/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        environment["PATH"] = ("/opt/homebrew/bin:" if sys.platform == "darwin" else "") + "/usr/bin:/bin:/usr/sbin:/sbin"
         self.process = subprocess.Popen(
             command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
             env=environment, start_new_session=True,
@@ -463,6 +473,7 @@ def run(root, config):
         raise SafeError("Pair with Signal before starting the worker.")
     stopped = threading.Event()
     options = notes_settings(config.get("notes"))
+    commands_started_at = now_ms()
     def stop(*_):
         stopped.set()
     signal.signal(signal.SIGTERM, stop)
@@ -505,6 +516,20 @@ def run(root, config):
                         next_health = monotonic + 30
                     try:
                         event = rpc.events.get(timeout=0.5)
+                        try:
+                            handled = phone_commands.process(
+                                event, aliases, store, config,
+                                lambda text: clean(config["helper"], text, config["settings"]),
+                                now_ms(), commands_started_at,
+                            )
+                        except SafeError:
+                            store.increment("helper_failures")
+                            LOG.error("phone_command_cleanup_failed")
+                            handled = True
+                        if handled:
+                            # Keep draining the same bounded outbox below; a reply
+                            # never enters the ordinary incoming-message cleaner.
+                            event = None
                         item = candidate(event, aliases, store.enabled_at, now_ms())
                         if item and not store.contains(item[0]):
                             try:
@@ -535,8 +560,10 @@ def run(root, config):
             LOG.info("worker_stopped")
 
 
-def pair(root, config, emit=None):
+def pair(root, config, emit=None, terminal_qr=False):
     qr_path = root / "pairing.png"
+    if terminal_qr and not sys.stdout.isatty():
+        raise SafeError("Terminal pairing requires an interactive terminal.")
     stopped = threading.Event()
     def stop(*_):
         stopped.set()
@@ -564,6 +591,9 @@ def pair(root, config, emit=None):
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True, timeout=15)
             os.chmod(qr_path, 0o600)
             report("qr_ready")
+            if terminal_qr:
+                subprocess.run([config["helper"], "--qr-terminal"], input=uri.encode(),
+                               stderr=subprocess.DEVNULL, check=True, timeout=15)
             rpc.call("finishLink", {"deviceLinkUri": uri, "deviceName": "Decrumb"}, timeout=180)
             account, _ = account_details(rpc.call("listAccounts"))
             config["account"] = account
@@ -580,7 +610,8 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     setup = commands.add_parser("init")
     setup.add_argument("--helper", type=Path, required=True)
-    setup.add_argument("--signal-cli", type=Path, default=Path("/opt/homebrew/bin/signal-cli"))
+    setup.add_argument("--signal-cli", type=Path,
+                       default=Path("/opt/homebrew/bin/signal-cli" if sys.platform == "darwin" else "/usr/bin/signal-cli"))
     settings = commands.add_parser("configure")
     settings.add_argument("--mode", choices=["all", "selected", "off"], required=True)
     settings.add_argument("--base-url", action="append", default=[])

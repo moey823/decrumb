@@ -1,5 +1,28 @@
 # Decrumb distribution and updates
 
+## RC4: Mac and Raspberry Pi
+
+RC4 adds optional, owner-only phone commands on both platforms and the
+experimental Raspberry Pi edition. Mac packaging remains the signed/notarized
+DMG plus Sparkle archive described below. The Pi release is a separate source
+installer archive in the same GitHub release:
+
+```sh
+python3 -B tools/package_pi.py --version 1.0.0 --build-number 4
+python3 -B tools/smoke_pi.py --archive build/Decrumb-1.0.0-4-linux-arm64.tar.gz \
+  --signal-archive /path/to/pinned-signal-cli-arm64.gz
+```
+
+Run Pi smoke as an unprivileged Linux ARM64 user. It installs only in temporary
+directories, verifies native library loading with an empty account, and checks
+QR generation and upgrade preservation. The optional `--systemd` test is limited
+to a disposable GitHub ARM64 runner and uses fake Signal for all message traffic.
+See [the Pi guide](RASPBERRY-PI.md) for dependencies, manual upgrades, and
+remaining physical-device acceptance. Publish both Pi archive and checksum;
+never replace an already published version's bytes.
+
+## Previous published Mac candidate
+
 Release status, 2026-09-20. [Decrumb 1.0.0 RC3](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.3)
 is published with a 67.8 MB Developer ID signed, Apple-notarized and stapled DMG,
 matching corresponding-source archive, checksums, release receipt, and signed

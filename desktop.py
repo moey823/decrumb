@@ -12,6 +12,7 @@ import sys
 
 import service
 import decrumb
+import phone_commands
 import updater
 
 
@@ -125,6 +126,7 @@ def main():
                 'settings': {'mode': 'all', 'baseURLs': [], 'excludedURLs': [], 'rules': []},
                 'paused': False, 'start_at_login': False,
                 'notes': decrumb.notes_settings(),
+                'phone_commands': phone_commands.normalize_settings(),
             })
     config = decrumb.load_config(root, validate_helper=False)
     entry = [sys.executable] if getattr(sys, 'frozen', False) else [sys.executable, '-B', str(Path(__file__).resolve())]
@@ -144,6 +146,7 @@ def main():
                                             any(v for k, v in value['metrics'].items() if k != 'last_sent_at'))
             value.update({'settings': config['settings'], 'paused': config.get('paused', False),
                           'start_at_login': config.get('start_at_login', True),
+                          'phone_commands_enabled': phone_commands.normalize_settings(config.get('phone_commands'))['enabled'],
                           'notes_options': decrumb.notes_settings(config.get('notes'))})
             value['note_counts'] = decrumb.read_notes(root / 'outbox.sqlite3')['note_counts']
             value['needs_attention'] = value['needs_attention'] or any(
@@ -239,10 +242,15 @@ def main():
             login = value.get('start_at_login', False)
             if type(login) is not bool:
                 raise decrumb.SafeError('Start at login must be on or off.')
+            try:
+                phone_options = phone_commands.normalize_settings(value.get('phone_commands', config.get('phone_commands')))
+            except ValueError:
+                raise decrumb.SafeError('Phone commands must be on or off.') from None
             was_running = not config.get('paused', False) and bool(config.get('account'))
             control.stop(disable_login=True)
             use_bundled_paths()
             config['start_at_login'] = login
+            config['phone_commands'] = phone_options
             configure(root, config, settings)
             app_executable = resources.parent / 'MacOS/Decrumb'
             service.configure_app_login(app_executable, login)

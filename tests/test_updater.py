@@ -29,7 +29,8 @@ class WorkerUpdateTests(unittest.TestCase):
         self.resources = self.root / 'new/Decrumb.app/Contents/Helpers'
         self.resources.mkdir(parents=True)
         self.config = {'version': 1, 'account': SELF, 'helper': str(HELPER), 'signal_cli': '/synthetic/signal-cli',
-                       'settings': SETTINGS, 'paused': False, 'start_at_login': True, 'notes': decrumb.notes_settings()}
+                       'settings': SETTINGS, 'paused': False, 'start_at_login': True, 'notes': decrumb.notes_settings(),
+                       'phone_commands': {'enabled': True}}
         decrumb.write_json(self.root / 'config.json', self.config)
         self.control = Mock()
         self.watchdog = patch.object(service, 'UpdateRecovery').start()
@@ -60,6 +61,7 @@ class WorkerUpdateTests(unittest.TestCase):
         current = decrumb.load_config(self.root, validate_helper=False)
         self.assertEqual(current['paused'], False)
         self.assertEqual(current['start_at_login'], True)
+        self.assertEqual(current['phone_commands'], {'enabled': True})
         self.assertEqual(current['account'], SELF)
         self.assertEqual(current['helper'], str(self.resources / 'url-cleaner'))
         self.assertEqual(current['signal_cli'], str(self.resources / 'signal-cli'))

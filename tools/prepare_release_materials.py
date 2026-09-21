@@ -26,9 +26,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_LOCK = ROOT / "tools/release-dependencies.json"
 HEX = re.compile(r"[0-9a-f]{64}\Z")
 NOTICE = re.compile(r"^(?:LICEN[CS]E|COPYING|NOTICE|COPYRIGHT)(?:$|[._-])", re.I)
-SOURCE_FILES = ("decrumb.py", "notes.py", "desktop.py", "service.py", "updater.py", "build.py", "README.md",
+SOURCE_FILES = ("decrumb.py", "notes.py", "phone_commands.py", "portable_cleaner.py", "pi.py", "desktop.py", "service.py", "updater.py", "build.py", "README.md",
                 "CONTRIBUTING.md", "SECURITY.md", "LICENSE")
-SOURCE_DIRECTORIES = ("app", "swift", "rules", "tools", "tests", "docs", "branding")
+SOURCE_DIRECTORIES = ("app", "swift", "rules", "tools", "tests", "docs", "branding", "linux")
 PRIVATE_SUFFIXES = {".pem", ".key", ".p8", ".p12", ".pfx", ".crt", ".cer", ".der", ".db", ".sqlite",
                     ".sqlite3", ".log", ".mobileprovision"}
 PRIVATE_NAMES = {"config.json", "configuration.json", "accounts.json", "account.json", "credentials.json",

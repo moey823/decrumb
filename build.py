@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Build Decrumb's Swift components; --app also bundles Python and Signal CLI."""
+"""Build Decrumb's platform helper; --app bundles the macOS application."""
 import argparse
 from pathlib import Path
 import platform
@@ -17,8 +17,18 @@ OUTPUT = ROOT / 'build'
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--app', action='store_true', help='Build a standalone .app, fetching pinned dependencies as needed')
+    parser.add_argument('--portable', action='store_true', help='Prepare the Python helper (default on Linux; QR needs qrencode)')
     build_app.add_release_arguments(parser)
     args = parser.parse_args()
+    if args.portable or sys.platform.startswith('linux'):
+        if args.app or args.production:
+            raise SystemExit('The portable helper does not build a macOS app. See docs/RASPBERRY-PI.md for Linux installation.')
+        OUTPUT.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / 'portable_cleaner.py', OUTPUT / 'url-cleaner')
+        (OUTPUT / 'url-cleaner').chmod(0o755)
+        shutil.copyfile(ROOT / 'rules/defaults.json', OUTPUT / 'rules.json')
+        print('Portable URL helper built. QR pairing requires the qrencode system package.')
+        return
     if args.production and not args.app:
         raise SystemExit('Production requires --app.')
     try:

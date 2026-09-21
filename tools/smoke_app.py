@@ -158,6 +158,46 @@ for line in sys.stdin:
         assert ledger['note_counts']['deletion_requested'] == 1
         assert call('snapshot')['counts'] == {'sent': 1}
         print('Packaged receipt metadata and self-only targeted removal acknowledgement passed with fake Signal.')
+        config = json.loads(config_path.read_text())
+        config['phone_commands'] = {'enabled': True}
+        config_path.write_text(json.dumps(config))
+        fake.write_text('#!' + sys.executable + '''
+import json,sys,time
+from pathlib import Path
+root=Path(sys.argv[sys.argv.index('--config')+1]).parent
+for line in sys.stdin:
+ r=json.loads(line); method=r['method']; result={}
+ if method=='listAccounts': result=[{'number':'+15550000001'}]
+ elif method=='subscribeReceive': result=0
+ elif method=='send':
+  params=r['params']
+  assert set(params)=={'account','noteToSelf','message'}
+  assert params['noteToSelf'] is True and params['account']=='+15550000001'
+  assert 'helper is running and received your command' in params['message']
+  assert not (root/'synthetic-command-reply').exists()
+  (root/'synthetic-command-reply').touch()
+  result={'timestamp':int(time.time()*1000),'results':[{'type':'SUCCESS'}]}
+ print(json.dumps({'id':r['id'],'result':result}),flush=True)
+ if method=='subscribeReceive':
+  data={'destinationNumber':'+15550000001','timestamp':int(time.time()*1000),'message':'/decrumb status','expiresInSeconds':0,'viewOnce':False,'textStyles':[]}
+  event={'method':'receive','params':{'account':'+15550000001','envelope':{'sourceNumber':'+15550000001','syncMessage':{'sentMessage':data}}}}
+  print(json.dumps(event),flush=True); print(json.dumps(event),flush=True)
+''')
+        worker = subprocess.Popen(command + ['run'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=ENV)
+        try:
+            deadline = time.monotonic() + 15
+            while not (root / 'synthetic-command-reply').exists() and worker.poll() is None and time.monotonic() < deadline:
+                time.sleep(0.05)
+            assert (root / 'synthetic-command-reply').exists(), 'Packaged phone command did not reply'
+            deadline = time.monotonic() + 10
+            while call('snapshot')['counts'].get('sent', 0) != 2 and time.monotonic() < deadline:
+                time.sleep(0.05)
+            assert call('snapshot')['counts']['sent'] == 2
+        finally:
+            worker.terminate()
+            stdout, stderr = worker.communicate(timeout=15)
+        assert not stdout + stderr, 'Packaged phone command emitted unexpected diagnostics'
+        print('Packaged optional phone command and duplicate suppression passed with fake Signal.')
     result = subprocess.run([str(helpers / 'signal-cli'), '--version'], capture_output=True, check=True, env=ENV, timeout=30)
     assert result.stdout.strip() == b'signal-cli 0.14.8'
     with tempfile.TemporaryDirectory(prefix='decrumb-native-smoke-') as directory:
