@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tarfile
 import tempfile
 import unittest
@@ -191,10 +192,27 @@ class PiPlatformTests(unittest.TestCase):
             control.check_owned()
         root = Path('/tmp/user with $ and %/state')
         rendered = pi.unit_text(root, self.source)
-        self.assertIn('WorkingDirectory="/tmp/user with $ and %%/state"', rendered)
+        self.assertIn('WorkingDirectory=/tmp/user with $ and %%/state\n', rendered)
         self.assertIn('--root "/tmp/user with $$ and %%/state"', rendered)
         with self.assertRaises(decrumb.SafeError):
             pi.unit_quote('/tmp/\nExecStart=/bad')
+
+    @unittest.skipUnless(sys.platform == 'linux' and Path('/usr/bin/systemd-analyze').exists(),
+                         'Requires the real Linux systemd unit parser')
+    def test_rendered_units_pass_real_systemd_parser(self):
+        for index, name in enumerate(('private', 'private with $literal %value spaces')):
+            runtime = self.base / name
+            runtime.mkdir(exist_ok=True)
+            unit = self.base / ('decrumb-parse-' + str(index) + '.service')
+            unit.write_text(pi.unit_text(runtime, self.source))
+            parsed = subprocess.run(['/usr/bin/systemd-analyze', 'verify', str(unit)],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=20)
+            self.assertEqual(parsed.returncode, 0, parsed.stderr.decode())
+
+    def test_directory_directive_rejects_unrepresentable_trailing_characters(self):
+        for value in ('relative', '/tmp/private ', '/tmp/private\\', '/tmp/private\n'):
+            with self.assertRaises(decrumb.SafeError):
+                pi.unit_directory(value)
 
     def test_service_start_requires_fresh_running_heartbeat(self):
         self.install()

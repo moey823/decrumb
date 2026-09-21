@@ -68,7 +68,8 @@ verified dependency sources, boot startup, and removal instructions.
 
 ## Optional phone commands
 
-Enable **Phone commands** in the Mac app, or use `decrumb phone-commands enable`
+In the Mac app, open **Cleaning rules**, turn on **Enable commands from Note to Self**,
+and save. Or use `decrumb phone-commands enable`
 on the Pi. Then write one of these commands in Signal's **Note to Self**:
 
 ```text

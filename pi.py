@@ -40,21 +40,30 @@ def operation(root):
         yield
 
 
-def unit_quote(value, *, command=False):
-    """Quote one systemd argument, including literal specifier and dollar signs."""
+def unit_directory(value):
+    """WorkingDirectory takes a raw absolute path, not ExecStart quoting."""
+    value = str(value)
+    if (not Path(value).is_absolute() or any(ord(char) < 32 or ord(char) == 127 for char in value)
+            or value[-1].isspace() or value.endswith('\\')):
+        raise decrumb.SafeError('Runtime paths must be absolute without control characters or trailing whitespace/backslashes.')
+    return value.replace('%', '%%')
+
+
+def unit_quote(value):
+    """Quote one ExecStart argument, including literal specifier and dollar signs."""
     value = str(value)
     if any(ord(char) < 32 for char in value):
         raise decrumb.SafeError('Installation paths must not contain control characters.')
     escaped = value.replace('\\', '\\\\').replace('"', '\\"').replace('%', '%%')
-    return '"' + (escaped.replace('$', '$$') if command else escaped) + '"'
+    return '"' + escaped.replace('$', '$$') + '"'
 
 
 def unit_text(root, app):
     return '\n'.join([
         MARKER, '[Unit]', 'Description=Decrumb Signal link cleaner',
         'After=network-online.target', '', '[Service]', 'Type=simple',
-        'WorkingDirectory=' + unit_quote(root),
-        'ExecStart=/usr/bin/python3 -B ' + unit_quote(app / 'pi.py', command=True) + ' --root ' + unit_quote(root, command=True) + ' run',
+        'WorkingDirectory=' + unit_directory(root),
+        'ExecStart=/usr/bin/python3 -B ' + unit_quote(app / 'pi.py') + ' --root ' + unit_quote(root) + ' run',
         'Restart=on-failure', 'RestartSec=30', 'TimeoutStopSec=25', 'UMask=0077',
         'NoNewPrivileges=true', 'PrivateTmp=true',
         'StandardOutput=null', 'StandardError=null', '', '[Install]', 'WantedBy=default.target', '',
@@ -85,7 +94,7 @@ class PiService:
             try:
                 value = self.path.read_text()
                 if self.path.is_symlink() or not value.startswith(MARKER + '\n') or (
-                    '\nWorkingDirectory=' + unit_quote(self.root) + '\n') not in value:
+                    '\nWorkingDirectory=' + unit_directory(self.root) + '\n') not in value:
                     raise ValueError()
             except (OSError, ValueError):
                 raise decrumb.SafeError('The existing Decrumb service belongs to another installation.') from None
