@@ -2,6 +2,7 @@
 """Offline browser authentication, privacy, and controller transitions."""
 import contextlib
 import gzip
+from http.client import HTTPConnection
 import io
 import json
 import os
@@ -256,9 +257,25 @@ class HTTPTests(unittest.TestCase):
         token = self.login()
         for headers in ({'Origin': 'https://attacker.example'}, {'Origin': 'null'},
                         {'Origin': self.base + '/'}, {'Sec-Fetch-Site': 'same-site'},
-                        {'Content-Type': 'text/plain'}, {'Transfer-Encoding': 'chunked'}):
+                        {'Content-Type': 'text/plain'}):
             with self.subTest(headers=headers):
                 self.assertEqual(self.request('/api/pair', {}, token, **headers)[0], 403)
+        self.assertIsNone(self.control.child)
+
+    def test_chunked_mutations_rejected_before_body(self):
+        token = self.login()
+        with contextlib.closing(HTTPConnection('127.0.0.1', self.server.server_port, timeout=5)) as connection:
+            connection.putrequest('POST', '/api/pair')
+            connection.putheader('Origin', self.base)
+            connection.putheader('Content-Type', 'application/json')
+            connection.putheader('Authorization', 'Bearer ' + token)
+            connection.putheader('Transfer-Encoding', 'chunked')
+            # The server rejects these headers without reading a body. Do not race
+            # its connection close by streaming chunks through urllib afterward.
+            connection.endheaders()
+            with connection.getresponse() as response:
+                self.assertEqual(response.status, 403)
+                response.read()
         self.assertIsNone(self.control.child)
 
     def test_session_expiry_and_bounded_login_attempts(self):

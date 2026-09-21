@@ -279,6 +279,10 @@ Published 2026-09-21 from source commit
 - The downloaded Mac DMG and app passed image integrity, strict code signatures,
   Gatekeeper, stapled-ticket checks and packaged synthetic smoke. Official Sparkle
   tools verified both the downloaded update archive and the signed appcast.
+- The public mkships pages and build 6 update feed return HTTP 200 and match
+  publication `f37ef7b02a2b478319401699e4c1606e160dfa9b` byte for byte, including
+  the new release-notes page. The hosted feed is identical to the verified,
+  signed release asset.
 - No linked installation was updated during this release. Updating an existing
   linked installation through Check for Updates remains an owner-run acceptance
   check. Physical Pi, Umbrel-device and real Signal acceptance remain separate.
