@@ -26,7 +26,9 @@ jobs:
       - name: Install pinned build dependencies
         run: python -m pip install -r tools/requirements-build.txt -r windows/requirements.txt
       - name: Build experimental Windows bundle
-        run: python -B build.py --windows
+        run: |
+          python tools/release_version.py --check
+          python -B build.py --windows
       - name: Native offline and shared behavior tests
         run: python -B tools/run_windows_tests.py
       - name: Verify packaged executables and isolated Signal runtime

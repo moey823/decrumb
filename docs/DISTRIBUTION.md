@@ -2,9 +2,9 @@
 
 ## One version for every platform
 
-`release.json` is the release source of truth for Mac, Raspberry Pi, and Umbrel.
-The published release is **Decrumb 1.0.0**: Mac/Pi version `1.0.0`, build `6`,
-and Umbrel version `1.0.0`. Platform names belong in artifact names, not in
+`release.json` is the release source of truth for Mac, Raspberry Pi, Umbrel, and Windows.
+The current source release is **Decrumb 1.1.0**: Mac/Pi/Windows version `1.1.0`,
+build `7`, and Umbrel version `1.1.0`. Platform names belong in artifact names, not in
 independent version sequences. Experimental platform support does not change the
 shared application version.
 
@@ -16,15 +16,27 @@ python3 tools/release_version.py --write-umbrel
 python3 tools/release_version.py --check
 ```
 
-Mac development builds and Pi packaging use these defaults. Explicit version or
+Mac and Windows builds and Pi packaging use these defaults. Explicit version or
 build arguments must match the file. CI rejects a divergent Umbrel manifest and
 derives the Pi archive path from the same metadata. Container CI supplies the
 same public version to the OCI version label; immutable source-commit image tags
 and digests still identify the exact platform build.
 
 Keep published binaries and tags immutable. The original Umbrel `0.1.0` preview
-is historical; the community store now pins the tested RC6 image.
+is historical. Store updates must pin a tested image of the matching new release;
+changing only the store's version label is not a platform update.
 Release notes group all platform downloads under one Decrumb tag.
+
+## 1.1.0: native Windows CLI
+
+Build 7 adds a native Windows x64 CLI, private per-user state, terminal QR pairing,
+background controls, optional login startup, and shared rules/note management.
+All platform packages derive their version from the same metadata. Windows
+builds are unsigned and experimental; see [WINDOWS.md](WINDOWS.md).
+
+Committing the version does not publish replacement Mac/Pi downloads or a Mac
+update feed. Existing signed v1.0.0 artifacts and historical tags stay immutable;
+new artifacts require their platform's existing release checks.
 
 ## V1: promotion of build 6
 

@@ -1,5 +1,6 @@
 # Decrumb for Windows
 
+Decrumb **1.1.0**, build **7**, uses the same release version as Mac, Pi and Umbrel.
 Experimental native Windows x64 CLI for technical users. Windows 11 on Intel/AMD
 is the initial target; Windows on ARM is not validated. The development bundle
 is unsigned and is not a published Windows release. Mac, Pi and Umbrel release

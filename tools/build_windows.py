@@ -164,7 +164,7 @@ def package(target, output):
                 'files': {p.relative_to(target).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
                           for p in sorted(target.rglob('*')) if p.is_file()}}
     (target / 'windows-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
-    archive = output / ('Decrumb-' + release['version'] + '-' + str(release['build']) + '-windows-x64.zip')
+    archive = output / Path(release['windows_archive']).name
     with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as bundle:
         for path in sorted(target.rglob('*')):
             if path.is_file():

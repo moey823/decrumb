@@ -23,15 +23,17 @@ editions do not open a listening port. The experimental Umbrel edition adds a
 private browser dashboard for an always-on server; see the
 [Umbrel guide](docs/UMBREL.md) for its release and validation status.
 
-**[Download Decrumb v1](https://mkships.app/decrumb/download/).**
-All platforms use **Decrumb 1.0.0** (build 6; `1.0.0` in Umbrel).
+**[Decrumb downloads](https://mkships.app/decrumb/download/).**
+The current source version is **Decrumb 1.1.0** (build 7; `1.1.0` in Umbrel),
+shared by Mac, Raspberry Pi, Umbrel and Windows. Published downloads may precede
+the current source; see the [release notes](docs/RELEASE-NOTES.md).
 The release targets Apple Silicon Macs with macOS 26.4 or later,
 Raspberry Pi OS 64-bit (Bookworm or later), and ARM64 or Intel/AMD Umbrel servers.
 Mac releases are signed and
 Apple-notarized; the Pi edition is an experimental command-line release.
-V1 promotes the tested RC6 build without changing its files. Existing RC6
-installations already have v1. See [release status](docs/V1-READINESS.md) for
-ongoing platform validation.
+Version 1.1 adds the experimental native Windows x64 CLI. See the
+[Windows guide](docs/WINDOWS.md) and [v1 validation history](docs/V1-READINESS.md)
+for platform validation and release limits.
 
 [Website](https://mkships.app/decrumb/) ·
 [Download](https://mkships.app/decrumb/download/) ·

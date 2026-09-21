@@ -2,8 +2,13 @@ name: Umbrel container
 
 on:
   pull_request:
-    paths: ['web/**', 'container/**', '*_server.py', 'container_dependency.py', 'decrumb.py', 'diagnostics.py', 'notes.py', 'phone_commands.py', 'portable_cleaner.py', 'rules/**', 'tools/smoke_web.py', 'release.json', 'tools/release_version.py', 'mkships-decrumb/**', '.github/workflows/container.yml']
+    paths: ['web/**', 'container/**', '*_server.py', 'container_dependency.py', 'decrumb.py', 'runtime_platform.py', 'diagnostics.py', 'notes.py', 'phone_commands.py', 'portable_cleaner.py', 'rules/**', 'tools/smoke_web.py', 'release.json', 'tools/release_version.py', 'mkships-decrumb/**', '.dockerignore', '.github/workflows/container.yml']
   workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish tested immutable images for this revision (does not update the store)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -39,14 +44,14 @@ jobs:
             -v "$PWD/tools/smoke_web.py:/test/smoke_web.py:ro" \
             --entrypoint python3 decrumb-test /test/smoke_web.py
       - name: Log in to container registry
-        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish tested architecture
-        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
         env:
           ARCH: ${{ matrix.arch }}
         run: |
@@ -56,7 +61,7 @@ jobs:
 
   publish:
     needs: build
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
     runs-on: ubuntu-24.04
     permissions:
       packages: write

@@ -14,16 +14,17 @@ loses its internet connection. It does not need a monitor attached.
 
 ## Install and connect
 
-Download the Linux ARM64 `.tar.gz` and matching `.sha256` file from the
+The current source release is **1.1.0**, build **7**. Download the matching
+Linux ARM64 `.tar.gz` and `.sha256` file when available from the
 [Decrumb releases](https://github.com/moey823/decrumb/releases). Transfer them to
 your Pi, or download them there. Verify the checksum before extracting:
 
 ```sh
-sha256sum -c Decrumb-1.0.0-5-linux-arm64.tar.gz.sha256
-tar -xzf Decrumb-1.0.0-5-linux-arm64.tar.gz
+sha256sum -c Decrumb-1.1.0-7-linux-arm64.tar.gz.sha256
+tar -xzf Decrumb-1.1.0-7-linux-arm64.tar.gz
 sudo apt update
 sudo apt install python3 qrencode libstdc++6
-cd Decrumb-1.0.0-5-linux-arm64
+cd Decrumb-1.1.0-7-linux-arm64
 python3 tools/install_pi.py
 ```
 

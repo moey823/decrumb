@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-only
-"""One release identity for Mac, Raspberry Pi and Umbrel."""
+"""One release identity for Mac, Raspberry Pi, Umbrel and Windows."""
 import argparse
 import json
 from pathlib import Path
@@ -22,7 +22,8 @@ def load(root=ROOT):
     return {'version': version, 'build': build, 'channel': channel, 'public_version': public,
             'tag': 'v' + public,
             'display': version if channel == 'stable' else version + ' ' + channel.upper() + build,
-            'pi_archive': 'build/Decrumb-' + version + '-' + build + '-linux-arm64.tar.gz'}
+            'pi_archive': 'build/Decrumb-' + version + '-' + build + '-linux-arm64.tar.gz',
+            'windows_archive': 'build/windows/Decrumb-' + version + '-' + build + '-windows-x64.zip'}
 
 
 def resolve(version=None, build=None, root=ROOT):
@@ -50,14 +51,14 @@ def umbrel(root=ROOT, write=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     actions = parser.add_mutually_exclusive_group()
-    actions.add_argument('--field', choices=('version', 'build', 'channel', 'public_version', 'display', 'tag', 'pi_archive'))
+    actions.add_argument('--field', choices=('version', 'build', 'channel', 'public_version', 'display', 'tag', 'pi_archive', 'windows_archive'))
     actions.add_argument('--check', action='store_true', help='Reject an Umbrel version that differs from the shared release')
     actions.add_argument('--write-umbrel', action='store_true', help='Update the checked-in store version from release.json')
     args = parser.parse_args()
     release = load()
     if args.check or args.write_umbrel:
         umbrel(write=args.write_umbrel)
-        print('Mac, Pi and Umbrel release: ' + release['display'] + ' (build ' + release['build'] + ')')
+        print('Mac, Pi, Umbrel and Windows release: ' + release['display'] + ' (build ' + release['build'] + ')')
     elif args.field:
         print(release[args.field])
     else:

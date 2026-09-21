@@ -1,5 +1,6 @@
 **
 !decrumb.py
+!runtime_platform.py
 !diagnostics.py
 !release.json
 !notes.py

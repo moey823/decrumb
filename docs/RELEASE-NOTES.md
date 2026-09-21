@@ -1,5 +1,21 @@
 # Decrumb release notes
 
+## 1.1.0 — native Windows CLI (build 7)
+
+- Adds an experimental native Windows x64 CLI with terminal QR pairing, hidden
+  background cleaning, pause/resume, and optional startup at login.
+- Includes rule previews/import/export, note controls, optional phone commands,
+  and content-free diagnostics. Python, Java and the pinned Signal client are
+  included in the Windows development bundle.
+- Protects Windows account state with per-user ACLs and contains Signal child
+  processes so stopping or crashing the worker releases the runtime.
+- Mac, Pi, Umbrel and Windows use one version: **1.1.0**, build **7**. Shared
+  privacy filters, duplicate protection and Note-to-Self-only sending are unchanged.
+
+Windows remains experimental pending live pairing and sleep/wake validation.
+The source version does not replace previously published signed Mac/Pi assets;
+see [distribution status](DISTRIBUTION.md).
+
 ## 1.0.0 — first stable release
 
 V1 promotes the tested RC6 build with no changes to the app or release files.

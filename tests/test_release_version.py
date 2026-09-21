@@ -8,6 +8,8 @@ import unittest
 from unittest.mock import patch
 
 from tools import build_app, package_pi, release_version
+import diagnostics
+import windows
 
 
 class SharedReleaseTests(unittest.TestCase):
@@ -19,6 +21,9 @@ class SharedReleaseTests(unittest.TestCase):
         with patch.object(build_app.platform, 'mac_ver', return_value=('26.4', (), '')):
             options = build_app.release_options(parser.parse_args([]))
         self.assertEqual((options['version'], options['build_number']), (release['version'], release['build']))
+        self.assertEqual(diagnostics.release(), {'version': release['version'], 'build': int(release['build'])})
+        version_action = next(action for action in windows.parser()._actions if action.dest == 'version')
+        self.assertEqual(version_action.version, 'Decrumb ' + release['version'])
 
     def test_explicit_platform_overrides_cannot_create_another_version(self):
         parser = argparse.ArgumentParser()
@@ -47,6 +52,7 @@ class SharedReleaseTests(unittest.TestCase):
             release_version.umbrel(root)
             self.assertEqual(manifest.read_text(), 'name: Decrumb\nversion: "1.1.0-rc.9"\nport: 8857\n')
             self.assertEqual(release_version.load(root)['pi_archive'], 'build/Decrumb-1.1.0-9-linux-arm64.tar.gz')
+            self.assertEqual(release_version.load(root)['windows_archive'], 'build/windows/Decrumb-1.1.0-9-windows-x64.zip')
 
     def test_stable_release_and_invalid_metadata(self):
         with tempfile.TemporaryDirectory() as folder:
