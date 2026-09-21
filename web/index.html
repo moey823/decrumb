@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Decrumb</title>
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+<main>
+  <header><a class="brand" href="/"><img src="/logo.svg" alt="" width="42" height="42">Decrumb</a><button id="logout" class="quiet" hidden>Lock dashboard</button></header>
+  <p class="eyebrow">Your always-on Signal helper</p>
+  <h1>Cleaner links.<br>Waiting in Note to Self.</h1>
+  <p class="intro">Decrumb removes tracking from incoming Signal links and saves a clean copy for you. Keep this server on and online.</p>
+  <p id="notice" role="status" aria-live="polite" hidden></p>
+
+  <section id="login-panel" class="card">
+    <h2>Unlock Decrumb</h2>
+    <p>Use the app password shown in Umbrel’s Decrumb app details. Your Umbrel login password is separate.</p>
+    <form id="login-form"><label for="password">App password</label><div class="inline"><input id="password" type="password" autocomplete="current-password" required><button type="submit">Unlock</button></div></form>
+  </section>
+
+  <div id="dashboard" hidden>
+    <section class="card" aria-labelledby="status-title">
+      <div class="heading"><h2 id="status-title">Connecting…</h2><span id="state" class="badge">Checking</span></div>
+      <p id="status-detail">Reading the helper’s status.</p>
+      <p id="service-error" class="error" hidden></p>
+      <div class="actions">
+        <button id="pair" hidden>Connect Signal</button>
+        <button id="cancel-pair" class="secondary" hidden>Cancel pairing</button>
+        <button id="retry-setup" hidden>Retry setup</button>
+        <button id="pause" class="secondary" hidden>Pause cleaning</button>
+        <button id="resume" hidden>Start cleaning</button>
+      </div>
+      <div id="pairing" hidden>
+        <img id="qr" alt="Private Signal linking QR code" width="280" height="280" hidden>
+        <p>On your phone, open <strong>Signal → Settings → Linked devices → Link a new device</strong> and scan this code. Cleaning starts as soon as you connect.</p>
+        <p class="muted">The code expires after a few minutes. Keep it private. If you already run Decrumb on another machine, pause that copy to avoid duplicate notes.</p>
+      </div>
+      <dl class="stats"><div><dt>Saved notes</dt><dd id="sent">0</dd></div><div><dt>Queued</dt><dd id="pending">0</dd></div><div><dt>Unconfirmed</dt><dd id="uncertain">0</dd></div></dl>
+    </section>
+
+    <form id="settings-form" class="card">
+      <h2>Make it yours</h2>
+      <label for="mode">Clean links from</label>
+      <select id="mode"><option value="all">All sites</option><option value="selected">Selected sites</option><option value="off">No sites — cleaning off</option></select>
+      <div id="selected-sites" hidden><label for="sites">Sites to clean <span class="muted">one per line</span></label><textarea id="sites" rows="3" placeholder="https://example.com"></textarea></div>
+      <label for="excluded">Sites to leave alone <span class="muted">one per line, optional</span></label>
+      <textarea id="excluded" rows="2" placeholder="https://example.com"></textarea>
+      <label class="check"><input type="checkbox" id="commands">Enable commands from Note to Self</label>
+      <p class="hint">Send <code>/decrumb help</code>, <code>/decrumb status</code>, or <code>/decrumb clean https://…</code> from your phone while Decrumb is running. Only your own commands are accepted. No shell commands or AI.</p>
+      <label class="check"><input type="checkbox" id="sender">Include the sender’s display name in clean notes</label>
+      <label for="cleanup-mode">Remove Decrumb’s generated notes</label>
+      <select id="cleanup-mode"><option value="manual">Only when I request it</option><option value="lifetime">After a lifetime</option><option value="schedule">On a schedule</option></select>
+      <div id="lifetime-row" hidden><label for="lifetime">Note lifetime</label><select id="lifetime"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option><option value="23">23 hours</option></select></div>
+      <div id="sweep-row" hidden><label for="sweep">Remove eligible notes every</label><select id="sweep"><option value="1">1 hour</option><option value="6">6 hours</option><option value="12">12 hours</option></select></div>
+      <p class="hint">Removal is optional and affects only notes tracked by this installation. Signal’s removal window is about 24 hours; offline time can prevent removal. Original messages stay untouched.</p>
+      <details><summary>Advanced cleaning rules</summary><p class="hint">Exact parameter rules per site. “Keep” wins over “remove”. Leave <code>[]</code> to use the built-in rules.</p><label for="rules">Rules as JSON</label><textarea id="rules" rows="5" spellcheck="false">[]</textarea><p class="hint"><code>[{"site":"https://example.com","remove":["ref"],"keep":["id"]}]</code></p><label class="check"><input type="checkbox" id="discard">Discard queued links when I pause</label></details>
+      <button type="submit">Save settings</button><p class="hint">Changing cleaning rules clears links queued under the old rules.</p>
+    </form>
+
+    <section class="card">
+      <h2>Try a link</h2><p>Preview your current form settings. Nothing is visited, sent, or saved.</p>
+      <form id="preview-form"><label for="sample">Sample text or link</label><textarea id="sample" rows="3" maxlength="16384" placeholder="https://example.com/article?utm_source=share&id=42"></textarea><button type="submit" class="secondary">Preview cleaning</button></form><pre id="preview-result" hidden></pre>
+    </section>
+
+    <section class="card">
+      <h2>Your generated notes</h2><p id="notes-count">Checking tracked notes…</p>
+      <p>Request removal of all eligible Decrumb notes, or clear links waiting to be sent. Requests wait while cleaning is paused.</p>
+      <div class="actions"><button id="cleanup" class="secondary">Remove eligible notes…</button><button id="clear-queue" class="quiet">Clear queued links…</button></div>
+    </section>
+  </div>
+
+  <footer>Runs on your server. Replies only to you.<br><a href="https://github.com/moey823/decrumb" target="_blank" rel="noopener noreferrer">Source code · AGPLv3</a> · <a href="https://mkships.app/decrumb/help/" target="_blank" rel="noopener noreferrer">Help</a></footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "amd64": {
+    "version": "0.14.8",
+    "url": "https://github.com/AsamK/signal-cli/releases/download/v0.14.8/signal-cli-0.14.8-Linux-native.tar.gz",
+    "sha256": "36569af20c709e0c5e6e677b74f50f147b21f3740620b8a7affde70f6027f82a",
+    "format": "tar.gz",
+    "source": "https://github.com/AsamK/signal-cli/tree/v0.14.8"
+  },
+  "arm64": {
+    "version": "0.14.8",
+    "url": "https://media.projektzentrisch.de/temp/signal-cli/signal-cli0148+2_ubuntu2004_arm64.gz",
+    "sha256": "e2a9f6c6402ab2453538d08e922eae3003614fc8b6f2431eca3ce5644e2e90f6",
+    "format": "gz",
+    "source": "https://github.com/AsamK/signal-cli/tree/22b028bbb9cee8f6aa22af71c6b3e9d09028a16a",
+    "provenance": "linux/dependencies.json"
+  }
+}

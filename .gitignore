@@ -16,6 +16,7 @@ config.json
 status.json
 verification.json
 worker.lock
+web.lock
 worker.log*
 pairing*.png
 *.sqlite

@@ -1,4 +1,4 @@
-# Decrumb for Mac and Raspberry Pi
+# Decrumb for Mac, Raspberry Pi, and Umbrel
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="branding/decrumb-wordmark-inverse.svg">
@@ -18,7 +18,10 @@ The Mac app includes its own Python worker, Swift URL cleaner, and pinned native
 Signal CLI. Users do not install Python, Java, Homebrew, or Signal CLI separately.
 The Pi installer uses Python 3.11+, `qrencode`, and a checksum-pinned ARM64 Signal
 CLI download. It pairs through a QR code in the terminal, including over SSH.
-There is no hosted message-processing service, AI provider, browser UI, or local listening port.
+There is no hosted message-processing service or AI provider. The Mac and Pi
+editions do not open a listening port. The experimental Umbrel edition adds a
+private browser dashboard for an always-on server; see the
+[Umbrel guide](docs/UMBREL.md) for its release and validation status.
 
 **[Download the signed release candidate](https://mkships.app/decrumb/download/).**
 Decrumb 1.0.0 RC5 targets Apple Silicon Macs with macOS 26.4 or later, and

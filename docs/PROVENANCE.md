@@ -68,3 +68,20 @@ checksum-pinned ARM64 signal-cli build from the provider referenced in
 `linux/dependencies.json`; it does not claim that binary is an official Signal
 release. Exact binary metadata and source references are recorded in the
 [Raspberry Pi guide](RASPBERRY-PI.md).
+
+## Umbrel and container dashboard, 2026-09-21
+
+`web_server.py`, `container_dependency.py`, and `web/` add browser controls and a
+subprocess supervisor around the existing worker. They are original Decrumb
+additions under AGPL-3.0-only. The container retains the license, source link,
+provenance, and source revision label. It uses the official multiarchitecture
+Python Debian image, `qrencode`, and system libraries with their distribution
+notices retained in the image.
+
+The image does not redistribute signal-cli. On first start it downloads the
+architecture-specific archive recorded in `container/dependencies.json`, checks
+its SHA-256, and verifies the executable architecture and version. ARM64 uses the
+same community build and provenance as the Pi installer; AMD64 uses the native
+asset published by the signal-cli project for v0.14.8. Both are unofficial Signal
+clients. The private dependency cache is separate from the image and can be
+recreated without changing the linked account.
