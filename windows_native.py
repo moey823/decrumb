@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 import stat
+import uuid
 
 _job = None
 
@@ -78,7 +79,9 @@ def contain_children():
         return
     import win32api
     import win32job
-    job = win32job.CreateJobObject(None, None)
+    # pywin32 requires a string name. A fresh local name prevents accidentally
+    # attaching to another installation's job; the default handle is private.
+    job = win32job.CreateJobObject(None, 'Local\\Decrumb-' + uuid.uuid4().hex)
     try:
         limits = win32job.QueryInformationJobObject(job, win32job.JobObjectExtendedLimitInformation)
         limits['BasicLimitInformation']['LimitFlags'] = win32job.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE

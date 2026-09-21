@@ -89,7 +89,7 @@ class PortableCleanerTests(unittest.TestCase):
             result = subprocess.run([sys.executable, "-B", str(ROOT / "portable_cleaner.py")], input=raw, capture_output=True)
             self.assertEqual(result.returncode, 65)
             self.assertEqual(result.stdout, b"")
-            self.assertEqual(result.stderr, b"Invalid cleanup request.\n")
+            self.assertEqual(result.stderr.decode().splitlines(), ["Invalid cleanup request."])
 
     def test_rules_remain_shared_data(self):
         altered = {**RULES, "globalRemove": RULES["globalRemove"] + ["new_key"]}

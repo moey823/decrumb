@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Synthetic receipt and cleanup tests: never use a Signal account or network."""
+import contextlib
 import json
 from pathlib import Path
 import sqlite3
@@ -174,7 +175,7 @@ class NotesTests(unittest.TestCase):
 
     def test_old_schema_migrates_without_inventing_sent_receipts(self):
         legacy = Path(self.folder.name) / "legacy.sqlite3"
-        with sqlite3.connect(legacy) as db:
+        with contextlib.closing(sqlite3.connect(legacy)) as db, db:
             db.execute("CREATE TABLE outbox(id TEXT PRIMARY KEY,timestamp INTEGER NOT NULL,state TEXT NOT NULL,body TEXT)")
             db.execute("INSERT INTO outbox VALUES ('old-sent',?,'sent',NULL)", (self.now,))
             db.execute("INSERT INTO outbox VALUES ('old-pending',?,'pending',?)", (self.now, "Clean link\n" + URL))
