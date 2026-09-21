@@ -135,6 +135,7 @@ enum Backend {
     @Published var notesDirty = false
     @Published var notes: [GeneratedNote] = []
     @Published var noteCounts: [String: Int] = [:]
+    @Published var diagnosticReport = ""
     var updater: AppUpdater?
     let demo = CommandLine.arguments.contains("--demo") || CommandLine.arguments.contains("--demo-connected")
     private var pairProcess: Process?
@@ -313,6 +314,31 @@ enum Backend {
                 notice = "Settings saved. Previously queued links were cleared."
             } catch { self.error = error.localizedDescription }
         }
+    }
+    func loadDiagnostics(clear: Bool = false) {
+        guard !busy else { return }
+        busy = true; error = nil; notice = nil
+        Task {
+            defer { busy = false }
+            do {
+                let report: [String: Any]
+                if demo {
+                    report = ["app": "Decrumb", "preview": true, "recent_errors": [],
+                              "sharing": "Offline preview. No local diagnostics were read or changed."]
+                } else {
+                    report = try await Backend.request(clear ? "clear-diagnostics" : "diagnostics")
+                }
+                let data = try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
+                diagnosticReport = String(decoding: data, as: UTF8.self)
+                if clear { notice = "Local error history cleared." }
+            } catch { self.error = error.localizedDescription }
+        }
+    }
+    func copyDiagnostics() {
+        guard !diagnosticReport.isEmpty else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(diagnosticReport, forType: .string)
+        notice = "Diagnostic report copied. Share it only if you choose."
     }
     func localPreview(text: String) async throws -> [String: Any] {
         let raw = try JSONSerialization.jsonObject(with: JSONEncoder().encode(draft()))
@@ -500,6 +526,7 @@ struct RootView: View {
                     navigation("notes", "Saved notes", "note.text")
                     navigation("preview", "Try a link", "wand.and.stars")
                     navigation("updates", "App updates", "arrow.down.circle")
+                    navigation("diagnostics", "Diagnostics", "stethoscope")
                 }
                 Spacer()
                 VStack(alignment: .leading, spacing: 8) {
@@ -519,6 +546,7 @@ struct RootView: View {
                         else if model.page == "overview" { overview }
                         else if model.page == "rules" { rules }
                         else if model.page == "notes" { savedNotes }
+                        else if model.page == "diagnostics" { diagnosticTools }
                         else { preview }
                         if let error = model.error {
                             Label(error, systemImage: "exclamationmark.circle.fill").foregroundStyle(.red).font(.callout).textSelection(.enabled)
@@ -618,6 +646,28 @@ struct RootView: View {
                 promise("lock.shield", "Stays local", "No link fetching or tracking service.")
                 promise("note.text", "Only Note to Self", "Never replies to people or groups.")
                 promise("eye.slash", "Respects privacy", "Skips disappearing and spoiler messages.")
+            }
+        }
+    }
+    var diagnosticTools: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            heading("HELP WITHOUT OVERSHARING", "Local diagnostics", "Nothing is uploaded automatically. Preview a report, then copy it if you want to share it with support.")
+            card {
+                Text("The report includes app and dependency versions, operating system, processor type, worker health, and recent error codes.").font(.callout)
+                Text("It excludes messages, links, contacts, account details, cleaning rules, activity counts, and exact event times.").font(.callout).foregroundStyle(.secondary)
+                Text("Error history stays on this Mac for up to seven UTC calendar days, with at most 128 entries. Cleanup runs while Decrumb is active; old files can remain while it is closed.").font(.caption).foregroundStyle(.secondary)
+                HStack {
+                    Button("Preview diagnostic report") { model.loadDiagnostics() }.buttonStyle(.borderedProminent)
+                    Button("Clear diagnostics") { model.diagnosticReport = ""; model.loadDiagnostics(clear: true) }
+                }.disabled(model.busy)
+                Text("Clearing removes local error history. Your Signal connection, settings, and saved notes stay as they are.").font(.caption).foregroundStyle(.secondary)
+            }
+            if !model.diagnosticReport.isEmpty {
+                card {
+                    Text("Review before sharing").font(.headline)
+                    Text(model.diagnosticReport).font(.system(size: 11, design: .monospaced)).textSelection(.enabled)
+                    Button("Copy diagnostic report", action: model.copyDiagnostics).disabled(model.busy)
+                }
             }
         }
     }

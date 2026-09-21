@@ -18,6 +18,7 @@ from urllib.request import Request, urlopen
 
 import container_dependency
 import decrumb
+import diagnostics
 import web_server
 
 
@@ -169,6 +170,21 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual(result['urls'], ['https://example.com/a?id=42'])
         self.assertEqual((self.root / 'config.json').read_bytes(), before)
 
+    def test_diagnostics_available_during_setup_and_do_not_stop_worker(self):
+        self.linked()
+        self.control.tick()
+        child = self.control.child
+        before = (self.root / 'config.json').read_bytes()
+        diagnostics.record(self.root, 'connection_closed')
+        self.control.ready = False
+        report = self.control.action('diagnostics', {})
+        self.assertEqual(report['recent_errors'][0]['code'], 'connection_closed')
+        self.assertEqual(self.control.action('clear-diagnostics', {})['recent_errors'], [])
+        self.assertIs(self.control.child, child)
+        self.assertEqual((self.root / 'config.json').read_bytes(), before)
+        with self.assertRaises(decrumb.SafeError):
+            self.control.action('diagnostics', {'private': 'synthetic'})
+
 
 class HTTPTests(unittest.TestCase):
     def setUp(self):
@@ -208,10 +224,22 @@ class HTTPTests(unittest.TestCase):
     def test_all_private_routes_require_auth(self):
         for path in ('/api/status', '/api/qr', '/config.json', '/../config.json'):
             self.assertEqual(self.request(path)[0], 401)
-        for action in ('pair', 'pause', 'resume', 'settings', 'preview', 'cleanup', 'retry-setup', 'clear-queue'):
+        for action in ('pair', 'pause', 'resume', 'settings', 'preview', 'cleanup', 'retry-setup', 'clear-queue',
+                       'diagnostics', 'clear-diagnostics'):
             self.assertEqual(self.request('/api/' + action, {})[0], 401)
         self.assertEqual(self.request('/')[0], 200)
         self.assertEqual(self.request('/healthz')[0], 200)
+
+    def test_authenticated_diagnostic_preview_and_clear(self):
+        token = self.login()
+        diagnostics.record(self.control.root, 'helper_failed')
+        code, body, headers = self.request('/api/diagnostics', {}, token)
+        self.assertEqual(code, 200)
+        self.assertEqual(json.loads(body)['recent_errors'][0]['code'], 'helper_failed')
+        self.assertEqual(headers['Cache-Control'], 'no-store')
+        code, body, _ = self.request('/api/clear-diagnostics', {}, token)
+        self.assertEqual(code, 200)
+        self.assertEqual(json.loads(body)['recent_errors'], [])
 
     def test_authenticated_state_headers_and_logout(self):
         token = self.login()

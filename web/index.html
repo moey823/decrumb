@@ -72,6 +72,14 @@
       <p>Request removal of all eligible Decrumb notes, or clear links waiting to be sent. Requests wait while cleaning is paused.</p>
       <div class="actions"><button id="cleanup" class="secondary">Remove eligible notes…</button><button id="clear-queue" class="quiet">Clear queued links…</button></div>
     </section>
+    <section class="card">
+      <h2>Local diagnostics</h2>
+      <p>Preview a report, then copy it if you want to share it with support. Nothing is uploaded automatically.</p>
+      <p class="hint">Includes versions, operating system, processor type, worker health, and recent error codes. Excludes messages, links, contacts, account details, rules, activity counts, and exact event times.</p>
+      <p class="hint">Keeps at most 128 error entries from seven UTC calendar days. Cleanup runs while Decrumb is active. Clearing diagnostics leaves your Signal connection, settings, and notes unchanged.</p>
+      <div class="actions"><button id="diagnostics" class="secondary">Preview diagnostic report</button><button id="clear-diagnostics" class="quiet">Clear diagnostics</button></div>
+      <div id="diagnostic-preview" hidden><label for="diagnostic-report">Review before sharing</label><textarea id="diagnostic-report" rows="12" readonly spellcheck="false"></textarea><button id="copy-diagnostics" class="secondary">Copy diagnostic report</button></div>
+    </section>
   </div>
 
   <footer>Runs on your server. Replies only to you.<br><a href="https://github.com/moey823/decrumb" target="_blank" rel="noopener noreferrer">Source code · AGPLv3</a> · <a href="https://mkships.app/decrumb/support/" target="_blank" rel="noopener noreferrer">Help</a></footer>

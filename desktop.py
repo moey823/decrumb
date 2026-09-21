@@ -4,8 +4,6 @@
 import argparse
 import contextlib
 import json
-import logging
-from logging.handlers import RotatingFileHandler
 import os
 from pathlib import Path
 import sys
@@ -14,6 +12,7 @@ import service
 import decrumb
 import phone_commands
 import updater
+import diagnostics
 
 
 def emit(value):
@@ -109,11 +108,19 @@ def main():
     parser.add_argument('--resources', type=Path, required=True)
     parser.add_argument('command', choices=['bootstrap', 'snapshot', 'pair', 'pause', 'resume', 'apply', 'preview', 'run',
                                            'notes-list', 'notes-settings', 'clear-queue', 'cleanup', 'note-lifetime',
-                                           'update-prepare', 'update-abort', 'update-claim'])
+                                           'update-prepare', 'update-abort', 'update-claim',
+                                           'diagnostics', 'clear-diagnostics'])
     args = parser.parse_args()
     root, resources = args.root.expanduser().resolve(), args.resources.resolve()
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
     os.chmod(root, 0o700)
+    diagnostics.configure(root, decrumb.LOG)
+    # Support remains available even when setup/configuration cannot be loaded.
+    if args.command in ('diagnostics', 'clear-diagnostics'):
+        if args.command == 'clear-diagnostics':
+            diagnostics.maintain(root, clear=True)
+        emit(diagnostics.report(root))
+        return
     helper, signal_cli = resources / 'url-cleaner', resources / 'signal-cli'
     if not (root / 'config.json').exists():
         if args.command != 'bootstrap':
@@ -264,10 +271,6 @@ def main():
             config = decrumb.load_config(root, validate_helper=False)
             if config.get('paused', False):
                 return
-            handler = RotatingFileHandler(root / 'worker.log', maxBytes=128 * 1024, backupCount=2)
-            handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
-            decrumb.LOG.addHandler(handler)
-            decrumb.LOG.setLevel(logging.INFO)
             decrumb.run(root, decrumb.load_config(root))
 
 
@@ -275,11 +278,13 @@ if __name__ == '__main__':
     try:
         main()
     except decrumb.SafeError as error:
+        decrumb.LOG.error(error.diagnostic_code)
         emit({'error': str(error)})
         sys.exit(1)
     except KeyboardInterrupt:
         sys.exit(130)
-    except Exception:
+    except Exception as error:
         # Never serialize an exception containing private upstream data.
+        decrumb.LOG.error(diagnostics.failure_code(error))
         emit({'error': 'Operation failed. Check the app status and try again.'})
         sys.exit(1)

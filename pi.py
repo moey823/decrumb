@@ -5,8 +5,6 @@ import argparse
 import contextlib
 import fcntl
 import json
-import logging
-from logging.handlers import RotatingFileHandler
 import os
 from pathlib import Path
 import subprocess
@@ -14,6 +12,7 @@ import sys
 import time
 
 import decrumb
+import diagnostics
 
 UNIT = 'decrumb.service'
 MARKER = '# Managed by Decrumb; private linked-device worker.'
@@ -218,7 +217,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=decrumb.DEFAULT_ROOT)
     commands = parser.add_subparsers(dest='command', required=True)
-    for name in ('pair', 'resume', 'pause', 'status', 'run', 'notes', 'clear-queue'):
+    for name in ('pair', 'resume', 'pause', 'status', 'run', 'notes', 'clear-queue', 'diagnostics', 'clear-diagnostics'):
         commands.add_parser(name)
     configure = commands.add_parser('configure', help='Apply a cleaning-settings JSON file')
     configure.add_argument('file', type=Path)
@@ -240,6 +239,12 @@ def main():
 
 
 def dispatch(args, root):
+    diagnostics.configure(root, decrumb.LOG)
+    if args.command in ('diagnostics', 'clear-diagnostics'):
+        if args.command == 'clear-diagnostics':
+            diagnostics.maintain(root, clear=True)
+        print(json.dumps(diagnostics.report(root), indent=2))
+        return
     config = decrumb.load_config(root, validate_helper=args.command != 'status')
     service = PiService(root)
     if args.command == 'pair':
@@ -265,10 +270,6 @@ def dispatch(args, root):
     elif args.command == 'run':
         if not config.get('account') or config.get('paused', False):
             return
-        handler = RotatingFileHandler(root / 'worker.log', maxBytes=128 * 1024, backupCount=2)
-        handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s %(message)s'))
-        decrumb.LOG.addHandler(handler)
-        decrumb.LOG.setLevel(logging.INFO)
         decrumb.run(root, config)
     elif args.command == 'status':
         print(json.dumps({**decrumb.read_status(root, config), 'paused': config.get('paused', False),
@@ -316,8 +317,10 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         sys.exit(130)
     except decrumb.SafeError as error:
+        decrumb.LOG.error(error.diagnostic_code)
         print(str(error), file=sys.stderr)
         sys.exit(1)
-    except Exception:
+    except Exception as error:
+        decrumb.LOG.error(diagnostics.failure_code(error))
         print('Decrumb operation failed. No private diagnostic content was printed.', file=sys.stderr)
         sys.exit(1)

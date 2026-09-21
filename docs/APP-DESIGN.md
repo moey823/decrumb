@@ -25,6 +25,8 @@ is `com.matthew.decrumb.desktop`. Its dedicated LaunchAgents use
   update, and failures offer Retry connection. Start at login remains optional.
 - UI configuration goes through a narrow local command interface, never a port.
   Account identifiers and received messages never enter UI diagnostic output.
+  Diagnostics provides a local report preview, explicit copy, and history clearing.
+  No reports are sent automatically; the report uses an explicit field allowlist.
 - Routine status updates watch the content-free status file in Swift. Previews
   invoke the Swift helper directly; neither operation launches Python.
 

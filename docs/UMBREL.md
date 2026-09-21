@@ -83,12 +83,14 @@ Mutable state is bind-mounted under `data/state` in Umbrel's app directory:
 | `outbox.sqlite3` | Bounded delivery queue and content-free note receipts |
 | `dependency/` | Verified, replaceable Signal helper download |
 | `pairing.png` | Temporary private linking code, removed after pairing |
-| `status.json`, `worker.log*` | Content-free status and rotating diagnostics |
+| `status.json`, `worker.log`, `diagnostics.lock` | Content-free status and bounded local error codes; old rotating log backups are removed on upgrade |
 
 Decrumb does not keep a chat-history archive. Pending cleaned notes can exist in
 the local delivery queue; the shared worker's retention and privacy rules still
 apply. The dashboard never displays message bodies, contacts, account
-identifiers, keys, or logs. Private preview text stays in memory until the page
+identifiers, keys, or raw logs. The authenticated Diagnostics controls preview a
+content-free report and clear local error history without restarting the worker.
+Nothing is uploaded automatically. Private preview text stays in memory until the page
 is cleared or locked. No analytics, remote fonts, or CDN scripts are loaded.
 
 Updates replace the image and preserve `data/state`. Use Umbrel's app update

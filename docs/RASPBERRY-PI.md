@@ -155,3 +155,12 @@ Offline synthetic tests cover service ownership, private files, packaging,
 updates, rollback, and QR handling. ARM64 Linux container verification can prove
 executable and protocol compatibility; it does not substitute for physical Pi
 pairing, reboot, logout, network recovery, and long-running resource acceptance.
+
+## Local diagnostics
+
+Run `decrumb diagnostics` to preview a content-free report of app/dependency
+versions, basic system information, local worker health, and recent error codes.
+Nothing is uploaded. Review the output before sharing it yourself. Run
+`decrumb clear-diagnostics` to clear error history without changing the linked
+account, settings, queue, or counters. These commands also work when configuration
+is broken. See [diagnostics and retention](../README.md#local-diagnostics-and-support).

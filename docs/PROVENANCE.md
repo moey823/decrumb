@@ -78,6 +78,11 @@ provenance, and source revision label. It uses the official multiarchitecture
 Python Debian image, `qrencode`, and system libraries with their distribution
 notices retained in the image.
 
+`diagnostics.py` and the Mac, Pi, and Umbrel diagnostics controls are original
+Decrumb additions under AGPL-3.0-only. They use Python's standard library for
+bounded local error history and an allowlisted support report. No third-party
+analytics or crash-reporting SDK is included.
+
 The image does not redistribute signal-cli. On first start it downloads the
 architecture-specific archive recorded in `container/dependencies.json`, checks
 its SHA-256, and verifies the executable architecture and version. ARM64 uses the

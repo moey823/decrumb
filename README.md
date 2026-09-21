@@ -264,7 +264,9 @@ while the app/worker are stopped or paused without another maintenance action.
 Pause preserves valid queued notes unless discard-on-pause is enabled. Aggregate
 loss counters persist separately.
 SQLite secure deletion is enabled; backups and APFS may retain old data.
-Rotating logs contain fixed event names only; upstream stderr is discarded.
+Local diagnostics retain only fixed error codes; upstream stderr is discarded.
+There is no automatic telemetry or crash upload.
+
 
 Signal CLI also retains keys, credentials, contacts, groups, profiles and protocol
 state. The private folder permissions do not encrypt these files or the outbox.
@@ -288,6 +290,34 @@ The interface watches the content-free status file natively and uses a coarse
 status updates. Local previews call the Swift cleaner directly. Initial setup,
 settings changes and explicit controls still use the bundled Python command.
 
+## Local diagnostics and support
+
+On Mac, open **Diagnostics → Preview diagnostic report**, review the text, then
+choose **Copy diagnostic report** if you want to share it yourself. On Pi, run
+`decrumb diagnostics`. The authenticated Umbrel dashboard has the same preview
+and copy controls. No support server or additional network connection is used.
+
+The report includes app/build and dependency versions, operating-system version
+(kernel version on Linux), architecture, local worker heartbeat state, and recent
+error codes with their component and originating app/build. It excludes messages,
+URLs, contacts, account identifiers, custom rules, paths, machine names, activity
+counts, exact timestamps, raw exception text, and crash dumps. Worker heartbeat
+state does not prove Signal connectivity. A missing error record does not prove
+there was no crash, especially after forced termination or a storage failure.
+
+Error history is bounded to 128 entries and less than 64 KiB, with duplicate codes
+coalesced per build and UTC day. Only entries from the current UTC day and the
+previous six days are retained. Cleanup runs on worker heartbeats, app/control
+startup, and diagnostic preview. Files can remain longer while Decrumb is stopped.
+Upgrading removes the previous rotating logs, including successful-send times.
+The report omits even the coarse dates used locally for retention.
+
+**Clear diagnostics** (or `decrumb clear-diagnostics` on Pi) removes the local
+error history and old log backups. It preserves the linked account, settings,
+outbox, and existing delivery/loss counters. New errors may be recorded afterward.
+Clearing cannot erase reports already copied/shared or copies in system backups.
+
+
 ## Optional CLI installation
 
 The standalone app bundles its dependencies. A separate manual CLI installation
@@ -296,7 +326,8 @@ Source builds do not automatically deploy to an existing installation. Preserve
 its linked account and unrelated services; do not copy account files from another
 Signal installation or register a primary account.
 
-Install `decrumb.py`, **`notes.py`**, and `service.py` together in the runtime's
+Install `decrumb.py`, `diagnostics.py`, `release.json`, **`notes.py`**,
+`phone_commands.py`, and `service.py` together in the runtime's
 `bin/` directory. Place `build/url-cleaner` and **`build/rules.json` beside that
 helper** in the same directory. Keep the runtime directory private (mode 0700).
 Use the absolute paths to Python and the isolated Signal executable on your Mac;

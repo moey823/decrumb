@@ -36,6 +36,10 @@ def main(argv=None):
                                     capture_output=True, check=True, env=ENV, timeout=20)
             return json.loads(result.stdout)
         assert not call('bootstrap')['linked']
+        report = call('diagnostics')
+        assert report['app'] == 'Decrumb' and report['release']['version'] != 'unknown'
+        assert report['release']['build'] > 0 and report['recent_errors'] == []
+        assert call('clear-diagnostics')['recent_errors'] == []
         result = call('preview', {'text': 'https://example.com/?utm_source=synthetic&id=1', 'settings': {'mode': 'all', 'baseURLs': []}})
         assert result['urls'] == ['https://example.com/?id=1']
         assert not (root / 'outbox.sqlite3').exists()

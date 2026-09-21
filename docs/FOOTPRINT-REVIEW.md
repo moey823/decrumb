@@ -86,7 +86,7 @@ zero-storage Signal client.**
 | Deduplication state | Hash of source/timestamp, original timestamp and delivery state. Eligible for deletion after 30 days; original body/contact name is not retained in these rows. |
 | Signal account state | Keys, credentials, contacts, groups, profiles and protocol/session state persist in Signal CLI's files and account database/WAL. |
 | Long-text messages | Upstream can download a `text/x-signal-plain` attachment to a temporary file even when ordinary attachment downloading is disabled, then reconstruct the body. Normal cleanup deletes the temporary file; a hard crash can leave it. |
-| Diagnostics | Fixed event names, heartbeat and counters; no raw message/URL logging. Signal CLI stderr is discarded and its outgoing resend log is disabled. |
+| Diagnostics | Local fixed error codes, deduplicated per build/UTC day; at most 128 entries and less than 64 KiB, current day plus six previous days. Pruned while active; old files may persist while stopped. Report omits dates and activity counters. Separate local heartbeat/counters remain. No automatic uploads or raw message/URL logging. Signal CLI stderr is discarded and its outgoing resend log is disabled. |
 | Delivered cleaned notes | Ordinary Note to Self messages on receiving Signal devices, with their own lifetime. Deleting the source message does not retract them. |
 
 Pending plaintext becomes eligible for cleanup after 24 hours. This review moved

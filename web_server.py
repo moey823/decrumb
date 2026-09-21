@@ -23,6 +23,7 @@ import time
 from urllib.parse import urlsplit
 
 import decrumb
+import diagnostics
 import portable_cleaner
 
 APP = Path(__file__).resolve().parent
@@ -40,6 +41,7 @@ class Controller:
             raise decrumb.SafeError('Private data must be outside the installed application.')
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.root.chmod(0o700)
+        diagnostics.configure(self.root, decrumb.LOG)
         self.lockfile = (self.root / 'web.lock').open('a')
         try:
             fcntl.flock(self.lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -135,8 +137,9 @@ class Controller:
             with self.lock:
                 try:
                     self.tick()
-                except Exception:
+                except Exception as error:
                     # Never expose exception messages: upstream failures can contain data.
+                    diagnostics.failure(self.root, error)
                     self.error = 'Decrumb could not read its state. Restart the app from Umbrel.'
 
     def close(self):
@@ -180,6 +183,12 @@ class Controller:
 
     def action(self, action, data):
         with self.lock:
+            if action in ('diagnostics', 'clear-diagnostics'):
+                if data:
+                    raise decrumb.SafeError('Diagnostics takes no additional data.')
+                if action == 'clear-diagnostics':
+                    diagnostics.maintain(self.root, clear=True)
+                return diagnostics.report(self.root)
             if action == 'retry-setup':
                 if self.ready or self.child:
                     raise decrumb.SafeError('Setup is already running or complete.')
@@ -378,10 +387,12 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self.reply(404, {'error': 'Not found.'})
         except decrumb.SafeError as error:
+            diagnostics.failure(self.server.controller.root, error)
             self.reply(409, {'error': str(error)})
         except (ValueError, KeyError, TypeError):
             self.reply(400, {'error': 'Check the supplied settings and try again.'})
-        except Exception:
+        except Exception as error:
+            diagnostics.failure(self.server.controller.root, error)
             self.reply(500, {'error': 'The operation could not finish. Refresh and retry.'})
 
 

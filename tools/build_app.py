@@ -314,6 +314,7 @@ def main(argv=None):
                     '--name', 'decrumb-worker', '--distpath', str(BUILD / 'frozen'),
                     '--workpath', str(BUILD / 'freeze-work'), '--specpath', str(BUILD),
                     '--target-architecture', 'arm64', '--codesign-identity', identity,
+                    '--add-data', str(ROOT / 'release.json') + ':.',
                     str(ROOT / 'desktop.py')], check=True, env={**os.environ, 'PYINSTALLER_CONFIG_DIR': str(BUILD / 'pyinstaller-cache')})
     if materials:
         verify_frozen_materials(materials)

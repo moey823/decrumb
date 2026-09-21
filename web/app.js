@@ -21,6 +21,7 @@ function lock() {
   token = ''; sessionStorage.removeItem('decrumb-token'); initialized = false;
   $('dashboard').hidden = true; $('login-panel').hidden = false; $('logout').hidden = true;
   $('sample').value = ''; $('preview-result').textContent = ''; discardQR();
+  $('diagnostic-report').value = ''; $('diagnostic-preview').hidden = true;
 }
 async function api(path, data) {
   const response = await fetch('/api/' + path, {method: data === undefined ? 'GET' : 'POST',
@@ -100,5 +101,22 @@ $('preview-form').addEventListener('submit', event => { event.preventDefault(); 
   $('preview-result').hidden = false;
 }); });
 $('mode').addEventListener('change', showOptions); $('cleanup-mode').addEventListener('change', showOptions);
+for (const action of ['diagnostics', 'clear-diagnostics']) {
+  $(action).addEventListener('click', () => perform(async () => {
+    const report = await api(action, {});
+    $('diagnostic-report').value = JSON.stringify(report, null, 2);
+    $('diagnostic-preview').hidden = false;
+    notice(action === 'clear-diagnostics' ? 'Local error history cleared.' : 'Review the report before sharing.');
+  }));
+}
+$('copy-diagnostics').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText($('diagnostic-report').value);
+    notice('Diagnostic report copied. Share it only if you choose.');
+  } catch {
+    $('diagnostic-report').focus(); $('diagnostic-report').select();
+    notice('Report selected. Use your browser’s Copy command.');
+  }
+});
 window.addEventListener('pagehide', discardQR);
 refresh(); setInterval(() => { if (!document.hidden) refresh(); }, 3000);

@@ -3,8 +3,9 @@
 ## One version for every platform
 
 `release.json` is the release source of truth for Mac, Raspberry Pi, and Umbrel.
-The current release is **Decrumb 1.0.0 RC5**: Mac/Pi version `1.0.0`, build `5`,
-and Umbrel version `1.0.0-rc.5`. Platform names belong in artifact names, not in
+The next release is **Decrumb 1.0.0 RC6**: Mac/Pi version `1.0.0`, build `6`,
+and Umbrel version `1.0.0-rc.6`. Publication is pending; RC5 remains the published
+download until the signed artifacts and matching update feed are available. Platform names belong in artifact names, not in
 independent version sequences. Experimental platform support does not change the
 shared application version.
 

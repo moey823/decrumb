@@ -7,7 +7,6 @@ import fcntl
 import hashlib
 import json
 import logging
-from logging.handlers import RotatingFileHandler
 import os
 from pathlib import Path
 import queue
@@ -21,6 +20,7 @@ import uuid
 
 import notes
 import phone_commands
+import diagnostics
 from notes import read_notes
 
 def default_root():
@@ -34,10 +34,14 @@ def default_root():
 DEFAULT_ROOT = default_root()
 MAX_AGE_MS = 24 * 60 * 60 * 1000
 LOG = logging.getLogger("decrumb")
+LOG.addHandler(logging.NullHandler())
 
 
 class SafeError(Exception):
     """Only fixed, content-free messages may cross the CLI/log boundary."""
+    def __init__(self, message, diagnostic_code='operation_failed'):
+        super().__init__(message)
+        self.diagnostic_code = diagnostic_code
 
 class NotDispatched(SafeError):
     """Cancellation occurred before any request bytes were written."""
@@ -87,7 +91,7 @@ def clean_result(helper, text, settings):
             raise ValueError()
         return value
     except (OSError, subprocess.SubprocessError, ValueError, KeyError):
-        raise SafeError("URL helper failed or settings are invalid.") from None
+        raise SafeError("URL helper failed or settings are invalid.", 'helper_failed') from None
 
 def clean(helper, text, settings):
     return clean_result(helper, text, settings)["urls"]
@@ -106,7 +110,7 @@ def load_config(root, validate_helper=True):
         config["phone_commands"] = phone_commands.normalize_settings(config.get("phone_commands"))
         return config
     except (OSError, KeyError, TypeError, ValueError):
-        raise SafeError("Missing or invalid configuration. Run init first.") from None
+        raise SafeError("Missing or invalid configuration. Run init first.", 'configuration_failed') from None
 
 
 class Rpc:
@@ -128,10 +132,13 @@ class Rpc:
         # The container supervisor owns one group per worker so a forced stop
         # also stops its native child. Desktop/Pi retain independent RPC groups.
         self.own_process_group = environment.get("DECRUMB_INHERIT_PROCESS_GROUP") != "1"
-        self.process = subprocess.Popen(
-            command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            env=environment, start_new_session=self.own_process_group,
-        )
+        try:
+            self.process = subprocess.Popen(
+                command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                env=environment, start_new_session=self.own_process_group,
+            )
+        except OSError:
+            raise SafeError("Signal connection failed.", 'connection_failed') from None
         self.reader = threading.Thread(target=self._read, daemon=True)
         self.reader.start()
 
@@ -179,7 +186,7 @@ class Rpc:
             deadline = time.monotonic() + timeout
             while time.monotonic() < deadline:
                 if self.cancel_event is not None and self.cancel_event.is_set():
-                    raise SafeError("Signal command interrupted.")
+                    raise SafeError("Signal command interrupted.", 'signal_command_interrupted')
                 try:
                     response = waiting.get(timeout=min(0.5, max(0.01, deadline - time.monotonic())))
                     if "error" in response or "result" not in response:
@@ -188,17 +195,17 @@ class Rpc:
                         if method == "finishLink" and isinstance(error, dict):
                             # Match fixed upstream text, never echo an arbitrary error message.
                             if error.get("message") == "Link request timed out, please try again.":
-                                raise SafeError("Pairing code expired. Generate a new code to try again.")
+                                raise SafeError("Pairing code expired. Generate a new code to try again.", 'pairing_expired')
                         # Error strings can contain identifiers. Show only JSON-RPC's numeric code.
                         detail = " (code " + str(code) + ")" if type(code) is int else ""
-                        raise SafeError("Signal command failed" + detail + ".")
+                        raise SafeError("Signal command failed" + detail + ".", 'signal_command_failed')
                     return response["result"]
                 except queue.Empty:
                     if self.closed.is_set():
-                        raise SafeError("Signal connection closed.") from None
-            raise SafeError("Signal command timed out.")
+                        raise SafeError("Signal connection closed.", 'connection_closed') from None
+            raise SafeError("Signal command timed out.", 'connection_timeout')
         except (OSError, ValueError):
-            raise SafeError("Signal connection failed.") from None
+            raise SafeError("Signal connection failed.", 'connection_failed') from None
         finally:
             with self.mutex:
                 self.pending.pop(request_id, None)
@@ -424,7 +431,6 @@ def deliver_one(store, rpc, account, options=None):
             store.db.execute("UPDATE outbox SET state='sent',body=NULL WHERE id=?", (event_id,))
             store.record_receipt(event_id, account, result["timestamp"], options)
             store.db.execute("INSERT OR REPLACE INTO metrics VALUES ('last_sent_at', ?)", (now_ms(),))
-        LOG.info("note_sent")
     except NotDispatched:
         with store.db:
             store.db.execute("UPDATE outbox SET state='pending' WHERE id=?", (event_id,))
@@ -459,6 +465,7 @@ def cleanup_one(store, rpc, account, options=None, current=None, schedule=True):
     try:
         verified_account, aliases = account_details(rpc.call("listAccounts", timeout=3))
         if account not in aliases or binding != notes.account_binding(verified_account):
+            LOG.error('account_mismatch')
             with store.db:
                 store.db.execute("UPDATE generated_notes SET state='account_mismatch' WHERE id=?", (note_id,))
             return True
@@ -480,7 +487,6 @@ def cleanup_one(store, rpc, account, options=None, current=None, schedule=True):
             return True
         with store.db:
             store.db.execute("UPDATE generated_notes SET state='deletion_requested',next_attempt_at=0 WHERE id=?", (note_id,))
-        LOG.info("note_deletion_requested")
     except NotDispatched:
         if dispatched:
             with store.db:
@@ -502,6 +508,14 @@ def _cleanup_retry(store, note_id, attempts, state, current):
 
 
 def run(root, config):
+    try:
+        _run(root, config)
+    except Exception as error:
+        diagnostics.failure(root, error)
+        raise
+
+
+def _run(root, config):
     if not config.get("account"):
         raise SafeError("Pair with Signal before starting the worker.")
     stopped = threading.Event()
@@ -523,16 +537,15 @@ def run(root, config):
             with Rpc(root, config, cancel_event=stopped) as rpc:
                 account, aliases = account_details(rpc.call("listAccounts"))
                 if config["account"] not in aliases:
-                    raise SafeError("Configured account does not match the linked account.")
+                    raise SafeError("Configured account does not match the linked account.", 'account_mismatch')
                 if phone_commands.normalize_settings(config.get("phone_commands"))["enabled"]:
                     aliases = command_aliases(rpc, account, aliases)
                 rpc.call("subscribeReceive", {"account": account})
-                LOG.info("worker_started")
                 next_send = next_cleanup = next_health = 0.0
                 recorded_drops = 0
                 while not stopped.is_set():
                     if rpc.closed.is_set():
-                        raise SafeError("Signal connection closed.")
+                        raise SafeError("Signal connection closed.", 'connection_closed')
                     monotonic = time.monotonic()
                     with rpc.mutex:
                         drops = rpc.dropped_events
@@ -540,6 +553,10 @@ def run(root, config):
                         store.increment("receive_dropped", drops - recorded_drops)
                         recorded_drops = drops
                     if monotonic >= next_health:
+                        try:
+                            diagnostics.maintain(root)
+                        except OSError:
+                            pass
                         store.expire(now_ms())
                         store.update_schedule(options)
                         write_json(root / "status.json", {
@@ -569,8 +586,7 @@ def run(root, config):
                         if item and not store.contains(item[0]):
                             try:
                                 urls = clean(config["helper"], item[2], config["settings"])
-                                if store.enqueue(item[0], item[1], urls, notes.sender_name(event), options):
-                                    LOG.info("link_queued")
+                                store.enqueue(item[0], item[1], urls, notes.sender_name(event), options)
                             except SafeError:
                                 store.increment("helper_failures")
                                 LOG.error("message_cleanup_failed")
@@ -592,7 +608,6 @@ def run(root, config):
                 "metrics": store.metrics(),
                 "note_counts": store.note_summary(),
             })
-            LOG.info("worker_stopped")
 
 
 def pair(root, config, emit=None, terminal_qr=False):
@@ -653,15 +668,19 @@ def main():
     commands.add_parser("pair")
     commands.add_parser("run")
     commands.add_parser("status")
+    commands.add_parser("diagnostics", help="Preview a content-free report; nothing is uploaded")
+    commands.add_parser("clear-diagnostics", help="Clear local error history without changing Signal state")
     commands.add_parser("preview", help="Read sample text from stdin; make no network requests")
     args = parser.parse_args()
     root = args.root.expanduser().resolve()
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
     os.chmod(root, 0o700)
-    handler = RotatingFileHandler(root / "worker.log", maxBytes=128 * 1024, backupCount=2)
-    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
-    LOG.addHandler(handler)
-    LOG.setLevel(logging.INFO)
+    diagnostics.configure(root, LOG)
+    if args.command in ('diagnostics', 'clear-diagnostics'):
+        if args.command == 'clear-diagnostics':
+            diagnostics.maintain(root, clear=True)
+        print(json.dumps(diagnostics.report(root), indent=2))
+        return
     if args.command == "init":
         with exclusive(root):
             if (root / "config.json").exists():
@@ -743,11 +762,11 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         sys.exit(130)
     except SafeError as error:
-        LOG.error("operation_failed")
+        LOG.error(error.diagnostic_code)
         print(str(error), file=sys.stderr)
         sys.exit(1)
-    except Exception:
+    except Exception as error:
         # A traceback or upstream exception can include private message data.
-        LOG.error("unexpected_failure")
+        LOG.error(diagnostics.failure_code(error))
         print("Operation failed; see the content-free worker log.", file=sys.stderr)
         sys.exit(1)
