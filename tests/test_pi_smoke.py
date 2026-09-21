@@ -76,6 +76,29 @@ class PiSmokeSafetyTests(unittest.TestCase):
                 smoke_pi.run(['/synthetic/command'])
         self.assertNotIn('synthetic-secret', str(caught.exception))
 
+    def test_systemd_missing_unit_allows_exit_zero_or_one_only_with_exact_state(self):
+        with tempfile.TemporaryDirectory() as folder:
+            with patch.dict(smoke_pi.os.environ, {'GITHUB_ACTIONS': 'true', 'RUNNER_OS': 'Linux', 'RUNNER_ARCH': 'ARM64'}), \
+                    patch.object(smoke_pi.os, 'getuid', return_value=1000), patch.object(Path, 'home', return_value=Path(folder)):
+                for code in (0, 1):
+                    with self.subTest(code=code), patch.object(smoke_pi.subprocess, 'run', return_value=Mock(
+                            returncode=code, stdout=b'not-found\n', stderr=b'')):
+                        smoke_pi.systemd_guard()
+                for code, output in ((1, b''), (1, b'loaded\n'), (0, b'loaded\n'), (2, b'not-found\n')):
+                    with self.subTest(code=code, output=output), patch.object(smoke_pi.subprocess, 'run', return_value=Mock(
+                            returncode=code, stdout=output, stderr=b'synthetic-secret')):
+                        with self.assertRaises(smoke_pi.SmokeError) as caught:
+                            smoke_pi.systemd_guard()
+                        self.assertNotIn('synthetic-secret', str(caught.exception))
+                with patch.object(smoke_pi.subprocess, 'run', return_value=Mock(returncode=1, stdout=b'', stderr=b'bus unavailable')):
+                    with self.assertRaisesRegex(smoke_pi.SmokeError, 'could not reach the user service manager'):
+                        smoke_pi.systemd_guard()
+
+    def test_subprocess_failure_identifies_fixed_action_without_command_or_output(self):
+        with patch.object(smoke_pi.subprocess, 'run', return_value=Mock(returncode=1, stdout=b'synthetic-secret', stderr=b'synthetic-secret')):
+            with self.assertRaisesRegex(smoke_pi.SmokeError, '^Systemd initial resume failed\\.$'):
+                smoke_pi.run(['/synthetic-secret/command'], action='Systemd initial resume')
+
 
 if __name__ == '__main__':
     unittest.main()

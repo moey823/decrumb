@@ -190,13 +190,19 @@ for line in sys.stdin:
                 time.sleep(0.05)
             assert (root / 'synthetic-command-reply').exists(), 'Packaged phone command did not reply'
             deadline = time.monotonic() + 10
-            while call('snapshot')['counts'].get('sent', 0) != 2 and time.monotonic() < deadline:
+            acknowledged = False
+            while time.monotonic() < deadline:
+                command_notes = call('notes-list')['notes']
+                acknowledged = len(command_notes) == 2 and any(note['state'] == 'available' for note in command_notes)
+                if acknowledged:
+                    break
                 time.sleep(0.05)
-            assert call('snapshot')['counts']['sent'] == 2
+            assert acknowledged, 'Packaged phone command acknowledgement was not recorded'
         finally:
             worker.terminate()
             stdout, stderr = worker.communicate(timeout=15)
         assert not stdout + stderr, 'Packaged phone command emitted unexpected diagnostics'
+        assert call('snapshot')['counts']['sent'] == 2
         print('Packaged optional phone command and duplicate suppression passed with fake Signal.')
     result = subprocess.run([str(helpers / 'signal-cli'), '--version'], capture_output=True, check=True, env=ENV, timeout=30)
     assert result.stdout.strip() == b'signal-cli 0.14.8'

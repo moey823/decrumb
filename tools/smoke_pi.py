@@ -20,18 +20,27 @@ class SmokeError(Exception):
     """Fixed, content-free smoke diagnostics."""
 
 
+PHASE = 'preflight'
+
+
+def stage(label):
+    global PHASE
+    PHASE = label
+    print('Pi smoke: ' + label + '.', flush=True)
+
+
 def require(value, message):
     if not value:
         raise SmokeError(message)
 
 
-def run(command, *, data=None, timeout=45):
+def run(command, *, data=None, timeout=45, action='Subprocess', allowed_returncodes=(0,)):
     try:
         result = subprocess.run(command, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                 timeout=timeout, env={**os.environ, 'PATH': '/usr/bin:/bin'})
     except (OSError, subprocess.SubprocessError):
-        raise SmokeError('A smoke subprocess could not run or timed out.') from None
-    require(result.returncode == 0, 'A smoke subprocess failed.')
+        raise SmokeError(action + ' could not run or timed out.') from None
+    require(result.returncode in allowed_returncodes, action + ' failed.')
     return result.stdout
 
 
@@ -114,11 +123,18 @@ def systemd_guard():
     require(os.getuid() != 0, 'Run the smoke test as the disposable runner user, without sudo.')
     path = Path.home() / '.config/systemd/user/decrumb.service'
     require(not path.exists() and not path.is_symlink(), 'A Decrumb user unit already exists; systemd smoke refused.')
-    state = run(['/usr/bin/systemctl', '--user', 'show', 'decrumb.service', '--property=LoadState', '--value']).strip()
+    # systemctl show returns 1 for a missing unit on some systemd versions, even
+    # though its exact LoadState is available. Accept that specific missing-unit
+    # result; an inaccessible user bus has no LoadState and must still fail.
+    state = run(['/usr/bin/systemctl', '--user', 'show', 'decrumb.service', '--property=LoadState', '--value'],
+                action='Systemd ownership probe', allowed_returncodes=(0, 1)).strip()
+    require(bool(state), 'Systemd ownership probe could not reach the user service manager.')
     require(state == b'not-found', 'A Decrumb user unit is already known; systemd smoke refused.')
 
 
 def systemd_smoke(root, target, launcher, decrumb, pi):
+    global PHASE
+    stage('systemd ownership check')
     systemd_guard()
     fake = root / 'synthetic-signal'
     fake.write_text(r'''#!/usr/bin/python3
@@ -156,10 +172,13 @@ for line in sys.stdin:
     service = pi.PiService(root, target)
     require(service.path == Path.home() / '.config/systemd/user/decrumb.service', 'Unexpected systemd unit path.')
     try:
+        stage('systemd unit installation')
         service.install()
-        run([str(launcher), '--root', str(root), 'resume'], timeout=50)
+        stage('systemd initial startup')
+        run([str(launcher), '--root', str(root), 'resume'], timeout=50, action='Systemd initial resume')
         status = decrumb.read_status(root, decrumb.load_config(root))
         require(status['state'] == 'running' and service.loaded(), 'Systemd worker did not report a fresh running heartbeat.')
+        stage('systemd synthetic delivery')
         import time
         deadline = time.monotonic() + 12
         acknowledged = False
@@ -172,14 +191,18 @@ for line in sys.stdin:
                 break
             time.sleep(0.1)
         require(acknowledged and (root / 'synthetic-send').exists(), 'Systemd synthetic Note to Self delivery failed.')
-        run([str(launcher), '--root', str(root), 'pause'])
+        stage('systemd pause')
+        run([str(launcher), '--root', str(root), 'pause'], action='Systemd pause')
         require(not service.loaded() and decrumb.load_config(root)['paused'], 'Systemd pause did not stop and persist.')
         requested_at = decrumb.now_ms()
-        run([str(launcher), '--root', str(root), 'resume'], timeout=50)
+        stage('systemd restart after pause')
+        run([str(launcher), '--root', str(root), 'resume'], timeout=50, action='Systemd resume after pause')
         status = decrumb.read_status(root, decrumb.load_config(root))
         require(status['state'] == 'running' and status['updated_at'] >= requested_at and service.loaded(),
                 'Systemd resume did not produce a fresh running heartbeat.')
     finally:
+        failed_phase = PHASE if sys.exc_info()[0] is not None else None
+        stage('systemd owned-unit cleanup')
         # Ownership is checked again by stop; a changed/foreign unit is untouched.
         if service.path.exists():
             service.stop(disable=True)
@@ -188,6 +211,8 @@ for line in sys.stdin:
             service.call('daemon-reload')
             service.call('reset-failed', pi.UNIT, check=False)
         require(not service.loaded() and not service.path.exists(), 'The temporary systemd worker was not cleaned up.')
+        if failed_phase is not None:
+            PHASE = failed_phase
 
 
 def smoke(archive, signal_archive, *, real_systemd=False):
@@ -198,6 +223,7 @@ def smoke(archive, signal_archive, *, real_systemd=False):
     os.umask(0o077)
     with tempfile.TemporaryDirectory(prefix='decrumb-pi-smoke-') as folder:
         base = Path(folder)
+        stage('archive extraction')
         source = extract(archive, base / 'extracted')
         # Test the source delivered inside the archive, not the checkout's modules.
         require(not any(name in sys.modules for name in ('decrumb', 'pi', 'tools.install_pi')),
@@ -209,6 +235,7 @@ def smoke(archive, signal_archive, *, real_systemd=False):
         require(Path(install_pi.__file__).resolve() == source / 'tools/install_pi.py', 'Smoke imported the wrong installer.')
         target, launcher, root = base / 'lib/decrumb', base / 'bin/decrumb', base / 'private $literal %value'
         service = FakeService(root, target, base / 'units/decrumb.service', pi)
+        stage('fresh installation and native dependency')
         install_pi.install(source, target, launcher, root, signal_archive, service=service)
         config = decrumb.load_config(root)
         require(config['account'] is None and not service.running, 'An unlinked installation unexpectedly started.')
@@ -216,17 +243,21 @@ def smoke(archive, signal_archive, *, real_systemd=False):
         require(root.stat().st_mode & 0o777 == 0o700 and (root / 'config.json').stat().st_mode & 0o777 == 0o600,
                 'Private runtime permissions are incorrect.')
         sample = b'https://example.com/?utm_source=synthetic&id=smoke'
-        preview = json.loads(run([str(launcher), '--root', str(root), 'preview'], data=sample))
+        stage('installed local preview')
+        preview = json.loads(run([str(launcher), '--root', str(root), 'preview'], data=sample, action='Installed local preview'))
         require(preview['urls'] == ['https://example.com/?id=smoke'], 'Installed portable preview changed a functional value.')
         qr = root / 'synthetic-pairing.png'
-        run([str(target / 'portable_cleaner.py'), '--qr', str(qr)], data=b'sgnl://linkdevice?uuid=synthetic&pub_key=synthetic')
+        stage('private QR generation')
+        run([str(target / 'portable_cleaner.py'), '--qr', str(qr)], data=b'sgnl://linkdevice?uuid=synthetic&pub_key=synthetic',
+            action='Private QR generation')
         require(qr.read_bytes().startswith(b'\x89PNG\r\n\x1a\n') and qr.stat().st_mode & 0o777 == 0o600,
                 'Installed portable QR generation or permissions failed.')
         qr.unlink()
         empty = base / 'empty-native-account'
         empty.mkdir(mode=0o700)
+        stage('isolated native account listing')
         accounts = run([str(target / 'signal-cli'), '--config', str(empty), '--scrub-log', '--disable-send-log',
-                        '--output', 'json', 'listAccounts'])
+                        '--output', 'json', 'listAccounts'], action='Isolated native account listing')
         require(json.loads(accounts) == [], 'The isolated native account list was not empty.')
         # Preserve only synthetic account/state fixtures through an actual reinstall.
         config.update(account='+15550000001', paused=True, phone_commands={'enabled': True})
@@ -237,6 +268,7 @@ def smoke(archive, signal_archive, *, real_systemd=False):
         with contextlib.closing(decrumb.Store(root / 'outbox.sqlite3')) as store:
             store.enqueue('synthetic-pending', decrumb.now_ms(), ['https://example.com/?id=smoke'])
         before = tree_digest(root)
+        stage('reinstall state preservation')
         install_pi.install(source, target, launcher, root, signal_archive, service=service)
         require(decrumb.load_config(root) == config and tree_digest(root) == before,
                 'Reinstall changed private state or preferences.')
@@ -245,6 +277,7 @@ def smoke(archive, signal_archive, *, real_systemd=False):
         stopped = service.stops
         bad = base / 'bad-dependency.gz'
         bad.write_bytes(gzip.compress(b'synthetic-not-a-dependency'))
+        stage('corrupt dependency rejection')
         try:
             install_pi.install(source, target, launcher, root, bad, service=service)
         except decrumb.SafeError as error:
@@ -255,7 +288,7 @@ def smoke(archive, signal_archive, *, real_systemd=False):
         require(service.stops == stopped and tree_digest(target) == old_target and tree_digest(root) == before
                 and launcher.read_bytes() == old_launcher and service.path.read_bytes() == old_unit,
                 'Dependency rejection mutated the installation or stopped its service.')
-        print('Pi archive install, native dependency, local preview, private QR, state preservation and checksum rejection passed.')
+        print('Pi archive install, native dependency, local preview, private QR, state preservation and checksum rejection passed.', flush=True)
         if real_systemd:
             systemd_smoke(root, target, launcher, decrumb, pi)
             print('Real systemd startup, fresh heartbeat, synthetic delivery, pause, resume and owned-unit cleanup passed.')
@@ -273,7 +306,7 @@ def main():
         print(str(error), file=sys.stderr)
         return 1
     except Exception:
-        print('Pi release smoke failed. No private diagnostic content was printed.', file=sys.stderr)
+        print('Pi release smoke failed during ' + PHASE + '. No private diagnostic content was printed.', file=sys.stderr)
         return 1
     return 0
 
