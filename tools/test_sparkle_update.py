@@ -204,9 +204,9 @@ def scenario(parent, binary, framework, args, mode):
             wait_for(lambda: 'recovered:2' in read_events())
             assert plistlib.loads((old / 'Contents/Info.plist').read_bytes())['CFBundleVersion'] == '2'
             assert not (runtime / 'update-transition.json').exists()
-            assert (runtime / 'worker-ready').exists() == (mode != 'paused')
+            assert (runtime / 'worker-ready').exists(), 'Reopening must start cleaning, including after a pause'
             updated = json.loads((runtime / 'config.json').read_text())
-            assert updated['paused'] == config['paused']
+            assert updated['paused'] is False
             assert updated['account'] == config['account']
             assert updated['settings'] == config['settings']
             assert updated['start_at_login'] == config['start_at_login']

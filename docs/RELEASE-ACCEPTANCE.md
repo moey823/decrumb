@@ -64,9 +64,14 @@ or account data to a bug report.
   request alone is not proof of erasure.
 - Test an optional lifetime or sweep, Keep, and local queue clearing. Verify
   unrelated personal notes are unchanged.
-- Pause, quit/reopen, and test login startup. Pause must persist. Verify offline
+- Pause, quit/reopen, and test login startup. Reopening must end the pause. Verify offline
   recovery and confirm that changing cleaning rules clears pending work made
   under the previous rules.
+- After fresh pairing, confirm cleaning starts without pressing Resume. Quit and
+  reopen an enabled installation with its worker stopped; it should start once.
+  Reopening while it is running must not restart it. A failed connection should
+  offer Retry connection, while a pause in the current session offers Resume cleaning.
+  Opening from Finder or the menu bar must end that pause without a second click.
 - For an upgrade, repeat with saved custom rules, a paused worker, queued work,
   and existing receipt metadata. An interrupted replacement must not require
   unlinking the account to recover.

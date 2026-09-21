@@ -29,9 +29,12 @@ before stable v1. See [v1 readiness](docs/V1-READINESS.md) for the remaining che
   your phone under Settings → Linked devices → Link a new device, and confirm.
   The QR expires and is removed on completion or cancellation. Generate another
   code from the same screen if needed. Existing linked accounts are recovered
-  without registering a new primary account.
+  without registering a new primary account. Cleaning starts automatically after
+  connecting; there is no extra Resume step.
 - **Overview:** see worker status, sent/queued/unconfirmed counts, and loss/error
-  counters. Resume starts cleaning; Pause persists across login.
+  counters. Opening Decrumb starts cleaning automatically, including after a
+  pause. Pause lasts until you reopen Decrumb or choose Resume cleaning.
+  Connection failures show Retry connection rather than appearing paused.
 - **Generated notes:** include an optional sender display name and a searchable
   `#decrumb_` code. Manage tracked notes, request removal, set a lifetime, or choose
   periodic cleanup. Clear queued links locally without removing sent notes.
@@ -46,8 +49,9 @@ before stable v1. See [v1 readiness](docs/V1-READINESS.md) for the remaining che
   cleaning. The Mac must remain awake, online and logged in.
 
 Copy the app to its final location (normally `/Applications`) before connecting
-and enabling login startup. If moved later, open it at its new location and save
-settings/resume to refresh its helper and LaunchAgent paths.
+and enabling login startup. If moved later, open it at its new location to
+refresh its helper and LaunchAgent paths when cleaning
+starts. Reopening also ends a pause.
 
 ## Build and validate
 
@@ -108,7 +112,7 @@ The image and SHA-256 checksum file stay under `build/`. This does not publish o
 notarize the app. The native app includes Check for Updates and optional automatic
 checks/downloads using Sparkle 2. Both automatic options start off. Signed updates
 replace the app and bundled helpers together while preserving the Signal account,
-queue, receipts, rules and pause preference. RC1 predates the updater and requires
+queue, receipts and rules. Cleaning starts when the updated app reopens. RC1 predates the updater and requires
 one manual installation of an updater-enabled release. See
 [distribution guide](docs/DISTRIBUTION.md) for packaging, hosting and recovery.
 

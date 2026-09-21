@@ -104,7 +104,7 @@ automatic download/install options; both default off. Turning automatic checks
 off also disables automatic installation. Updates install when the user accepts,
 or on quit when automatic installation was selected. Pairing and active settings
 changes finish before installation proceeds. Decrumb relaunches after installing
-so background cleaning resumes only when it was previously enabled.
+and starts cleaning automatically. Pause lasts only until the app is reopened.
 
 The stable HTTPS feed and update archive require EdDSA signatures using the
 public key embedded in the app. Invalid feeds fail immediately (no expired-feed
@@ -122,16 +122,16 @@ addresses; the preferences page states this before the user enables checks.
 
 The worker transition is durable and serialized with pairing/settings operations.
 The app stops only its owned LaunchAgent, verifies the worker lock is released,
-and records the intended build without changing the persistent pause/login
-preference or opening the message database. A temporary recovery LaunchAgent can
+and records the intended build without changing the saved pause/login
+preference during installation or opening the message database. A temporary recovery LaunchAgent can
 reopen the app in the background after an interrupted installation. A new build
-at least as recent as the intended build refreshes helper/login paths and resumes
-the original enabled state. An older build reattaches Sparkle's persisted update;
+at least as recent as the intended build refreshes helper/login paths and starts
+cleaning, ending a prior pause just like a normal app launch. An older build reattaches Sparkle's persisted update;
 it does not infer completion from time passing or an idle updater session.
 A verified cancellation/failure restores the previous worker state using the
-same transition token. Recovery removes the temporary job for active, paused
-and unlinked configurations alike. Failure to restart reports an explicit Resume
-cleaning action; it never unlinks an account or registers a new one.
+same transition token; cancellation preserves a pause. Recovery removes the temporary job for active, paused
+and unlinked configurations alike. Failure to restart reports an explicit Retry
+connection action; it never unlinks an account or registers a new one.
 
 RC1/build 1 has no updater. Install an updater-enabled signed release once using
 its DMG; later releases arrive through the feed. Preserve existing immutable RC1

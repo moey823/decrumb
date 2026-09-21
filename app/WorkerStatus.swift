@@ -3,6 +3,48 @@ import Foundation
 import Dispatch
 import Darwin
 
+/// Shared wording for the overview and menu: a stopped connection is not a pause.
+struct CleaningPresentation {
+    var linked: Bool
+    var paused: Bool
+    var pairing: Bool = false
+    var loading: Bool = false
+    var state: String
+
+    var active: Bool { linked && !paused && ["running", "starting"].contains(state) }
+    var title: String {
+        if loading { return "Preparing Decrumb" }
+        if pairing { return "Connecting Signal" }
+        if !linked { return "Connect Signal to start" }
+        if paused { return "Cleaning is paused" }
+        switch state {
+        case "running": return "Cleaning is on"
+        case "starting": return "Starting cleaning"
+        case "error", "stale": return "Connection needs attention"
+        default: return "Cleaning has stopped"
+        }
+    }
+    var detail: String {
+        if paused { return "Paused for now. Reopen Decrumb or choose Resume cleaning to start again." }
+        if state == "starting" { return "Connecting to Signal. Cleaning starts automatically." }
+        if state == "running" { return "Cleaned links are saved to Note to Self automatically." }
+        return "Decrumb couldn’t start or lost its connection. Check that your Mac is online, then retry."
+    }
+    var action: String { active ? "Pause cleaning" : (paused ? "Resume cleaning" : "Retry connection") }
+    var symbol: String {
+        if paused { return "pause.circle.fill" }
+        if state == "starting" { return "clock.arrow.circlepath" }
+        return state == "running" ? "checkmark.shield.fill" : "exclamationmark.triangle.fill"
+    }
+}
+
+/// launchd starts asynchronously. Ignore the previous run's status briefly,
+/// but never hide a fresh failure or claim startup succeeded without a heartbeat.
+func startupState(_ state: String, updatedAt: Double?, requestedAt: Double?, now: Double) -> String {
+    if let requestedAt, now - requestedAt < 15_000, (updatedAt ?? 0) < requestedAt { return "starting" }
+    return state
+}
+
 /// Reads only the worker's content-free status file, never account configuration.
 struct WorkerStatus: Decodable {
     var state: String?

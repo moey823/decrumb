@@ -41,6 +41,25 @@ def configure(root, config, settings):
         decrumb.write_json(root / 'config.json', config)
 
 
+def start_cleaning(root, config, control, resources, *, resume=False):
+    """Opening resumes a linked installation; an already running worker stays up."""
+    if not config.get('account') or (config.get('paused', False) and not resume):
+        return None
+    updater.guard(root)
+    paths = {'helper': str(resources / 'url-cleaner'), 'signal_cli': str(resources / 'signal-cli')}
+    if config.get('paused', False) or any(config.get(key) != value for key, value in paths.items()):
+        # A manually moved/replaced app must not keep launching an old helper.
+        control.stop()
+        with decrumb.exclusive(root):
+            decrumb.clean(paths['helper'], '', config['settings'])
+            config.update(paths)
+            config['paused'] = False
+            decrumb.write_json(root / 'config.json', config)
+        service.configure_app_login(resources.parent / 'MacOS/Decrumb', config.get('start_at_login', False))
+    requested_at = decrumb.now_ms()
+    return requested_at if control.start(config.get('start_at_login', False)) else None
+
+
 def change_notes(root, config, control, command, value):
     """Serialize local lifecycle edits with the receiver, preserving pause state."""
     options = decrumb.notes_settings(value.get('notes') if command == 'notes-settings' else config.get('notes'))
@@ -104,7 +123,7 @@ def main():
             decrumb.write_json(root / 'config.json', {
                 'version': 1, 'helper': str(helper), 'signal_cli': str(signal_cli), 'account': None,
                 'settings': {'mode': 'all', 'baseURLs': [], 'excludedURLs': [], 'rules': []},
-                'paused': True, 'start_at_login': False,
+                'paused': False, 'start_at_login': False,
                 'notes': decrumb.notes_settings(),
             })
     config = decrumb.load_config(root, validate_helper=False)
@@ -143,9 +162,23 @@ def main():
             updater.recover(root, resources, control, token=request().get('token'))
             emit(snapshot())
         elif args.command == 'bootstrap':
-            updater.recover(root, resources, control, bootstrap=True)
+            result = {}
+            recovery_failed = False
+            try:
+                recovered = updater.recover(root, resources, control, bootstrap=True)
+            except decrumb.SafeError as error:
+                # Keep the linked-account status visible even if recovery cannot
+                # restart the service. Do not bypass a failed update handoff.
+                recovered = recovery_failed = True
+                result['startup_error'] = str(error)
             config = decrumb.load_config(root, validate_helper=False)
-            emit({**snapshot(), 'update_pending': updater.marker(root) is not None})
+            pending = updater.marker(root) is not None
+            if not pending and not recovered:
+                try:
+                    result['startup_requested_at'] = start_cleaning(root, config, control, resources, resume=True)
+                except decrumb.SafeError:
+                    result['startup_error'] = 'Cleaning could not start. Check your connection and choose Retry connection.'
+            emit({**snapshot(), 'update_pending': pending and not recovery_failed, **result})
         elif args.command == 'snapshot':
             emit(snapshot())
         elif args.command == 'notes-list':
@@ -166,6 +199,18 @@ def main():
                 use_bundled_paths()
                 decrumb.write_json(root / 'config.json', config)
             decrumb.pair(root, config, lambda state: emit({'event': state}))
+            # Pairing must finish and release its worker lock before receiving.
+            # A successful connection is the last setup step, including an
+            # unlinked configuration created by an earlier release.
+            if config.get('account'):
+                with decrumb.exclusive(root):
+                    config['paused'] = False
+                    decrumb.write_json(root / 'config.json', config)
+                try:
+                    started_at = start_cleaning(root, config, control, resources)
+                    emit({'event': 'cleaning_started', 'startup_requested_at': started_at})
+                except decrumb.SafeError:
+                    raise decrumb.SafeError('Signal connected, but cleaning could not start. Choose Retry connection.') from None
         elif args.command == 'pause':
             control.stop(disable_login=True)
             with decrumb.exclusive(root):
@@ -182,8 +227,12 @@ def main():
                 decrumb.clean(helper, '', config['settings'])
                 config['paused'] = False
                 decrumb.write_json(root / 'config.json', config)
-            control.start(config.get('start_at_login', False))
-            emit(snapshot())
+            result = {}
+            try:
+                result['startup_requested_at'] = start_cleaning(root, config, control, resources)
+            except decrumb.SafeError:
+                result['startup_error'] = 'Cleaning could not start. Check your connection and choose Retry connection.'
+            emit({**snapshot(), **result})
         elif args.command == 'apply':
             value = request()
             settings = decrumb.clean_result(helper, '', value.get('settings', {}))['settings']

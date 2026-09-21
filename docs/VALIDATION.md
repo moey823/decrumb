@@ -99,6 +99,28 @@ macOS graphics and process semaphore operations need normal OS access. The
 restricted tool sandbox failed QR rendering and frozen-runtime startup; both
 passed when run with normal OS access. These are not skipped application tests.
 
+## RC3 automatic-start validation
+
+The next candidate starts cleaning after successful pairing and every time the
+linked app is opened, including Finder/menu-bar reopen and update relaunch.
+Pause now lasts until reopening or choosing Resume cleaning. Start at login
+remains optional. Opening an already running cleaner does not restart it.
+
+- The 150-test offline suite passed, followed by the updated 21-test updater
+  suite including one additional paused-cancellation regression: 151 tests total.
+- Startup fixtures cover unlinked setup, old paused setup after pairing, paused
+  and active reopen, failed starts, moved helper paths, pending update exclusion,
+  and read-only status. They use temporary accounts and mocked LaunchAgents.
+- Native status tests cover starting, running, paused, failed, and expired-start
+  states. Connection failures offer Retry connection instead of Resume cleaning.
+- The packaged synthetic Signal smoke passed: pairing cancellation, local
+  preview, self-only delivery/removal, deduplication, and native library loading.
+- Four signed Sparkle scenarios passed again: active install, paused install
+  that starts on relaunch, forced GUI interruption/recovery, and cancellation.
+  Synthetic account, queue, and receipt bytes survived unchanged.
+
+These checks do not establish real-account or actual login-session behavior.
+
 ## Boundaries
 
 No real Signal account was opened, paired, or messaged. No live runtime was read

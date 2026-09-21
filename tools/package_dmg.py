@@ -178,10 +178,16 @@ def readme(info, production):
                'DECRUMB — DEVELOPMENT BUILD\n\nThis is a local test build, not a notarized public release.\n')
     return (heading + f"Requires Apple Silicon and macOS {info['LSMinimumSystemVersion']} or later.\n\n"
             'Copy Decrumb to Applications before opening it, then eject this disk image.\n'
-            'For a manual upgrade: pause the existing cleaner, quit its interface, replace\n'
-            'the application, open the replacement and resume if desired.\n'
+            'Connect Signal by scanning the QR code from your phone. Cleaning starts\n'
+            'automatically after connecting and every time you open the app. Pause lasts\n'
+            'until you reopen Decrumb or choose Resume cleaning.\n\n'
+            'For updates, choose Check for Updates in Decrumb. RC1 needs one manual\n'
+            'upgrade to get the updater.\n'
+            'For a manual upgrade: first turn off Discard queued links on pause if enabled\n'
+            'to keep pending links. Then pause cleaning, quit, replace the application,\n'
+            'and open the replacement. Cleaning starts automatically.\n'
             'Your linked account and settings remain in Application Support.\n\n'
-            'In-app updating is not integrated yet. Source and third-party notices are\n'
+            'Source and third-party notices are\n'
             'included in the app; the complete corresponding-source archive accompanies\n'
             'production releases. https://github.com/moey823/decrumb\n')
 

@@ -105,6 +105,8 @@ class Service:
         if not self.loaded():
             self.install(login)
             self.launch('bootstrap', self.domain, str(self.login_plist if login else self.session_plist))
+            return True
+        return False
 
 
 def configure_app_login(executable, enabled):

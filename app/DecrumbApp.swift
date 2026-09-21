@@ -144,20 +144,28 @@ enum Backend {
     private var refreshing = false
     private var statusWatcher: WorkerStatusWatcher?
     private var configModifiedAt: Date?
+    private var startupRequestedAt: Double?
     var onChange: (() -> Void)?
 
-    var statusTitle: String {
-        if pairing { return "Waiting for your phone" }
-        if !linked { return "Ready to connect" }
-        if paused { return "Paused" }
-        switch state {
-        case "running": return "Cleaning is on"
-        case "starting": return "Starting up"
-        case "error", "stale": return "Needs attention"
-        default: return "Worker is stopped"
+    var presentation: CleaningPresentation {
+        CleaningPresentation(linked: linked, paused: paused, pairing: pairing, loading: loading, state: state)
+    }
+    var statusTitle: String { presentation.title }
+    var running: Bool { presentation.active }
+
+    private func trackStartup(_ value: [String: Any]) {
+        guard let requestedAt = value["startup_requested_at"] as? Double else { return }
+        startupRequestedAt = requestedAt
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 15_000_000_000)
+            guard let self, self.startupRequestedAt == requestedAt else { return }
+            await self.refresh()
         }
     }
-    var running: Bool { linked && !paused && ["running", "starting"].contains(state) }
+    private func displayState(_ raw: String, updatedAt: Double?) -> String {
+        startupState(raw, updatedAt: updatedAt, requestedAt: startupRequestedAt,
+                     now: Date().timeIntervalSince1970 * 1000)
+    }
 
     func start() {
         if demo {
@@ -197,10 +205,12 @@ enum Backend {
         }
     }
     func applySnapshot(_ value: [String: Any], loadSettings: Bool = false) {
+        trackStartup(value)
         configModifiedAt = configModificationDate()
         linked = value["linked"] as? Bool ?? false
         paused = value["paused"] as? Bool ?? true
-        state = value["state"] as? String ?? "not_started"
+        state = displayState(value["state"] as? String ?? "not_started", updatedAt: value["updated_at"] as? Double)
+        if let startupError = value["startup_error"] as? String { error = startupError; state = "error" }
         counts = value["counts"] as? [String: Int] ?? [:]
         metrics = value["metrics"] as? [String: Int] ?? [:]
         noteCounts = value["note_counts"] as? [String: Int] ?? noteCounts
@@ -232,7 +242,7 @@ enum Backend {
         }
         guard linked, !paused else { return }
         if let value = WorkerStatus.read(from: Backend.root) {
-            state = value.state ?? "not_started"
+            state = displayState(value.state ?? "not_started", updatedAt: value.updated_at)
             counts = value.counts ?? [:]
             metrics = value.metrics ?? [:]
             noteCounts = value.note_counts ?? noteCounts
@@ -240,13 +250,25 @@ enum Backend {
             needsAttention = value.needsAttention
             onChange?()
         } else {
-            state = "stale"
+            state = displayState("stale", updatedAt: nil)
             needsAttention = true
             onChange?()
         }
     }
+    func reopen() {
+        guard !demo, !loading, !busy, !pairing, linked, updater?.installing != true else { return }
+        busy = true
+        Task {
+            defer { busy = false; onChange?() }
+            do {
+                let value = try await Backend.request("bootstrap")
+                applySnapshot(value)
+                if value["update_pending"] as? Bool == true { updater?.resumeInterruptedUpdate() }
+            } catch { self.error = error.localizedDescription }
+        }
+    }
     func toggle() {
-        guard !busy, !pairing else { return }
+        guard !busy, !pairing, !loading else { return }
         if demo { paused.toggle(); state = paused ? "stopped" : "running"; onChange?(); return }
         busy = true; error = nil; notice = nil
         Task {
@@ -406,7 +428,11 @@ enum Backend {
                                 self.qr = NSImage(contentsOf: Backend.root.appendingPathComponent("pairing.png"))
                             }
                             if value["event"] as? String == "linked" {
-                                self.linked = true; self.qr = nil; self.notice = "Signal connected. Turn cleaning on when you’re ready."
+                                self.linked = true; self.qr = nil; self.notice = "Signal connected. Starting cleaning automatically…"
+                            }
+                            if value["event"] as? String == "cleaning_started" {
+                                self.trackStartup(value)
+                                self.notice = "Signal connected. Cleaned links will appear in Note to Self."
                             }
                         }
                     }
@@ -550,13 +576,13 @@ struct RootView: View {
             else {
                 card {
                     HStack {
-                        Image(systemName: model.running ? "checkmark.shield.fill" : "pause.circle.fill").font(.system(size: 32)).foregroundStyle(model.running ? Color.green : accent)
+                        Image(systemName: model.presentation.symbol).font(.system(size: 32)).foregroundStyle(model.running ? Color.green : accent)
                         VStack(alignment: .leading, spacing: 4) {
                             Text(model.statusTitle).font(.title3.weight(.semibold))
-                            Text(model.running ? "Listening for new incoming links." : "Resume whenever you’re ready.").font(.callout).foregroundStyle(.secondary)
+                            Text(model.presentation.detail).font(.callout).foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Button(model.running ? "Pause" : "Resume", action: model.toggle).buttonStyle(.borderedProminent).disabled(model.busy)
+                        Button(model.presentation.action, action: model.toggle).buttonStyle(.borderedProminent).disabled(model.busy || model.pairing)
                     }
                     Divider()
                     HStack(spacing: 32) {
@@ -566,7 +592,7 @@ struct RootView: View {
                     }
                     Text("Sent means Signal acknowledged the note; it doesn’t confirm display on your phone.").font(.caption).foregroundStyle(.secondary)
                 }
-                if model.needsAttention {
+                if model.needsAttention && model.state != "starting" {
                     card {
                         Label("Some work needs attention", systemImage: "exclamationmark.triangle").font(.headline).foregroundStyle(.orange)
                         Text("Delivery can be interrupted by a lost connection, an unlinked device, or a full queue. Unconfirmed sends are never automatically repeated.").font(.callout).foregroundStyle(.secondary)
@@ -579,6 +605,7 @@ struct RootView: View {
                 card {
                     Label("Connected as a linked device", systemImage: "iphone.and.arrow.forward").font(.headline)
                     Text("Manage or revoke Decrumb in Signal → Settings → Linked devices. Your Mac must be awake and online for cleaning to work.").font(.callout).foregroundStyle(.secondary)
+                    Text("Cleaning starts every time you open Decrumb. Pause lasts until you reopen the app or choose Resume cleaning. Enable Start Decrumb at login in Cleaning rules to start after logging in, too.").font(.caption).foregroundStyle(.secondary)
                     if let timestamp = model.updatedAt {
                         Text("Last worker update: \(Date(timeIntervalSince1970: timestamp / 1000).formatted(date: .omitted, time: .shortened))").font(.caption).foregroundStyle(.secondary)
                     }
@@ -605,10 +632,10 @@ struct RootView: View {
                         Button("Cancel", action: model.cancelPairing)
                     }
                 }
-                Text(model.demo ? "This is a preview code. It cannot link a Signal account." : "This code expires shortly. If it expires, generate a new one here.").font(.caption).foregroundStyle(.secondary)
+                Text(model.demo ? "This is a preview code. It cannot link a Signal account." : "Cleaning starts automatically after you connect. This code expires shortly; generate a new one if needed.").font(.caption).foregroundStyle(.secondary)
             } else {
                 Label("Connect your Signal account", systemImage: "qrcode").font(.title3.weight(.semibold))
-                Text("Scan a QR code with your phone to add Decrumb as a linked device. Your existing Signal app stays exactly where it is.").font(.callout).foregroundStyle(.secondary)
+                Text("Scan a QR code with your phone. Decrumb starts cleaning automatically and saves clean links to Note to Self. You can change the rules or pause at any time.").font(.callout).foregroundStyle(.secondary)
                 Button(model.attemptedPairing ? "Generate a new code" : "Connect Signal", action: model.connect).buttonStyle(.borderedProminent).controlSize(.large).disabled(model.busy)
                 Text("Requires an existing Signal account. No phone number or password to type here.").font(.caption).foregroundStyle(.secondary)
             }
@@ -658,7 +685,7 @@ struct RootView: View {
             }
             card {
                 Toggle("Start Decrumb at login", isOn: $model.startAtLogin).onChange(of: model.startAtLogin) { model.dirty = true }
-                Text("Pausing persists across login. Your Mac must be awake and online.").font(.caption).foregroundStyle(.secondary)
+                Text("Cleaning starts whenever Decrumb opens. Turn this on to open it automatically at login, too. Pause lasts until you reopen the app. Your Mac must be awake and online.").font(.caption).foregroundStyle(.secondary)
                 Divider()
                 HStack { Button("Import rules…", action: model.importRules); Button("Export rules…", action: model.exportRules); Spacer(); Button("Restore defaults") { model.settings = Settings(); model.dirty = true } }
                 Text("Saving rule changes clears links queued under the previous rules.").font(.caption).foregroundStyle(.secondary)
@@ -835,7 +862,7 @@ struct RootView: View {
         menu.addItem(.separator())
         let open = menu.addItem(withTitle: "Open Decrumb…", action: #selector(show), keyEquivalent: "o"); open.target = self
         if model.linked {
-            let toggle = menu.addItem(withTitle: model.running ? "Pause cleaning" : "Resume cleaning", action: #selector(toggle), keyEquivalent: ""); toggle.target = self; toggle.isEnabled = !model.busy
+            let toggle = menu.addItem(withTitle: model.presentation.action, action: #selector(toggle), keyEquivalent: ""); toggle.target = self; toggle.isEnabled = !model.busy && !model.loading && !model.pairing
         }
         let settings = menu.addItem(withTitle: "Settings…", action: #selector(settings), keyEquivalent: ","); settings.target = self
         let updates = menu.addItem(withTitle: "Check for Updates…", action: #selector(checkUpdates), keyEquivalent: ""); updates.target = self; updates.isEnabled = updater?.canCheck == true
@@ -843,8 +870,9 @@ struct RootView: View {
         let quit = menu.addItem(withTitle: model.running ? "Quit interface (keep cleaning)" : "Quit Decrumb", action: #selector(quit), keyEquivalent: "q"); quit.target = self
         item.menu = menu
     }
-    @objc func show() { NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil) }
-    @objc func settings() { model.page = "rules"; show() }
+    @objc func show() { model.reopen(); showWindow() }
+    private func showWindow() { NSApp.activate(ignoringOtherApps: true); window.makeKeyAndOrderFront(nil) }
+    @objc func settings() { model.page = "rules"; showWindow() }
     @objc func toggle() { model.toggle() }
     @objc func checkUpdates() { updater.checkForUpdates() }
     @objc func quit() {
@@ -855,7 +883,9 @@ struct RootView: View {
         if model.pairing { model.cancelPairing() }
         return .terminateNow
     }
-    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { show(); return true }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        show(); return true
+    }
 }
 
 @main enum DecrumbApp {

@@ -5,6 +5,18 @@ import Darwin
 
 @main enum StatusTests {
     static func main() throws {
+        let paused = CleaningPresentation(linked: true, paused: true, state: "stopped")
+        precondition(paused.title == "Cleaning is paused" && paused.action == "Resume cleaning")
+        precondition(paused.detail.contains("Reopen Decrumb") && !paused.active)
+        let failed = CleaningPresentation(linked: true, paused: false, state: "error")
+        precondition(failed.title == "Connection needs attention" && failed.action == "Retry connection")
+        let starting = CleaningPresentation(linked: true, paused: false, state: "starting")
+        precondition(starting.title == "Starting cleaning" && starting.action == "Pause cleaning" && starting.active)
+        precondition(CleaningPresentation(linked: false, paused: false, state: "not_started").title == "Connect Signal to start")
+        precondition(startupState("stopped", updatedAt: 100, requestedAt: 200, now: 300) == "starting")
+        precondition(startupState("error", updatedAt: 201, requestedAt: 200, now: 300) == "error")
+        precondition(startupState("stale", updatedAt: nil, requestedAt: 200, now: 15_200) == "stale")
+        precondition(startupState("running", updatedAt: 201, requestedAt: 200, now: 300) == "running")
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }

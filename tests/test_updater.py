@@ -67,15 +67,15 @@ class WorkerUpdateTests(unittest.TestCase):
         self.assertIsNone(updater.marker(self.root))
         self.watchdog.return_value.disarm.assert_called()
 
-    def test_paused_worker_and_no_login_stay_paused_on_relaunch(self):
+    def test_relaunch_starts_paused_worker_without_enabling_login(self):
         self.config.update(paused=True, start_at_login=False)
         decrumb.write_json(self.root / 'config.json', self.config)
         self.prepare()
         self.identity.return_value = None
         self.recover(bootstrap=True, current_build="3")
-        self.control.start.assert_not_called()
+        self.control.start.assert_called_once_with(False)
         self.login.assert_called_once_with(self.resources.parent / 'MacOS/Decrumb', False)
-        self.assertTrue(decrumb.load_config(self.root, validate_helper=False)['paused'])
+        self.assertFalse(decrumb.load_config(self.root, validate_helper=False)['paused'])
         self.assertEqual((self.root / 'outbox.sqlite3').read_bytes(), self.database)
 
     def test_pairing_or_settings_operation_defers_before_stopping_worker(self):
@@ -108,10 +108,19 @@ class WorkerUpdateTests(unittest.TestCase):
         self.recover(token=result['token'])
         self.assertEqual((self.root / 'outbox.sqlite3').read_bytes(), self.database)
 
+    def test_cancelled_update_keeps_pause_until_app_is_reopened(self):
+        self.config['paused'] = True
+        decrumb.write_json(self.root / 'config.json', self.config)
+        result = self.prepare()
+        self.recover(token=result['token'])
+        self.control.start.assert_not_called()
+        self.assertTrue(decrumb.load_config(self.root, validate_helper=False)['paused'])
+        self.assertEqual((self.root / 'outbox.sqlite3').read_bytes(), self.database)
+
     def test_restart_failure_is_actionable_without_discarding_account_or_queue(self):
         result = self.prepare()
         self.control.start.side_effect = decrumb.SafeError('synthetic restart failure')
-        with self.assertRaisesRegex(decrumb.SafeError, 'Resume cleaning'):
+        with self.assertRaisesRegex(decrumb.SafeError, 'Retry connection'):
             self.recover(token=result['token'])
         self.assertIsNone(updater.marker(self.root))
         self.assertEqual((self.root / 'outbox.sqlite3').read_bytes(), self.database)

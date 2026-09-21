@@ -39,7 +39,7 @@ prerelease; real-device acceptance remains before stable v1.
 - Sparkle updates are implemented with optional automatic checks and installation,
   signed feeds/archives, durable worker coordination and recovery. Ten isolated
   signed integration scenarios passed, including actual replacement/relaunch,
-  paused-state preservation, settings/pairing deferral, crash recovery and
+  pause handling, settings/pairing deferral, crash recovery and
   tampered-input rejection. See [UPDATE-ACCEPTANCE.md](UPDATE-ACCEPTANCE.md).
 
 ## Required before stable v1

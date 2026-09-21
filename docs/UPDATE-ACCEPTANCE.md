@@ -13,7 +13,8 @@ python3 -B -m unittest discover -s tests -p 'test_*.py' -v
 python3 -B tools/smoke_app.py
 ```
 
-Synthetic updater tests cover active and paused workers, disabled login,
+Synthetic updater tests cover active and paused workers, automatic start after
+relaunch (including a prior pause), pause preservation on cancellation, disabled login,
 serialization with pairing/settings, independent worker-lock contention, matching
 abort tokens, failed stops/restarts, changed helper paths, and byte-for-byte
 survival of queued notes/removal state and receipts. Expired time by itself never

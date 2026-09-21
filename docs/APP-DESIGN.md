@@ -19,7 +19,10 @@ is `com.matthew.decrumb.desktop`. Its dedicated LaunchAgents use
 - Per-user configuration, keys, QR images and databases live in
   `~/Library/Application Support/Decrumb`. App upgrades preserve that directory.
 - The worker can run through its dedicated LaunchAgent independently of an open
-  window. Pause persists across login; resume explicitly starts processing again.
+  window. Linking starts cleaning automatically; opening the app starts an
+  linked cleaner without restarting an already running service. Pause lasts until
+  the app is reopened or Resume cleaning is chosen. Startup is blocked during an unfinished
+  update, and failures offer Retry connection. Start at login remains optional.
 - UI configuration goes through a narrow local command interface, never a port.
   Account identifiers and received messages never enter UI diagnostic output.
 - Routine status updates watch the content-free status file in Swift. Previews

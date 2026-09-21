@@ -123,19 +123,23 @@ def recover(root, resources, control, *, token=None, bootstrap=False, current_bu
     with decrumb.exclusive(root):
         config['helper'] = str(resources / 'url-cleaner')
         config['signal_cli'] = str(resources / 'signal-cli')
+        if bootstrap:
+            # Opening the app ends a pause, including the verified relaunch of
+            # an installed update. Cancelling an update still preserves pause.
+            config['paused'] = False
         decrumb.write_json(root / 'config.json', config)
     login = config.get('start_at_login', False)
     import service
     service.UpdateRecovery(root, resources.parent / 'MacOS/Decrumb').disarm()
     service.configure_app_login(resources.parent / 'MacOS/Decrumb', login)
     (root / MARKER).unlink()
-    # Respect the persistent preference, including a paused cleaner. Never
-    # discard queued sends, removal requests, receipts, or deduplication records.
-    if value['resume'] and config.get('account') and not config.get('paused', False):
+    # A relaunch starts cleaning; an abort restores the original preference.
+    # Neither path discards queued work, receipts, or deduplication records.
+    if (bootstrap or value['resume']) and config.get('account') and not config.get('paused', False):
         try:
             control.start(login)
         except decrumb.SafeError:
-            raise decrumb.SafeError('The update finished, but cleaning could not restart. Choose Resume cleaning to retry.') from None
+            raise decrumb.SafeError('The update finished, but cleaning could not restart. Choose Retry connection.') from None
     return True
 
 
