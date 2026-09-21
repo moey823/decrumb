@@ -329,7 +329,7 @@ outbox, and existing delivery/loss counters. New errors may be recorded afterwar
 Clearing cannot erase reports already copied/shared or copies in system backups.
 
 
-## Optional CLI installation
+## Optional Mac CLI installation
 
 The standalone app bundles its dependencies. A separate manual CLI installation
 requires Python 3.13 or newer and a compatible, isolated signal-cli installation.
@@ -337,7 +337,7 @@ Source builds do not automatically deploy to an existing installation. Preserve
 its linked account and unrelated services; do not copy account files from another
 Signal installation or register a primary account.
 
-Install `decrumb.py`, `diagnostics.py`, `release.json`, **`notes.py`**,
+Install `decrumb.py`, `runtime_platform.py`, `diagnostics.py`, `release.json`, **`notes.py`**,
 `phone_commands.py`, and `service.py` together in the runtime's
 `bin/` directory. Place `build/url-cleaner` and **`build/rules.json` beside that
 helper** in the same directory. Keep the runtime directory private (mode 0700).

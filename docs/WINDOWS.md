@@ -147,3 +147,19 @@ Dependencies: [signal-cli 0.14.8](https://github.com/AsamK/signal-cli/tree/v0.14
 [Segno](https://github.com/heuer/segno), [pywin32](https://github.com/mhammond/pywin32).
 Signal CLI is an unofficial Signal client. Decrumb retains AGPL-3.0-only; Java
 and helper dependencies retain their respective licenses. See [PROVENANCE.md](PROVENANCE.md).
+
+## Verified development build, 2026-09-21
+
+Source `27c41e493a462d9d201be15b5e688b8fbe83b821` passed the
+[native Windows suite and packaged smoke test](https://github.com/moey823/decrumb/actions/runs/35630558407).
+This covers the actual executables, Windows ACLs, background lifecycle, forced
+process cleanup, and the bundled Signal/JRE against an empty account directory.
+[Mac and Linux release checks](https://github.com/moey823/decrumb/actions/runs/35630767712)
+also passed, including the ARM64 installer and systemd lifecycle.
+
+The unsigned test artifact is `Decrumb-1.1.0-7-windows-x64.zip` (about 193 MiB).
+Its SHA-256 is:
+`c987dc417e35fa1dd38c797667f78d6a029a9263d28319507ba00c84862e0fbc`.
+The archive manifest and embedded runtime metadata both report **1.1.0, build 7**.
+This automated evidence does not claim live Signal pairing or Windows 11
+sleep/wake acceptance; those remain the public-release checks described above.
