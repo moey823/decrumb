@@ -31,7 +31,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/decrumb-state"
           sudo chown 1000:1000 "$RUNNER_TEMP/decrumb-state"
-          docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges --tmpfs /tmp:rw,nosuid,nodev,size=32m \
+          docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges --tmpfs /tmp:rw,exec,nosuid,nodev,size=128m \
             -v "$RUNNER_TEMP/decrumb-state:/data" \
             -v "$PWD/tools/smoke_web.py:/test/smoke_web.py:ro" \
             --entrypoint python3 decrumb-test /test/smoke_web.py

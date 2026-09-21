@@ -77,7 +77,8 @@ class Controller:
                 if role == 'bootstrap' else
                 [sys.executable, '-B', str(APP / 'decrumb.py'), '--root', str(self.root), role])
         self.child = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                                      stderr=subprocess.DEVNULL, start_new_session=True)
+                                      stderr=subprocess.DEVNULL, start_new_session=True,
+                                      env={**os.environ, 'DECRUMB_INHERIT_PROCESS_GROUP': '1'})
         self.role, self.started = role, decrumb.now_ms()
 
     def stop_child(self):
@@ -102,6 +103,9 @@ class Controller:
         self.thread.start()
 
     def tick(self):
+        if self.role == 'bootstrap' and decrumb.now_ms() - self.started > 10 * 60 * 1000:
+            self.stop_child()
+            self.error = 'Setup timed out. Check internet access, then retry setup.'
         if self.child is not None and self.child.poll() is not None:
             code, role = self.child.returncode, self.role
             self.child = self.role = None

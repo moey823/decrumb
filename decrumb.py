@@ -125,9 +125,12 @@ class Rpc:
         ]
         environment = dict(os.environ)
         environment["PATH"] = ("/opt/homebrew/bin:" if sys.platform == "darwin" else "") + "/usr/bin:/bin:/usr/sbin:/sbin"
+        # The container supervisor owns one group per worker so a forced stop
+        # also stops its native child. Desktop/Pi retain independent RPC groups.
+        self.own_process_group = environment.get("DECRUMB_INHERIT_PROCESS_GROUP") != "1"
         self.process = subprocess.Popen(
             command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-            env=environment, start_new_session=True,
+            env=environment, start_new_session=self.own_process_group,
         )
         self.reader = threading.Thread(target=self._read, daemon=True)
         self.reader.start()
@@ -201,12 +204,17 @@ class Rpc:
                 self.pending.pop(request_id, None)
 
     def close(self):
+        def stop(sig):
+            if self.own_process_group:
+                os.killpg(self.process.pid, sig)
+            else:
+                self.process.send_signal(sig)
         try:
             if self.process.poll() is None:
-                os.killpg(self.process.pid, signal.SIGTERM)
+                stop(signal.SIGTERM)
             self.process.wait(timeout=5)
         except subprocess.TimeoutExpired:
-            os.killpg(self.process.pid, signal.SIGKILL)
+            stop(signal.SIGKILL)
             self.process.wait(timeout=5)
         except ProcessLookupError:
             self.process.wait(timeout=5)

@@ -12,6 +12,7 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, '/app')
@@ -59,8 +60,10 @@ def main():
     native.mkdir(mode=0o700)
     print('Container smoke: installing the pinned native dependency.', flush=True)
     container_dependency.install(native)
+    print('Container smoke: native executable installed; checking cached startup.', flush=True)
     # A second startup must use the verified cache without downloading again.
     container_dependency.install(native)
+    print('Container smoke: reading the isolated empty account.', flush=True)
     result = subprocess.run([str(native / 'dependency/signal-cli'), '--config', str(native / 'empty-account'),
                              '--scrub-log', '--disable-send-log', '--output', 'json', 'listAccounts'],
                             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30, check=True)
@@ -142,6 +145,9 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except Exception:
-        print('Container smoke failed. No account data or upstream error details are logged.', file=sys.stderr)
+    except Exception as error:
+        frame = traceback.extract_tb(error.__traceback__)[-1]
+        print('Container smoke failed: ' + type(error).__name__ + ' in ' + frame.name + ':' + str(frame.lineno), file=sys.stderr)
+        if isinstance(error, decrumb.SafeError):
+            print(str(error), file=sys.stderr)  # These are fixed, content-free errors.
         sys.exit(1)
