@@ -193,10 +193,37 @@ Existing tests still reject peer commands, conflicting aliases, non-self
 recipients, private/control events, stale/replayed commands and reply loops.
 No actual message content or account identifiers were printed or committed.
 
+- The 219-case suite passed on macOS, Linux x86_64 and Linux ARM64, with one
+  platform-specific skip each. The actual ARM systemd service checks passed in
+  [final-source CI](https://github.com/moey823/decrumb/actions/runs/35552431025).
+- RC5 is published from `80303eece3a9e87d456bec3d2ccf4bbeff440765`.
+  All eleven asset sizes and SHA-256 digests match their local counterparts.
+  Both Apple notarization submissions were accepted and stapled. The
+  68,476,895-byte DMG SHA-256 is
+  `a9df61c275d72e3ab43ffd91d35877589fb6843b45dc606a36431b7b212988b7`.
+- The public Mac download passed image integrity, Gatekeeper, stapled tickets,
+  strict signatures and packaged synthetic tests, including number-only account
+  listing followed by verified UUID lookup and a UUID-bearing command reply.
+  Official Sparkle tools verified the downloaded update archive and signed feed.
+  The downloaded Pi archive passed the isolated ARM64 installation checks.
+- The deployed Mac downloaded the public DMG, verified its checksum, publisher,
+  signatures and notarization, then replaced RC4 with RC5. Pairing configuration
+  and queue/receipt database bytes remained unchanged across replacement; all
+  existing configuration values survived relaunch. With commands enabled, the
+  real self-identity lookup completed and the new worker reported a fresh running
+  heartbeat. A fresh phone-to-Note-to-Self command test remains separate from
+  these startup and synthetic checks.
+- The RC5 website passed 30 local headless checks. The public download and help
+  pages and signed feed match publication `036f5b3f2f8a658e415991a56d22d97f2dc31439`
+  byte for byte and return HTTP 200.
+
 ## Boundaries
 
-No real Signal account was opened, paired, or messaged. No live runtime was read
-or deployed. No shared flight log or business wiki was changed.
+The automated release suites use synthetic fixtures and isolated empty Signal
+stores. The separately authorized RC5 deployment and self-identity diagnostic
+above accessed the existing linked installation without exposing its identifiers
+or message contents. They did not relink it or initiate test messages.
+No shared flight log or business wiki was changed.
 LaunchAgent mutations were tested through mocks; an actual login/logout cycle was
 not performed on this user's account. A live incoming-message acceptance check
 remains necessary when an installation is explicitly deployed.

@@ -1,7 +1,7 @@
 # Decrumb v1 readiness
 
-Status recorded 2026-09-20. RC4 adds Raspberry Pi support and optional phone
-commands. [Release candidates](https://github.com/moey823/decrumb/releases) are
+Status recorded 2026-09-20. RC5 fixes real phone-command identity matching after
+RC4 added Raspberry Pi support and optional phone commands. [Release candidates](https://github.com/moey823/decrumb/releases) are
 for installation testing; real-device acceptance remains before stable v1.
 
 ## Completed
@@ -11,7 +11,7 @@ for installation testing; real-device acceptance remains before stable v1.
 - The standalone Apple Silicon app packages its Python worker, Swift cleaner,
   and checksum-verified signal-cli 0.14.8 dependency. Development signing and
   recursive signature verification pass.
-- The RC4 offline suites pass on Mac and ARM Linux. Native status tests
+- The RC5 offline suites pass on Mac and ARM Linux. Native status tests
   also passed. See [VALIDATION.md](VALIDATION.md) for the tested scope and limits.
 - Packaged smoke tests use synthetic data and fake Signal to exercise pairing
   cancellation, incoming-message filtering, deduplication, attributed notes,
@@ -33,7 +33,7 @@ for installation testing; real-device acceptance remains before stable v1.
   and required notices with no unresolved dependency gaps. Every production
   build must regenerate or validate the packet against its exact source inputs.
 - The actual app and DMG are signed with the publisher's personal Developer ID,
-  accepted by Apple notarization, stapled, and accepted by Gatekeeper. All eleven RC4
+  accepted by Apple notarization, stapled, and accepted by Gatekeeper. All eleven RC5
   uploaded assets match their local SHA-256 hashes, including the matching
   complete-source archive, signed update archive/feed, and release receipt.
 - Sparkle updates are implemented with optional automatic checks and installation,

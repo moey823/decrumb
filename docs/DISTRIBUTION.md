@@ -2,6 +2,11 @@
 
 ## RC5: phone-command identity correction
 
+[RC5 is published](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.5)
+from `80303eece3a9e87d456bec3d2ccf4bbeff440765`. Its 68.5 MB Mac DMG is
+signed, notarized and stapled; all eleven hosted assets match their local hashes.
+The public downloads and signed update feed passed verification.
+
 RC5 resolves the linked account's UUID through the Signal client's self-recipient
 lookup before accepting optional phone commands. signal-cli 0.14.8 returns only
 the phone number from `listAccounts`; RC4 consequently rejected real self-sync
