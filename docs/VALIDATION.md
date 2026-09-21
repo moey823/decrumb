@@ -249,6 +249,40 @@ No actual message content or account identifiers were printed or committed.
   an actual Umbrel device, its login proxy, and real phone-to-Signal behavior still
   need acceptance testing. Existing Mac mini linking and runtime were untouched.
 
+## RC6 private local diagnostics
+
+Published 2026-09-21 from source commit
+`a0766e98e8577e834a14716010228151b266b0e2`, tagged `v1.0.0-rc.6`.
+
+- The 257-case suite passed on macOS, Linux AMD64 and Linux ARM64, with
+  platform-specific skips, in [final-source release checks](https://github.com/moey823/decrumb/actions/runs/35616482898).
+  Native Mac status checks and the ARM64 Pi installation/systemd smoke passed.
+  New cases cover report allowlisting, raw-error exclusion, legacy log removal,
+  bounded retention, concurrent writers, interrupted writes, broken configuration,
+  and clearing diagnostics without altering account or application state.
+- Both native architectures passed [container checks](https://github.com/moey823/decrumb/actions/runs/35616089916)
+  from image source `dcd4195c379fd0585f82b54f06db8d6e8c000385`.
+  The container smoke verifies the diagnostic report's release identity as well
+  as the existing authenticated dashboard and synthetic Signal lifecycle.
+  The first RC6 container run exposed missing build-context allowlist entries;
+  the tested image includes both diagnostics and release metadata.
+- Native Mac Diagnostics was inspected using the synthetic demo profile.
+  Headless dashboard checks passed report preview, copy/fallback, clearing,
+  logout cleanup, and mobile layout. The mkships pages passed 48 local layout
+  checks across light/dark themes and 320/390/768/1440-pixel widths, plus
+  13 internal-link checks.
+- All eleven hosted asset sizes and SHA-256 digests match their local files.
+  Both Apple notarization submissions were accepted and stapled. The
+  66,794,007-byte DMG SHA-256 is
+  `bdce3bdd019721b48add95a0a224d8f063f1974dd090b8751675549fa7589b65`.
+  The public 519,068-byte Pi archive matches the tested local package.
+- The downloaded Mac DMG and app passed image integrity, strict code signatures,
+  Gatekeeper, stapled-ticket checks and packaged synthetic smoke. Official Sparkle
+  tools verified both the downloaded update archive and the signed appcast.
+- No linked installation was updated during this release. Updating an existing
+  linked installation through Check for Updates remains an owner-run acceptance
+  check. Physical Pi, Umbrel-device and real Signal acceptance remain separate.
+
 ## Boundaries
 
 The automated release suites use synthetic fixtures and isolated empty Signal

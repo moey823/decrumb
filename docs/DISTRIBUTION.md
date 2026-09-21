@@ -3,9 +3,8 @@
 ## One version for every platform
 
 `release.json` is the release source of truth for Mac, Raspberry Pi, and Umbrel.
-The next release is **Decrumb 1.0.0 RC6**: Mac/Pi version `1.0.0`, build `6`,
-and Umbrel version `1.0.0-rc.6`. Publication is pending; RC5 remains the published
-download until the signed artifacts and matching update feed are available. Platform names belong in artifact names, not in
+The published release is **Decrumb 1.0.0 RC6**: Mac/Pi version `1.0.0`, build `6`,
+and Umbrel version `1.0.0-rc.6`. Platform names belong in artifact names, not in
 independent version sequences. Experimental platform support does not change the
 shared application version.
 
@@ -24,8 +23,27 @@ same public version to the OCI version label; immutable source-commit image tags
 and digests still identify the exact platform build.
 
 Keep published binaries and tags immutable. The original Umbrel `0.1.0` preview
-is historical; its tested image now has the shared RC5 label in the community
-store. Future release notes group all platform downloads under one Decrumb tag.
+is historical; the community store now pins the tested RC6 image.
+Release notes group all platform downloads under one Decrumb tag.
+
+## RC6: private local diagnostics
+
+Published 2026-09-21: [Decrumb 1.0.0 RC6](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.6),
+from source commit `a0766e98e8577e834a14716010228151b266b0e2`. All eleven
+hosted assets match their local sizes and SHA-256 digests. The 66.8 MB Mac DMG
+is signed, notarized and stapled; the Pi archive is 519,068 bytes.
+
+RC6 adds a previewable, manually copied diagnostic report on every platform.
+It replaces timed activity logging with bounded local error codes and adds no
+automatic telemetry, crash upload, analytics SDK or hosted service. The report
+excludes messages, links, contacts, identities, rules, activity counts and exact
+event times. Read the [release notes](RELEASE-NOTES.md) and
+[validation evidence](VALIDATION.md#rc6-private-local-diagnostics).
+
+The Umbrel store pins the tested multiarchitecture image built from
+`dcd4195c379fd0585f82b54f06db8d6e8c000385`, digest
+`sha256:f49c757583e2f279af1680f34aca719b1d02c6a6822b60caab1e56962f6e728f`.
+The final release source commit adds that immutable image pin.
 
 ## RC5: phone-command identity correction
 
