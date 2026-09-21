@@ -4,10 +4,22 @@ Decrumb is a good fit for an always-on home server: incoming Signal links are
 cleaned while your phone and laptop come and go. Your Umbrel must stay powered on
 and online. Decrumb only sends the result to your Signal **Note to Self**.
 
-The Umbrel edition is experimental. The browser client and container build are
-being validated for ARM64 and Intel/AMD 64-bit systems. Installation instructions
-and the pinned community-store package will be added once the public image passes
-both architecture checks. This is not an official Umbrel App Store listing.
+The Umbrel edition is an **experimental community app, version 0.1.0**, for ARM64
+and Intel/AMD 64-bit systems. Both container architectures pass automated tests.
+Real Signal pairing and delivery on an Umbrel device remain an acceptance check.
+This is not an official Umbrel App Store listing.
+
+## Install
+
+1. In Umbrel's App Store, open its community app store settings.
+2. Add `https://github.com/moey823/decrumb` as a community store.
+3. Open the **mkships** store, install **Decrumb**, and launch it.
+4. Use the app password displayed by Umbrel, then follow the pairing steps below.
+
+Normal setup happens in the browser. You do not need SSH, a terminal, or a
+separate Signal CLI installation. The proxy uses port **8857**. The image download
+is about **44–45 MB**; first setup also downloads the pinned native Signal helper
+(about 44 MB on ARM64 or 114 MB on AMD64, before extraction).
 
 ## Browser setup
 
@@ -106,3 +118,12 @@ a restrictive content security policy, and content-free errors. It is intended
 for a private server behind Umbrel's authentication proxy, not public hosting.
 Native Signal pairing and delivery on an actual Umbrel installation remain a
 separate acceptance check; synthetic tests do not establish that result.
+
+Version 0.1.0 uses the image built from source commit
+`0b717d11e685ef02af20eaad11f5f0792e6735d9`, with multiarchitecture digest
+`sha256:8ac77f433bd0cfc63b682972e16ac1fa2f7e118463af79f049657bbc342592de`.
+The [native container checks](https://github.com/moey823/decrumb/actions/runs/35596751734)
+passed on both architectures. Anonymous manifest downloads confirmed that the
+images are public. Browser tests covered login, preview, saved settings, logout,
+and layouts at 375, 768, and 1280 pixels. No real account was linked or moved
+during these tests.

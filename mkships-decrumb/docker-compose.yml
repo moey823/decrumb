@@ -1,0 +1,26 @@
+version: "3.7"
+services:
+  app_proxy:
+    environment:
+      APP_HOST: mkships-decrumb_web_1
+      APP_PORT: 8080
+
+  web:
+    image: ghcr.io/moey823/decrumb:umbrel-0b717d11e685ef02af20eaad11f5f0792e6735d9@sha256:8ac77f433bd0cfc63b682972e16ac1fa2f7e118463af79f049657bbc342592de
+    user: "1000:1000"
+    init: true
+    restart: on-failure
+    stop_grace_period: 40s
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    environment:
+      DECRUMB_PASSWORD: ${APP_PASSWORD}
+    volumes:
+      - ${APP_DATA_DIR}/data/state:/data
+      # Native Signal libraries need writable, executable temporary space.
+      # Keep large AMD64 libraries on disk rather than in a RAM-backed tmpfs.
+      - ${APP_DATA_DIR}/data/tmp:/tmp

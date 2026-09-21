@@ -217,6 +217,38 @@ No actual message content or account identifiers were printed or committed.
   pages and signed feed match publication `036f5b3f2f8a658e415991a56d22d97f2dc31439`
   byte for byte and return HTTP 200.
 
+## Umbrel community preview, 2026-09-21
+
+- Image source: `0b717d11e685ef02af20eaad11f5f0792e6735d9`. The full
+  [Mac/AMD64/ARM64 regression run](https://github.com/moey823/decrumb/actions/runs/35596751982)
+  passed, including 237 Python tests (one platform-specific skip) and native Mac
+  status checks. Eighteen browser/backend tests cover authentication, same-origin
+  controls, input bounds, privacy, pairing transitions, recovery, persistence,
+  checksum rejection, and native subprocess cleanup.
+- [Container checks](https://github.com/moey823/decrumb/actions/runs/35596751734)
+  built and tested both architectures natively. Each verified its pinned real
+  signal-cli binary and an isolated empty account, then exercised browser login,
+  real QR rendering with a synthetic link, cancellation, synthetic pairing,
+  automatic startup, phone-command enablement, preview, pause/resume, and state
+  preservation across controller recreation. No real Signal account was linked.
+- The first native runs caught an over-strict ARM version-display check and an
+  undersized RAM-backed temporary directory for AMD64's extracted native library.
+  The final package accepts the pinned build's display suffix, retains exact
+  archive verification, and uses private disk-backed temporary storage.
+- The public multiarchitecture image is pinned in `mkships-decrumb/docker-compose.yml`.
+  Anonymous registry checks verified both architecture manifests. Compressed
+  layers total 44,339,195 bytes (AMD64) and 44,828,565 bytes (ARM64); the Signal
+  dependency is downloaded separately, not bundled in those layers.
+- Local headless browser checks passed login, offline preview, saving/reloading
+  settings, conditional controls, logout, and layouts at 375/768/1280 pixels.
+  The Umbrel YAML and merged Compose config passed validation with synthetic
+  credentials, including the proxy target, UID, private mounts, read-only image,
+  enabled proxy authentication, and absence of host-published backend ports.
+- Updated mkships pages passed 30 headless layout/link checks. The preview is a
+  community-store distribution, not an official Umbrel listing. Installation on
+  an actual Umbrel device, its login proxy, and real phone-to-Signal behavior still
+  need acceptance testing. Existing Mac mini linking and runtime were untouched.
+
 ## Boundaries
 
 The automated release suites use synthetic fixtures and isolated empty Signal

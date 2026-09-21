@@ -10,6 +10,10 @@ __pycache__/
 .env.*
 /runtime/
 /data/
+/mkships-decrumb/data/state/*
+!/mkships-decrumb/data/state/.gitkeep
+/mkships-decrumb/data/tmp/*
+!/mkships-decrumb/data/tmp/.gitkeep
 /vendor/
 /signal-cli/
 config.json

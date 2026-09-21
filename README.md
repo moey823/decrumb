@@ -69,6 +69,14 @@ It does not require a monitor, Java, or a desktop environment. See the
 [Pi installation and upgrade guide](docs/RASPBERRY-PI.md) for prerequisites,
 verified dependency sources, boot startup, and removal instructions.
 
+## Umbrel
+
+Add `https://github.com/moey823/decrumb` as a community app store in Umbrel, then
+install **Decrumb** from the **mkships** store. Pair Signal and manage the helper
+from its private browser dashboard. ARM64 and Intel/AMD 64-bit containers are
+available as an experimental release. See the [Umbrel setup guide](docs/UMBREL.md)
+for the app password, persistent storage, updates, and validation limits.
+
 ## Optional phone commands
 
 In the Mac app, open **Cleaning rules**, turn on **Enable commands from Note to Self**,

@@ -1,0 +1,49 @@
+manifestVersion: 1
+id: mkships-decrumb
+category: social
+name: Decrumb
+version: "0.1.0"
+tagline: Clean Signal links, waiting in Note to Self
+description: >-
+  Run Decrumb on your always-on Umbrel. It removes tracking from incoming Signal
+  links and saves clean copies to your Note to Self. Your phone keeps using the
+  regular Signal app. Decrumb never replies to contacts or groups.
+
+
+  Open the browser dashboard and unlock it with the app password shown below.
+  First setup downloads a verified Signal helper; allow at least 1 GB of free
+  disk space. Then scan the QR from Signal's Settings → Linked devices.
+  Cleaning starts automatically after linking.
+
+
+  Customize cleaning rules, preview links, choose optional note removal, and
+  enable optional commands from your phone. Keep Umbrel powered on and online.
+  Pause any other Decrumb instance to avoid duplicate notes.
+
+
+  Experimental community release for ARM64 and Intel/AMD 64-bit systems.
+  Automated container tests pass on both architectures; real-device Signal
+  pairing and delivery on Umbrel still need acceptance testing. Decrumb uses
+  the unofficial signal-cli client and is independent of Signal and Umbrel.
+releaseNotes: ""
+developer: Matthew Kearney
+website: https://mkships.app/decrumb/
+dependencies: []
+repo: https://github.com/moey823/decrumb
+support: https://github.com/moey823/decrumb/issues
+port: 8857
+gallery: []
+path: ""
+icon: https://mkships.app/decrumb/icon.png
+defaultUsername: ""
+defaultPassword: ""
+deterministicPassword: true
+backupIgnore:
+  - data/state/dependency/*
+  - data/state/pairing.png
+  - data/state/status.json
+  - data/state/worker.log*
+  - data/state/*.lock
+  - data/tmp/*
+submitter: Matthew Kearney
+submission: https://github.com/moey823/decrumb
