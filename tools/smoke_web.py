@@ -101,6 +101,10 @@ def main():
         try:
             token = request('login', {'password': 'synthetic-password-not-a-secret'})['token']
             require(request('status')['state'] == 'unlinked', 'Fresh install did not show pairing.')
+            report = request('diagnostics', {})
+            require(report['release']['version'] != 'unknown' and report['release']['build'] > 0,
+                    'Packaged diagnostic release metadata is missing.')
+            require(request('clear-diagnostics', {})['recent_errors'] == [], 'Diagnostic clear failed.')
             request('pair', {})
             print('Container smoke: waiting for the synthetic QR.', flush=True)
             wait(lambda: request('status')['qr_ready'])

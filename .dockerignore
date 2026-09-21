@@ -1,5 +1,7 @@
 **
 !decrumb.py
+!diagnostics.py
+!release.json
 !notes.py
 !phone_commands.py
 !portable_cleaner.py
