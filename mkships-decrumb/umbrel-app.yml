@@ -2,7 +2,7 @@ manifestVersion: 1
 id: mkships-decrumb
 category: social
 name: Decrumb
-version: "1.0.0-rc.6"
+version: "1.0.0"
 tagline: Clean Signal links, waiting in Note to Self
 description: >-
   Run Decrumb on your always-on Umbrel. It removes tracking from incoming Signal
@@ -22,10 +22,10 @@ description: >-
 
 
   Experimental community release for ARM64 and Intel/AMD 64-bit systems.
-  Automated container tests pass on both architectures; real-device Signal
-  pairing and delivery on Umbrel still need acceptance testing. Decrumb uses
+  Automated container tests pass on both architectures. Decrumb uses
   the unofficial signal-cli client and is independent of Signal and Umbrel.
 releaseNotes: >-
+  Decrumb v1.0.0 promotes the tested RC6 build with no behavior changes.
   Preview and copy a local diagnostic report when you choose to share it.
   Reports exclude messages, links, contacts, account details, and activity counts.
   Clear error history without changing Signal pairing or notes. No automatic

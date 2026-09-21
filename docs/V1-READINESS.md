@@ -1,8 +1,13 @@
-# Decrumb v1 readiness
+# Decrumb v1 release status
 
-Status recorded 2026-09-20. RC5 fixes real phone-command identity matching after
-RC4 added Raspberry Pi support and optional phone commands. [Release candidates](https://github.com/moey823/decrumb/releases) are
-for installation testing; real-device acceptance remains before stable v1.
+V1 was approved on 2026-09-21. The owner chose to close v1 scope and
+promote the existing signed RC6 build as stable **1.0.0**, build **6**. No app
+behavior, dependency, or published binary changed. RC6 installations already
+have v1. [Distribution details](DISTRIBUTION.md#v1-promotion-of-build-6) record
+the exact source, artifact identity and update path.
+
+The uncompleted checks below remain follow-up validation; this promotion does
+not claim they passed. Raspberry Pi and Umbrel remain experimental platforms.
 
 ## Completed
 
@@ -11,7 +16,7 @@ for installation testing; real-device acceptance remains before stable v1.
 - The standalone Apple Silicon app packages its Python worker, Swift cleaner,
   and checksum-verified signal-cli 0.14.8 dependency. Development signing and
   recursive signature verification pass.
-- The RC5 offline suites pass on Mac and ARM Linux. Native status tests
+- The RC6 offline suites pass on Mac and ARM Linux. Native status tests
   also passed. See [VALIDATION.md](VALIDATION.md) for the tested scope and limits.
 - Packaged smoke tests use synthetic data and fake Signal to exercise pairing
   cancellation, incoming-message filtering, deduplication, attributed notes,
@@ -33,7 +38,7 @@ for installation testing; real-device acceptance remains before stable v1.
   and required notices with no unresolved dependency gaps. Every production
   build must regenerate or validate the packet against its exact source inputs.
 - The actual app and DMG are signed with the publisher's personal Developer ID,
-  accepted by Apple notarization, stapled, and accepted by Gatekeeper. All eleven RC5
+  accepted by Apple notarization, stapled, and accepted by Gatekeeper. All eleven RC6
   uploaded assets match their local SHA-256 hashes, including the matching
   complete-source archive, signed update archive/feed, and release receipt.
 - Sparkle updates are implemented with optional automatic checks and installation,
@@ -49,7 +54,7 @@ for installation testing; real-device acceptance remains before stable v1.
   transcripts. Authentication, privacy exclusions, replay, and self-only replies
   are covered by synthetic transport tests. No shell or AI actions are exposed.
 
-## Required before stable v1
+## Follow-up validation
 
 1. **Downloaded installation.** Validate the hosted candidate under normal
    Gatekeeper settings on a clean Mac, including first launch from Applications.
@@ -75,8 +80,8 @@ for installation testing; real-device acceptance remains before stable v1.
    reboot, network recovery, manual upgrades, and long-running resource use.
    ARM Linux containers and CI runners do not establish these hardware outcomes.
 
-The download page identifies the candidate status, architecture, minimum OS,
-and remaining acceptance checks. Promote to stable only after those checks pass.
+The download page identifies v1, architecture, minimum OS, and experimental
+platforms. Keep these validation limits accurate as device checks are completed.
 
 ## Can follow v1
 
@@ -87,4 +92,4 @@ and remaining acceptance checks. Promote to stable only after those checks pass.
   core release. The bundled Signal dependency dominates current app size.
 
 The [distribution design](DISTRIBUTION.md) describes the implemented updater and
-hosting approach; this checklist defines the narrower initial-release gate.
+hosting approach; this checklist tracks the remaining validation work.

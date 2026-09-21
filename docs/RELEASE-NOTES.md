@@ -1,5 +1,16 @@
 # Decrumb release notes
 
+## 1.0.0 — first stable release
+
+V1 promotes the tested RC6 build with no changes to the app or release files.
+If you have RC6 (build 6), you already have v1. Older Mac installations can use
+Check for Updates. Your Signal connection and settings are preserved.
+
+The release includes automatic link cleaning to Note to Self, editable rules,
+optional phone commands, note removal controls, signed Mac updates, and private
+local diagnostics. No automatic telemetry or hosted support service was added.
+Pi and Umbrel editions remain experimental.
+
 ## 1.0.0 RC6 — local diagnostics
 
 Troubleshooting now works without automatic telemetry or a support server.

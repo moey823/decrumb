@@ -249,6 +249,16 @@ No actual message content or account identifiers were printed or committed.
   an actual Umbrel device, its login proxy, and real phone-to-Signal behavior still
   need acceptance testing. Existing Mac mini linking and runtime were untouched.
 
+## V1 promotion
+
+On 2026-09-21 the owner approved the existing RC6 build as stable v1.0.0.
+The stable tag identifies the same source as RC6, and the eleven release assets
+are promoted without changing their bytes. The Mac updater remains on build 6
+and the same verified signed appcast. The Umbrel store version becomes `1.0.0`
+while preserving the previously tested image digest. Validation below applies
+to these unchanged artifacts; no additional hardware or live Signal acceptance
+is implied by the promotion.
+
 ## RC6 private local diagnostics
 
 Published 2026-09-21 from source commit
@@ -286,6 +296,17 @@ Published 2026-09-21 from source commit
 - No linked installation was updated during this release. Updating an existing
   linked installation through Check for Updates remains an owner-run acceptance
   check. Physical Pi, Umbrel-device and real Signal acceptance remain separate.
+
+## Maintainer-confirmed Umbrel testing, 2026-09-21
+
+The maintainer confirmed that live Umbrel testing is complete during official
+App Store submission preparation. This supersedes the pending live-Umbrel
+acceptance status in the earlier release records above.
+
+This is maintainer-reported validation, separate from the automated synthetic
+checks. The exact tested app build, hardware/architecture, umbrelOS version, and
+restart/update persistence results have not yet been recorded. Do not infer
+those details or claim live coverage on both architectures from this confirmation.
 
 ## Boundaries
 

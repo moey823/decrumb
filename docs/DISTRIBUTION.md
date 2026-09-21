@@ -3,8 +3,8 @@
 ## One version for every platform
 
 `release.json` is the release source of truth for Mac, Raspberry Pi, and Umbrel.
-The published release is **Decrumb 1.0.0 RC6**: Mac/Pi version `1.0.0`, build `6`,
-and Umbrel version `1.0.0-rc.6`. Platform names belong in artifact names, not in
+The published release is **Decrumb 1.0.0**: Mac/Pi version `1.0.0`, build `6`,
+and Umbrel version `1.0.0`. Platform names belong in artifact names, not in
 independent version sequences. Experimental platform support does not change the
 shared application version.
 
@@ -25,6 +25,25 @@ and digests still identify the exact platform build.
 Keep published binaries and tags immutable. The original Umbrel `0.1.0` preview
 is historical; the community store now pins the tested RC6 image.
 Release notes group all platform downloads under one Decrumb tag.
+
+## V1: promotion of build 6
+
+On 2026-09-21 the owner chose to close v1 scope and promote RC6 as
+[Decrumb 1.0.0](https://github.com/moey823/decrumb/releases/tag/v1.0.0).
+The stable tag points to the exact RC6 source commit
+`a0766e98e8577e834a14716010228151b266b0e2`. Mac and Pi artifacts, corresponding
+sources, checksums, signatures, receipts and the signed appcast are unchanged.
+The Umbrel store labels the existing tested image `1.0.0` without replacing its
+immutable digest. RC6 users already have v1; older Mac builds still update to 6.
+
+The original build receipts, packaged channel metadata and image labels retain
+RC6 provenance. The appcast continues to reference the immutable RC6 update
+archive. Both release tags and all existing download URLs remain available.
+`release.json` on main records the stable promotion for future builds. Any future
+rebuild must use a higher build number and publish new matched materials.
+
+Additional hardware and live Signal checks remain recorded as follow-up validation in
+[V1-READINESS.md](V1-READINESS.md); Pi and Umbrel support remain experimental.
 
 ## RC6: private local diagnostics
 
