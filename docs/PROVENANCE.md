@@ -90,3 +90,21 @@ same community build and provenance as the Pi installer; AMD64 uses the native
 asset published by the signal-cli project for v0.14.8. Both are unofficial Signal
 clients. The private dependency cache is separate from the image and can be
 recreated without changing the linked account.
+
+## Native Windows CLI, 2026-09-21
+
+`windows.py` adds per-user command-line controls and background supervision.
+`runtime_platform.py` supplies shared locking, process probes and subprocess
+handling; `cli_common.py` shares the existing Pi settings operations. Windows
+uses the existing Python cleaner with Segno QR rendering in `windows_helper.py`.
+`windows_native.py` and `windows_signal.py` use pywin32 for protected runtime ACLs
+and a kill-on-close Job Object around Java. All are original Decrumb additions
+under AGPL-3.0-only; the privacy filters, Note-to-Self restriction and queue are
+the existing shared implementation.
+
+The experimental Windows build freezes Python using PyInstaller and includes the
+official signal-cli 0.14.8 JVM distribution and Eclipse Temurin 25 x64 JRE, locked
+by version, upstream URL and SHA-256 in `windows/dependencies.json`. Upstream
+notices are retained. This does not change the existing Mac or Linux dependency
+pins. The unsigned development ZIP is not a public release; Windows runtime,
+live-pairing and corresponding-source acceptance are documented in [WINDOWS.md](WINDOWS.md).

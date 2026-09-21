@@ -18,8 +18,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--app', action='store_true', help='Build a standalone .app, fetching pinned dependencies as needed')
     parser.add_argument('--portable', action='store_true', help='Prepare the Python helper (default on Linux; QR needs qrencode)')
+    parser.add_argument('--windows', action='store_true', help='Build the native Windows x64 CLI bundle on Windows')
     build_app.add_release_arguments(parser)
     args = parser.parse_args()
+    if args.windows or sys.platform == 'win32':
+        if args.app or args.production or args.portable:
+            raise SystemExit('Windows builds cannot be combined with Mac or Linux build options.')
+        build_app.release_version.resolve(args.version, args.build_number)
+        subprocess.run([sys.executable, '-B', str(ROOT / 'tools/build_windows.py')], check=True)
+        return
     if args.portable or sys.platform.startswith('linux'):
         if args.app or args.production:
             raise SystemExit('The portable helper does not build a macOS app. See docs/RASPBERRY-PI.md for Linux installation.')

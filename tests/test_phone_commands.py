@@ -13,9 +13,10 @@ import unittest
 from unittest.mock import Mock, patch
 
 import decrumb
-import desktop
 import phone_commands
-import service
+if sys.platform != 'win32':
+    import desktop
+    import service
 from test_decrumb import HELPER, SETTINGS, SELF, PEER, StubRpc, event
 
 

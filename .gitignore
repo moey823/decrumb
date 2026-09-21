@@ -20,6 +20,9 @@ config.json
 status.json
 verification.json
 worker.lock
+control.lock
+background.lock
+stop.request
 web.lock
 worker.log*
 pairing*.png

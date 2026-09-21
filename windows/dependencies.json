@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "platform": "windows-x64",
+  "signal_cli": {
+    "version": "0.14.8",
+    "url": "https://github.com/AsamK/signal-cli/releases/download/v0.14.8/signal-cli-0.14.8.tar.gz",
+    "sha256": "ccd408e831eff7e41ebaaf309704840bb00d78a7869f35ad700dbae5b5a5bb65",
+    "archive": "tar.gz",
+    "prefix": "signal-cli-0.14.8",
+    "source": "https://github.com/AsamK/signal-cli/tree/v0.14.8"
+  },
+  "java": {
+    "version": "25.0.4.1+1",
+    "url": "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/OpenJDK25U-jre_x64_windows_hotspot_25.0.4.1_1.zip",
+    "sha256": "4c95451cea98556def2c54f7782933f52a26d4a36bd85e1d59f0364464828b07",
+    "archive": "zip",
+    "prefix": "jdk-25.0.4.1+1-jre",
+    "source": "https://github.com/adoptium/temurin25-binaries/releases/tag/jdk-25.0.4.1%2B1"
+  }
+}

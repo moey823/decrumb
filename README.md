@@ -84,6 +84,13 @@ for the app password, persistent storage, updates, and validation limits.
 Release versions come from [`release.json`](release.json); see the
 [shared release process](docs/DISTRIBUTION.md#one-version-for-every-platform).
 
+## Windows
+
+An experimental **native Windows x64 CLI** is also available to build from source,
+with terminal pairing, a hidden background worker and optional startup at login.
+See the [Windows guide](docs/WINDOWS.md) for builds, commands and validation limits.
+There is not yet a published Windows download.
+
 ## Optional phone commands
 
 In the Mac app, open **Cleaning rules**, turn on **Enable commands from Note to Self**,

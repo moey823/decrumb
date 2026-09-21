@@ -5,7 +5,6 @@ No network access, exception strings, message data, or persistent identifiers.
 The lock is shared by the worker and controls so clearing never races a writer.
 """
 import contextlib
-import fcntl
 import json
 import logging
 import os
@@ -14,6 +13,7 @@ import platform
 import re
 import sqlite3
 import time
+import runtime_platform as runtime
 
 MAX_BYTES = 64 * 1024
 MAX_EVENTS = 128
@@ -58,8 +58,8 @@ def _locked(root):
     root = Path(root)
     root.mkdir(mode=0o700, parents=True, exist_ok=True)
     with (root / 'diagnostics.lock').open('a') as lock:
-        os.chmod(lock.fileno(), 0o600)
-        fcntl.flock(lock, fcntl.LOCK_EX)
+        runtime.private_mode(lock.fileno())
+        runtime.lock_file(lock, blocking=True)
         yield root
 
 
@@ -91,10 +91,12 @@ def _save(root, events):
     # One fixed staging file under the same lock: repeated hard crashes cannot
     # accumulate unbounded temporary copies of the history.
     name = root / '.diagnostics.tmp'
-    fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o600)
+    if name.is_symlink():
+        raise OSError('Invalid diagnostic staging file.')
+    fd = os.open(name, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | getattr(os, 'O_NOFOLLOW', 0), 0o600)
     try:
         with os.fdopen(fd, 'w') as output:
-            os.fchmod(output.fileno(), 0o600)
+            runtime.private_mode(output.fileno())
             json.dump(events[-MAX_EVENTS:], output, separators=(',', ':'))
             output.write('\n')
         os.replace(name, root / 'worker.log')

@@ -3,7 +3,6 @@
 """Private linked-device worker. The only send destination is Note to Self."""
 import argparse
 import contextlib
-import fcntl
 import hashlib
 import json
 import logging
@@ -21,9 +20,15 @@ import uuid
 import notes
 import phone_commands
 import diagnostics
+import runtime_platform as runtime
 from notes import read_notes
 
 def default_root():
+    if sys.platform == "win32":
+        configured = os.environ.get("LOCALAPPDATA")
+        if not configured or not Path(configured).is_absolute():
+            raise RuntimeError("Windows local application data directory is unavailable.")
+        return Path(configured) / "Decrumb"
     if sys.platform == "darwin":
         return Path.home() / "Library/Application Support/Decrumb"
     configured = os.environ.get("XDG_STATE_HOME")
@@ -61,7 +66,7 @@ def now_ms():
 def write_json(path, value):
     temporary = path.with_suffix(".tmp")
     with temporary.open("w", encoding="utf-8") as output:
-        os.chmod(temporary, 0o600)
+        runtime.private_mode(temporary)
         json.dump(value, output, indent=2)
         output.write("\n")
         output.flush()
@@ -73,7 +78,7 @@ def write_json(path, value):
 def exclusive(root):
     with (root / "worker.lock").open("a") as lock:
         try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            runtime.lock_file(lock)
         except BlockingIOError:
             raise SafeError("Worker or pairing is already running.") from None
         yield
@@ -82,8 +87,9 @@ def exclusive(root):
 def clean_result(helper, text, settings):
     try:
         result = subprocess.run(
-            [str(helper)], input=json.dumps({"text": text, "settings": settings}).encode(),
+            runtime.helper_command(helper), input=json.dumps({"text": text, "settings": settings}).encode(),
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=10, check=True,
+            **runtime.child_options(),
         )
         value = json.loads(result.stdout)
         urls = value["urls"]
@@ -122,20 +128,32 @@ class Rpc:
         self.closed = threading.Event()
         self.cancel_event = cancel_event
         self.dropped_events = 0
-        command = command or [
-            config["signal_cli"], "--config", str(root / "signal-cli"),
-            "--scrub-log", "--disable-send-log", "jsonRpc", "--receive-mode", "manual",
-            "--ignore-attachments", "--ignore-stories", "--ignore-avatars", "--ignore-stickers",
-        ]
+        if command is None:
+            prefix = runtime.helper_command(config["signal_cli"])
+            if sys.platform == 'win32' and config.get('java'):
+                bridge = (Path(sys.executable).with_name('decrumb-signal.exe') if getattr(sys, 'frozen', False)
+                          else Path(__file__).with_name('windows_signal.py'))
+                prefix = runtime.helper_command(bridge) + [
+                    '--java', config['java'], '--temporary', str(root / 'tmp'),
+                    '--libraries', str(Path(config['signal_cli']).parent.parent / 'lib' / '*'), '--']
+            command = prefix + ["--config", str(root / "signal-cli"),
+                                "--scrub-log", "--disable-send-log", "jsonRpc", "--receive-mode", "manual",
+                                "--ignore-attachments", "--ignore-stories", "--ignore-avatars", "--ignore-stickers"]
         environment = dict(os.environ)
-        environment["PATH"] = ("/opt/homebrew/bin:" if sys.platform == "darwin" else "") + "/usr/bin:/bin:/usr/sbin:/sbin"
+        if sys.platform != 'win32':
+            environment["PATH"] = ("/opt/homebrew/bin:" if sys.platform == "darwin" else "") + "/usr/bin:/bin:/usr/sbin:/sbin"
+        else:
+            for key in ('JAVA_TOOL_OPTIONS', 'JDK_JAVA_OPTIONS', '_JAVA_OPTIONS', 'CLASSPATH'):
+                environment.pop(key, None)
+            environment['TEMP'] = environment['TMP'] = str(root / 'tmp')
         # The container supervisor owns one group per worker so a forced stop
         # also stops its native child. Desktop/Pi retain independent RPC groups.
-        self.own_process_group = environment.get("DECRUMB_INHERIT_PROCESS_GROUP") != "1"
+        self.own_process_group = sys.platform != 'win32' and environment.get("DECRUMB_INHERIT_PROCESS_GROUP") != "1"
         try:
             self.process = subprocess.Popen(
                 command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                 env=environment, start_new_session=self.own_process_group,
+                **runtime.child_options(),
             )
         except OSError:
             raise SafeError("Signal connection failed.", 'connection_failed') from None
@@ -212,7 +230,9 @@ class Rpc:
 
     def close(self):
         def stop(sig):
-            if self.own_process_group:
+            if sys.platform == 'win32':
+                self.process.terminate()
+            elif self.own_process_group:
                 os.killpg(self.process.pid, sig)
             else:
                 self.process.send_signal(sig)
@@ -221,7 +241,7 @@ class Rpc:
                 stop(signal.SIGTERM)
             self.process.wait(timeout=5)
         except subprocess.TimeoutExpired:
-            stop(signal.SIGKILL)
+            stop(getattr(signal, 'SIGKILL', signal.SIGTERM))
             self.process.wait(timeout=5)
         except ProcessLookupError:
             self.process.wait(timeout=5)
@@ -507,18 +527,18 @@ def _cleanup_retry(store, note_id, attempts, state, current):
                      (state, attempts, current + delay, note_id))
 
 
-def run(root, config):
+def run(root, config, stopped=None):
     try:
-        _run(root, config)
+        _run(root, config, stopped)
     except Exception as error:
         diagnostics.failure(root, error)
         raise
 
 
-def _run(root, config):
+def _run(root, config, stopped=None):
     if not config.get("account"):
         raise SafeError("Pair with Signal before starting the worker.")
-    stopped = threading.Event()
+    stopped = stopped if stopped is not None else threading.Event()
     options = notes_settings(config.get("notes"))
     commands_started_at = now_ms()
     def stop(*_):
@@ -637,12 +657,13 @@ def pair(root, config, emit=None, terminal_qr=False):
             uri = rpc.call("startLink")["deviceLinkUri"]
             if not isinstance(uri, str) or not uri.startswith("sgnl://linkdevice?"):
                 raise SafeError("Unexpected pairing response.")
-            subprocess.run([config["helper"], "--qr", str(qr_path)], input=uri.encode(),
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True, timeout=15)
-            os.chmod(qr_path, 0o600)
+            subprocess.run(runtime.helper_command(config["helper"], "--qr", str(qr_path)), input=uri.encode(),
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True, timeout=15,
+                           **runtime.child_options())
+            runtime.private_mode(qr_path)
             report("qr_ready")
             if terminal_qr:
-                subprocess.run([config["helper"], "--qr-terminal"], input=uri.encode(),
+                subprocess.run(runtime.helper_command(config["helper"], "--qr-terminal"), input=uri.encode(),
                                stderr=subprocess.DEVNULL, check=True, timeout=15)
             rpc.call("finishLink", {"deviceLinkUri": uri, "deviceName": "Decrumb"}, timeout=180)
             account, _ = account_details(rpc.call("listAccounts"))
@@ -738,7 +759,7 @@ def read_status(root, config):
                 if status.get("pid", 0) <= 0:
                     stale = True
                 else:
-                    os.kill(status["pid"], 0)
+                    stale = stale or not runtime.process_alive(status["pid"])
             except ProcessLookupError:
                 stale = True
             if stale:

@@ -41,7 +41,7 @@ def read_manifest(source):
                 raise ValueError()
             if digest(path) != checksum:
                 raise ValueError()
-        required = {'decrumb.py', 'diagnostics.py', 'release.json', 'notes.py', 'pi.py', 'portable_cleaner.py', 'phone_commands.py',
+        required = {'decrumb.py', 'runtime_platform.py', 'cli_common.py', 'diagnostics.py', 'release.json', 'notes.py', 'pi.py', 'portable_cleaner.py', 'phone_commands.py',
                     'rules/defaults.json', 'linux/dependencies.json', 'tools/install_pi.py', 'LICENSE'}
         if not required <= manifest['files'].keys():
             raise ValueError()

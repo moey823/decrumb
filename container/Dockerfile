@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends qrencode libstd
     && rm -rf /var/lib/apt/lists/* \
     && mkdir /data && chown 1000:1000 /data
 WORKDIR /app
-COPY decrumb.py diagnostics.py release.json notes.py phone_commands.py portable_cleaner.py web_server.py container_dependency.py LICENSE ./
+COPY decrumb.py runtime_platform.py diagnostics.py release.json notes.py phone_commands.py portable_cleaner.py web_server.py container_dependency.py LICENSE ./
 COPY rules/defaults.json ./rules/defaults.json
 COPY container/dependencies.json ./container/dependencies.json
 COPY linux/dependencies.json ./linux/dependencies.json
