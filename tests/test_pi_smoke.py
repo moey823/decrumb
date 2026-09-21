@@ -99,6 +99,31 @@ class PiSmokeSafetyTests(unittest.TestCase):
             with self.assertRaisesRegex(smoke_pi.SmokeError, '^Systemd initial resume failed\\.$'):
                 smoke_pi.run(['/synthetic-secret/command'], action='Systemd initial resume')
 
+    def test_real_systemd_workspace_is_outside_private_tmp_and_removed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            home = Path(folder)
+            with patch.object(Path, 'home', return_value=home), patch.object(smoke_pi, 'systemd_guard') as guard:
+                with smoke_pi.workspace(real_systemd=True) as owned:
+                    owned = Path(owned)
+                    self.assertEqual(owned.parent, home)
+                    self.assertTrue(owned.is_dir())
+                    guard.assert_called_once_with()
+                    (owned / 'synthetic-state').write_text('synthetic')
+                self.assertFalse(owned.exists())
+
+    def test_home_workspace_is_not_created_if_disposable_runner_guard_fails(self):
+        with patch.object(smoke_pi, 'systemd_guard', side_effect=smoke_pi.SmokeError('Refused.')), \
+                patch.object(smoke_pi.tempfile, 'TemporaryDirectory') as temporary:
+            with self.assertRaises(smoke_pi.SmokeError):
+                smoke_pi.workspace(real_systemd=True)
+            temporary.assert_not_called()
+
+    def test_non_systemd_workspace_keeps_ordinary_temporary_directory(self):
+        with patch.object(smoke_pi, 'systemd_guard') as guard, patch.object(smoke_pi.tempfile, 'TemporaryDirectory') as temporary:
+            smoke_pi.workspace()
+            guard.assert_not_called()
+            temporary.assert_called_once_with(prefix='decrumb-pi-smoke-', dir=None)
+
 
 if __name__ == '__main__':
     unittest.main()

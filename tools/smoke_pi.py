@@ -132,6 +132,15 @@ def systemd_guard():
     require(state == b'not-found', 'A Decrumb user unit is already known; systemd smoke refused.')
 
 
+def workspace(real_systemd=False):
+    # PrivateTmp=true intentionally hides the host's /tmp from the real worker.
+    # Only an explicitly checked disposable runner may stage fixtures in HOME,
+    # where the service can read them. TemporaryDirectory still owns all cleanup.
+    if real_systemd:
+        systemd_guard()
+    return tempfile.TemporaryDirectory(prefix='decrumb-pi-smoke-', dir=Path.home() if real_systemd else None)
+
+
 def systemd_smoke(root, target, launcher, decrumb, pi):
     global PHASE
     stage('systemd ownership check')
@@ -221,7 +230,7 @@ def smoke(archive, signal_archive, *, real_systemd=False):
     require(os.getuid() != 0, 'Run this release smoke as a normal user, without sudo.')
     require(Path('/usr/bin/qrencode').is_file(), 'Install qrencode before running the Pi smoke.')
     os.umask(0o077)
-    with tempfile.TemporaryDirectory(prefix='decrumb-pi-smoke-') as folder:
+    with workspace(real_systemd) as folder:
         base = Path(folder)
         stage('archive extraction')
         source = extract(archive, base / 'extracted')
