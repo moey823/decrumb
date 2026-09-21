@@ -52,6 +52,12 @@ on Umbrel's shared Docker network cannot read pairing codes or change controls.
 Browser sessions expire after 12 hours and are stored per browser origin in
 session storage, not cross-port cookies. Server restarts invalidate sessions.
 
+The native Signal client extracts libraries into an app-private, disk-backed
+temporary directory (`data/tmp`, mounted at `/tmp`). This is excluded from
+backups. It avoids reserving hundreds of megabytes of RAM for the larger AMD64
+native library. Allow at least 1 GB of free disk space for setup and temporary
+files; message-processing memory use depends on Signal activity.
+
 Only the proxy publishes a browser port. Do not expose it directly to the public
 internet. Use your trusted home network or an authenticated encrypted connection
 for remote access; the internal app speaks HTTP behind Umbrel's proxy.
