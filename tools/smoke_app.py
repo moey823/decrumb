@@ -168,6 +168,9 @@ root=Path(sys.argv[sys.argv.index('--config')+1]).parent
 for line in sys.stdin:
  r=json.loads(line); method=r['method']; result={}
  if method=='listAccounts': result=[{'number':'+15550000001'}]
+ elif method=='listContacts':
+  assert r['params']=={'account':'+15550000001','recipient':['+15550000001'],'allRecipients':True}
+  result=[{'number':'+15550000001','uuid':'00000000-0000-4000-8000-000000000001'}]
  elif method=='subscribeReceive': result=0
  elif method=='send':
   params=r['params']
@@ -179,8 +182,8 @@ for line in sys.stdin:
   result={'timestamp':int(time.time()*1000),'results':[{'type':'SUCCESS'}]}
  print(json.dumps({'id':r['id'],'result':result}),flush=True)
  if method=='subscribeReceive':
-  data={'destinationNumber':'+15550000001','timestamp':int(time.time()*1000),'message':'/decrumb status','expiresInSeconds':0,'viewOnce':False,'textStyles':[]}
-  event={'method':'receive','params':{'account':'+15550000001','envelope':{'sourceNumber':'+15550000001','syncMessage':{'sentMessage':data}}}}
+  data={'destinationNumber':'+15550000001','destinationUuid':'00000000-0000-4000-8000-000000000001','timestamp':int(time.time()*1000),'message':'/decrumb status','expiresInSeconds':0,'viewOnce':False,'textStyles':[]}
+  event={'method':'receive','params':{'account':'+15550000001','envelope':{'sourceNumber':'+15550000001','sourceUuid':'00000000-0000-4000-8000-000000000001','syncMessage':{'sentMessage':data}}}}
   print(json.dumps(event),flush=True); print(json.dumps(event),flush=True)
 ''')
         worker = subprocess.Popen(command + ['run'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=ENV)

@@ -178,6 +178,21 @@ establish physical Pi pairing, boot/logout, network recovery, sustained resource
 use, or live Signal behavior. The Pi edition remains experimental. Later
 release-documentation commits do not change the immutable RC4 source tag or assets.
 
+## RC5 phone-command regression
+
+RC4's fake transport incorrectly included an account UUID in `listAccounts`;
+the pinned upstream 0.14.8 response provides only `number`. Authentic Note to
+Self transcripts contain UUID fields too, so the strict owner check rejected
+them. A content-free diagnostic on the deployed Mac confirmed the number-only
+response and a single matching self-recipient record containing its UUID.
+
+The transport and packaged fixtures now reproduce that upstream contract.
+RC5 looks up only the linked account, verifies a unique number/UUID match, and
+fails closed on missing, malformed, conflicting or ambiguous identity data.
+Existing tests still reject peer commands, conflicting aliases, non-self
+recipients, private/control events, stale/replayed commands and reply loops.
+No actual message content or account identifiers were printed or committed.
+
 ## Boundaries
 
 No real Signal account was opened, paired, or messaged. No live runtime was read

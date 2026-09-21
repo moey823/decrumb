@@ -1,5 +1,15 @@
 # Decrumb distribution and updates
 
+## RC5: phone-command identity correction
+
+RC5 resolves the linked account's UUID through the Signal client's self-recipient
+lookup before accepting optional phone commands. signal-cli 0.14.8 returns only
+the phone number from `listAccounts`; RC4 consequently rejected real self-sync
+commands that also included UUID fields. The correction keeps every identity
+check, privacy exclusion and replay boundary intact. It does not learn an
+owner identity from incoming messages. Upgrade both Mac and Pi to RC5 for phone
+commands. The feature remains optional and off by default for new installations.
+
 ## RC4: Mac and Raspberry Pi
 
 Published 2026-09-20: [Decrumb 1.0.0 RC4](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.4),

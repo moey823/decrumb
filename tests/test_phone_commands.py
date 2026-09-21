@@ -19,14 +19,15 @@ import service
 from test_decrumb import HELPER, SETTINGS, SELF, PEER, StubRpc, event
 
 
-ALIASES = {SELF, "synthetic-self-uuid"}
+ALIASES = {SELF, "00000000-0000-4000-8000-000000000001"}
+SELF_UUID = "00000000-0000-4000-8000-000000000001"
 
 
 def command_event(timestamp, text="/decrumb status"):
     return {"method": "receive", "params": {"result": {"account": SELF, "envelope": {
-        "source": SELF, "sourceNumber": SELF, "sourceUuid": "synthetic-self-uuid",
+        "source": SELF, "sourceNumber": SELF, "sourceUuid": "00000000-0000-4000-8000-000000000001",
         "syncMessage": {"sentMessage": {
-            "destination": SELF, "destinationNumber": SELF, "destinationUuid": "synthetic-self-uuid",
+            "destination": SELF, "destinationNumber": SELF, "destinationUuid": "00000000-0000-4000-8000-000000000001",
             "timestamp": timestamp, "message": text, "expiresInSeconds": 0,
             "viewOnce": False, "textStyles": [],
         }},
@@ -35,6 +36,49 @@ def command_event(timestamp, text="/decrumb status"):
 
 def sent(value):
     return value["params"]["result"]["envelope"]["syncMessage"]["sentMessage"]
+
+
+class OwnerIdentityTests(unittest.TestCase):
+    def test_pinned_client_number_only_response_resolves_own_uuid(self):
+        account, aliases = decrumb.account_details([{"number": SELF}])
+        rpc = Mock()
+        rpc.call.return_value = [{"number": SELF, "uuid": SELF_UUID,
+                                  "name": "Private synthetic name", "profile": {"about": "private"}}]
+        resolved = decrumb.command_aliases(rpc, account, aliases)
+        self.assertEqual(resolved, ALIASES)
+        self.assertEqual(aliases, {SELF})
+        rpc.call.assert_called_once_with("listContacts", {
+            "account": SELF, "recipient": [SELF], "allRecipients": True})
+        now = decrumb.now_ms()
+        self.assertIsNone(phone_commands.candidate(command_event(now), aliases, now, now))
+        self.assertEqual(phone_commands.candidate(command_event(now), resolved, now, now).operation, "status")
+
+    def test_unverified_or_ambiguous_lookup_fails_closed_without_private_errors(self):
+        for result in (None, {}, [], [{"number": SELF}],
+                       [{"number": PEER, "uuid": SELF_UUID}],
+                       [{"number": SELF, "uuid": "not-a-uuid"}],
+                       [{"number": SELF, "uuid": "00000000-0000-0000-0000-000000000000"}],
+                       [{"number": SELF, "uuid": None}],
+                       [{"number": SELF, "uuid": SELF_UUID, "isUnregistered": True}],
+                       [{"number": SELF, "uuid": SELF_UUID}] * 2):
+            rpc = Mock()
+            rpc.call.return_value = result
+            with self.subTest(result=result), self.assertRaises(decrumb.SafeError) as raised:
+                decrumb.command_aliases(rpc, SELF, {SELF})
+            for value in (SELF, PEER, SELF_UUID, "not-a-uuid"):
+                self.assertNotIn(value, str(raised.exception))
+
+    def test_conflicting_previously_known_identity_is_not_added(self):
+        rpc = Mock()
+        rpc.call.return_value = [{"number": SELF, "uuid": SELF_UUID}]
+        with self.assertRaises(decrumb.SafeError):
+            decrumb.command_aliases(rpc, SELF, {SELF, "00000000-0000-4000-8000-000000000002"})
+
+    def test_lookup_failure_does_not_fall_back_to_unverified_event_identity(self):
+        rpc = Mock()
+        rpc.call.side_effect = decrumb.SafeError("Signal command timed out.")
+        with self.assertRaises(decrumb.SafeError):
+            decrumb.command_aliases(rpc, SELF, {SELF})
 
 
 class CommandParsingTests(unittest.TestCase):
@@ -266,7 +310,10 @@ from pathlib import Path
 root=Path(__file__).parent
 for line in sys.stdin:
  r=json.loads(line); method=r['method']; result={}
- if method=='listAccounts': result=[{'number':SELF, 'aci':'synthetic-self-uuid'}]
+ if method=='listAccounts': result=[{'number':SELF}]
+ elif method=='listContacts':
+  assert r['params']=={'account':SELF,'recipient':[SELF],'allRecipients':True}
+  result=[{'number':SELF,'uuid':'00000000-0000-4000-8000-000000000001'}]
  elif method=='subscribeReceive': result=0
  elif method=='send':
   with (root/'calls.jsonl').open('a') as output: output.write(json.dumps(r)+'\\n')

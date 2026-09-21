@@ -21,7 +21,7 @@ CLI download. It pairs through a QR code in the terminal, including over SSH.
 There is no hosted message-processing service, AI provider, browser UI, or local listening port.
 
 **[Download the signed release candidate](https://mkships.app/decrumb/download/).**
-Decrumb 1.0.0 RC4 targets Apple Silicon Macs with macOS 26.4 or later, and
+Decrumb 1.0.0 RC5 targets Apple Silicon Macs with macOS 26.4 or later, and
 Raspberry Pi OS 64-bit (Bookworm or later). Mac releases are signed and
 Apple-notarized; the Pi edition is an experimental command-line release.
 Installation and real-device acceptance testing are underway

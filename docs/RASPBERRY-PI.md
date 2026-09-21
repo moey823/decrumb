@@ -19,11 +19,11 @@ Download the Linux ARM64 `.tar.gz` and matching `.sha256` file from the
 your Pi, or download them there. Verify the checksum before extracting:
 
 ```sh
-sha256sum -c Decrumb-1.0.0-4-linux-arm64.tar.gz.sha256
-tar -xzf Decrumb-1.0.0-4-linux-arm64.tar.gz
+sha256sum -c Decrumb-1.0.0-5-linux-arm64.tar.gz.sha256
+tar -xzf Decrumb-1.0.0-5-linux-arm64.tar.gz
 sudo apt update
 sudo apt install python3 qrencode libstdc++6
-cd Decrumb-1.0.0-4-linux-arm64
+cd Decrumb-1.0.0-5-linux-arm64
 python3 tools/install_pi.py
 ```
 

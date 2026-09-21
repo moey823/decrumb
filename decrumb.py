@@ -232,6 +232,31 @@ def account_details(result):
     return account, aliases
 
 
+def command_aliases(rpc, account, aliases):
+    """Resolve our UUID from Signal's own recipient store, never a received event.
+
+    The pinned 0.14.8 listAccounts response contains only a phone number. Real
+    self-sync envelopes also carry a UUID, and every supplied identity must match.
+    Restrict the lookup to our account; discard names and all other profile data.
+    """
+    result = rpc.call("listContacts", {"account": account, "recipient": [account], "allRecipients": True})
+    try:
+        if not isinstance(result, list) or len(result) != 1 or not isinstance(result[0], dict):
+            raise ValueError()
+        record = result[0]
+        value = record.get("uuid")
+        if record.get("number") != account or not isinstance(value, str):
+            raise ValueError()
+        identifier = uuid.UUID(value)
+        if str(identifier) != value or identifier.int == 0 or aliases - {account, value}:
+            raise ValueError()
+        if record.get("isUnregistered") is True:
+            raise ValueError()
+    except (ValueError, TypeError, AttributeError):
+        raise SafeError("Phone commands could not verify this linked account. Retry connection.") from None
+    return aliases | {value}
+
+
 def candidate(event, aliases, enabled_at, current):
     """Return identity and body only for a fresh, ordinary incoming text message."""
     if not isinstance(event, dict) or event.get("method") != "receive":
@@ -491,6 +516,8 @@ def run(root, config):
                 account, aliases = account_details(rpc.call("listAccounts"))
                 if config["account"] not in aliases:
                     raise SafeError("Configured account does not match the linked account.")
+                if phone_commands.normalize_settings(config.get("phone_commands"))["enabled"]:
+                    aliases = command_aliases(rpc, account, aliases)
                 rpc.call("subscribeReceive", {"account": account})
                 LOG.info("worker_started")
                 next_send = next_cleanup = next_health = 0.0

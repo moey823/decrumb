@@ -50,7 +50,7 @@ jobs:
       - name: Package Pi release and fetch pinned ARM dependency
         if: matrix.runner == 'ubuntu-24.04-arm'
         run: |
-          python3 -B tools/package_pi.py --version 1.0.0 --build-number 4
+          python3 -B tools/package_pi.py --version 1.0.0 --build-number 5
           python3 - <<'PY'
           import hashlib, json, pathlib, urllib.request
           dep = json.loads(pathlib.Path('linux/dependencies.json').read_text())['signal_cli']
@@ -66,4 +66,4 @@ jobs:
           sudo systemctl start "user@$(id -u).service"
           export XDG_RUNTIME_DIR="/run/user/$(id -u)"
           export DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus"
-          python3 -B tools/smoke_pi.py --archive build/Decrumb-1.0.0-4-linux-arm64.tar.gz --signal-archive build/signal-cli-arm64.gz --systemd
+          python3 -B tools/smoke_pi.py --archive build/Decrumb-1.0.0-5-linux-arm64.tar.gz --signal-archive build/signal-cli-arm64.gz --systemd
