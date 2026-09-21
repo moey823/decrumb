@@ -146,8 +146,34 @@ class WindowsControlsTests(unittest.TestCase):
             with self.assertRaises(decrumb.SafeError):
                 cli_common.guard_runtime(state, code)
 
+    def test_windows_diagnostics_report_platform_without_identifiers(self):
+        with patch.object(diagnostics.platform, 'system', return_value='Windows'), \
+                patch.object(diagnostics.platform, 'version', return_value='10.0.26100'), \
+                patch.object(diagnostics.platform, 'machine', return_value='AMD64'):
+            report = diagnostics.report(self.root)
+        self.assertEqual(report['platform'], {'os': 'Windows', 'os_version': '10.0.26100', 'architecture': 'AMD64'})
+        self.assertNotIn('synthetic-account', json.dumps(report))
+
 
 class WindowsArchiveTests(unittest.TestCase):
+    def test_distinct_notices_with_the_same_filename_are_preserved(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            target = root / 'bundle'
+            target.mkdir()
+            (root / 'LICENSE.txt').write_text('Synthetic Python license')
+            files = [Path('first/LICENSE'), Path('second/LICENSE')]
+            for index, entry in enumerate(files):
+                (root / entry).parent.mkdir()
+                (root / entry).write_text('Synthetic license ' + str(index))
+            distribution = Mock(files=files)
+            distribution.locate_file.side_effect = lambda path: root / path
+            with patch.object(build_windows.importlib.metadata, 'distribution', return_value=distribution), \
+                    patch.object(build_windows.sys, 'base_prefix', str(root)):
+                build_windows.copy_notices(target)
+            self.assertEqual((target / 'licenses/pywin32/first/LICENSE').read_text(), 'Synthetic license 0')
+            self.assertEqual((target / 'licenses/pywin32/second/LICENSE').read_text(), 'Synthetic license 1')
+
     def test_archive_paths_reject_windows_aliases_and_traversal(self):
         for name in ('../outside', 'bundle/../outside', 'bundle/C:drive', 'bundle/file:stream',
                      'bundle/CON.txt', 'bundle/file.', 'bundle/a\\outside', '/bundle/x'):

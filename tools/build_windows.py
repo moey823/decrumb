@@ -130,8 +130,11 @@ def copy_notices(target):
             if any(word in entry.name.lower() for word in ('license', 'copying', 'notice')):
                 source = Path(distribution.locate_file(entry))
                 if source.is_file():
-                    folder.mkdir(exist_ok=True)
-                    shutil.copy2(source, folder / source.name)
+                    if entry.is_absolute() or '..' in entry.parts:
+                        raise ValueError('Unsafe dependency notice path')
+                    destination = folder / entry
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(source, destination)
         if not folder.exists():
             raise ValueError('Missing dependency license: ' + package)
     python_license = Path(sys.base_prefix) / 'LICENSE.txt'

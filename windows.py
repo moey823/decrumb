@@ -128,6 +128,9 @@ def supervise(root):
                 stopped.set()
                 return
     with operation(root, 'background.lock'):
+        # Contain the supervisor's whole tree too: forced termination must not
+        # leave a bridge/Java process holding the linked-account database open.
+        windows_native.contain_children()
         watcher = threading.Thread(target=watch_stop, daemon=True)
         watcher.start()
         try:
@@ -171,20 +174,26 @@ def parser():
     result = argparse.ArgumentParser(description=__doc__)
     result.add_argument('--root', type=Path, default=decrumb.DEFAULT_ROOT, help=argparse.SUPPRESS)
     result.add_argument('--version', action='version', version='Decrumb ' + diagnostics.release()['version'])
-    commands = result.add_subparsers(dest='command', required=True)
+    commands = result.add_subparsers(dest='command', required=True, metavar='COMMAND')
     setup = commands.add_parser('setup', help='Initialize private storage, pair Signal and start cleaning')
     setup.add_argument('--start-at-login', action='store_true', help='Also start automatically when you sign in')
     setup.add_argument('--bundle', type=Path, default=APP if getattr(sys, 'frozen', False) else APP / 'build/windows/Decrumb',
                        help=argparse.SUPPRESS)
-    for name in ('pair', 'resume', 'pause', 'status', 'run', 'notes', 'clear-queue', 'diagnostics', 'clear-diagnostics'):
-        commands.add_parser(name)
-    commands.add_parser('_background', help=argparse.SUPPRESS)
+    for name, description in {
+        'pair': 'Link or recover Signal and start cleaning', 'resume': 'Start cleaning in the background',
+        'pause': 'Stop cleaning until resumed', 'status': 'Show connection, queue and startup status',
+        'run': 'Run in this terminal until Ctrl+C', 'notes': 'List tracked generated notes',
+        'clear-queue': 'Discard unsent links', 'diagnostics': 'Preview a content-free report; nothing uploaded',
+        'clear-diagnostics': 'Clear local error history',
+    }.items():
+        commands.add_parser(name, help=description)
+    commands.add_parser('_background')
     for name in ('configure', 'notes-settings'):
-        commands.add_parser(name).add_argument('file', type=Path)
+        commands.add_parser(name, help='Import ' + ('cleaning rules' if name == 'configure' else 'note settings') + ' from JSON').add_argument('file', type=Path)
     commands.add_parser('export-rules', help='Print versioned cleaning rules without account state')
-    commands.add_parser('cleanup').add_argument('ids', nargs='+')
+    commands.add_parser('cleanup', help='Request removal of tracked generated notes').add_argument('ids', nargs='+')
     for name in ('phone-commands', 'start-at-login'):
-        commands.add_parser(name).add_argument('state', choices=('enable', 'disable'))
+        commands.add_parser(name, help='Enable or disable ' + name.replace('-', ' ')).add_argument('state', choices=('enable', 'disable'))
     commands.add_parser('preview', help='Read UTF-8 text from stdin; no URLs are fetched')
     return result
 

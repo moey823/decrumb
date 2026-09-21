@@ -185,14 +185,15 @@ def report(root):
     except (OSError, ValueError, UnicodeError, RecursionError):
         pass
     system = platform.system()
-    system = system if system in ('Darwin', 'Linux') else 'unknown'
-    raw_version = platform.mac_ver()[0] if system == 'Darwin' else platform.release()
-    match = re.match(r'\d{1,4}(?:\.\d{1,4}){0,2}', raw_version)
+    system = system if system in ('Darwin', 'Linux', 'Windows') else 'unknown'
+    raw_version = (platform.mac_ver()[0] if system == 'Darwin' else
+                   platform.version() if system == 'Windows' else platform.release())
+    match = re.match(r'\d{1,6}(?:\.\d{1,6}){0,2}', raw_version)
     machine = platform.machine()
     unique = {(e['code'], e['version'], e['build']) for e in events}
     return {'schema': 1, 'app': 'Decrumb', 'release': release(),
             'platform': {'os': 'macOS' if system == 'Darwin' else system,
-                         'os_version' if system == 'Darwin' else 'kernel_version': match[0] if match else 'unknown',
+                         'os_version' if system in ('Darwin', 'Windows') else 'kernel_version': match[0] if match else 'unknown',
                          'architecture': machine if machine in ('arm64', 'aarch64', 'x86_64', 'AMD64') else 'unknown'},
             'dependencies': {'signal_cli_pinned': '0.14.8', 'python': platform.python_version()},
             'health': {'worker': state, 'error_history': history},
