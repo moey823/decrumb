@@ -2,6 +2,14 @@
 
 ## RC4: Mac and Raspberry Pi
 
+Published 2026-09-20: [Decrumb 1.0.0 RC4](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.4),
+from source commit `d78fe487dbfed0f9df0d58c8997b474f0ece9876`. The Apple silicon
+DMG is 69.5 MB, signed, notarized and stapled. The Pi installer archive is
+494,370 bytes; its pinned Signal dependency is downloaded separately. All eleven
+release assets match their local checksums. Both public downloads passed the
+isolated packaged checks recorded in [VALIDATION.md](VALIDATION.md). Physical Pi
+and live Signal acceptance remain before a stable release.
+
 RC4 adds optional, owner-only phone commands on both platforms and the
 experimental Raspberry Pi edition. Mac packaging remains the signed/notarized
 DMG plus Sparkle archive described below. The Pi release is a separate source

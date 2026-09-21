@@ -2,7 +2,7 @@
 
 Ranked for usefulness across an always-on Mac and Raspberry Pi, 2026-09-20.
 
-1. **Phone commands — implementing first.** Opt in locally, then send
+1. **Phone commands — shipped in RC4.** Opt in locally, then send
    `/decrumb help`, `/decrumb status`, or `/decrumb clean <link>` to Note to Self.
    This provides on-demand cleaning for a link copied from any app and an easy
    check that a headless helper is responding. Commands use the same local rules,

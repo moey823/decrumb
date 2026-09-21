@@ -131,6 +131,53 @@ remains optional. Opening an already running cleaner does not restart it.
 
 These checks do not establish real-account or actual login-session behavior.
 
+## RC4 Raspberry Pi and phone-command validation
+
+Published 2026-09-20 from source commit
+`d78fe487dbfed0f9df0d58c8997b474f0ece9876`, tagged `v1.0.0-rc.4`.
+
+- The 215-case synthetic suite completed on macOS, Linux x86_64 and Linux ARM64,
+  with one platform-specific skip on each. Native Swift status tests passed.
+  [The final source CI run](https://github.com/moey823/decrumb/actions/runs/35550700233)
+  also passed real ARM64 user-systemd startup, fresh heartbeat readiness,
+  self-only synthetic delivery, pause, resume and cleanup.
+- The portable cleaner matches the Mac helper on 186 shared synthetic cases.
+  Conservative URL detection differences, including leaving raw Unicode hosts
+  untouched, are documented in [URL-CLEANUP.md](URL-CLEANUP.md).
+- Independent code review covered installer ownership and rollback, runtime/code
+  separation, service escaping/readiness, portable URL handling and phone-command
+  authentication. Regression checks cover malformed and Unicode hosts, real
+  systemd parsing of special paths, failed activation, forged or private events,
+  replay, duplicate suppression and reply-loop protection.
+- The public Pi archive was downloaded and matched its checksum. In an isolated,
+  unprivileged ARM64 Debian Bookworm container with networking disabled, it passed
+  fresh installation, real native Signal dependency loading with an empty account,
+  local preview, private QR generation, reinstall preservation of synthetic state,
+  and rejection of a corrupt dependency before changing the installation.
+  Terminal QR output was also verified using a synthetic pairing URI.
+- The Pi archive is 494,370 bytes; SHA-256:
+  `bef353018a71148b9bf610dbdfa2115bba5a6a0439ea7b3dfba2ea6bf6630351`.
+- The Mac release verified 2,010 source/dependency/notice files with no unresolved
+  gaps. Apple accepted both the app and DMG. Their tickets were stapled and
+  validated, and Gatekeeper accepted both. The DMG is 69,501,285 bytes; SHA-256:
+  `7711a8d4df3bc9abb6a66afd8b19f45aa9f53395971c850345dd59703527d8bf`.
+- All eleven GitHub asset sizes and SHA-256 digests match the local artifacts.
+  The public Mac DMG, update archive and signed feed were downloaded independently.
+  The downloaded app passed signature, ticket, Gatekeeper and packaged synthetic
+  smoke checks from a read-only mount: preview, pairing cancellation, self-only
+  delivery/removal, incoming and command deduplication, optional phone commands,
+  and actual native dependency loading. The mount was detached afterward.
+  Official Sparkle tools accepted both downloaded feed and archive signatures.
+- mkships publication `6ae6fdb8bf903823bcadd1becad11ae5b0d81290` passed 30
+  headless layout/link checks across six pages and five viewport widths. The live
+  homepage, Decrumb overview, download, help and privacy pages, and signed updater
+  feed returned HTTP 200 and matched the published files byte for byte.
+
+These checks use synthetic fixtures and empty native account stores. They do not
+establish physical Pi pairing, boot/logout, network recovery, sustained resource
+use, or live Signal behavior. The Pi edition remains experimental. Later
+release-documentation commits do not change the immutable RC4 source tag or assets.
+
 ## Boundaries
 
 No real Signal account was opened, paired, or messaged. No live runtime was read

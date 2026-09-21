@@ -33,7 +33,7 @@ for installation testing; real-device acceptance remains before stable v1.
   and required notices with no unresolved dependency gaps. Every production
   build must regenerate or validate the packet against its exact source inputs.
 - The actual app and DMG are signed with the publisher's personal Developer ID,
-  accepted by Apple notarization, stapled, and accepted by Gatekeeper. All nine
+  accepted by Apple notarization, stapled, and accepted by Gatekeeper. All eleven RC4
   uploaded assets match their local SHA-256 hashes, including the matching
   complete-source archive, signed update archive/feed, and release receipt.
 - Sparkle updates are implemented with optional automatic checks and installation,
