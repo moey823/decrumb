@@ -1,9 +1,11 @@
 FROM python:3.13-slim-trixie@sha256:8d9d0b8bcf6506481eae4907c18f5e3e7902e629f5f6d684f9e7c32e85e3ddf0
 ARG SOURCE_REVISION=development
+ARG RELEASE_VERSION=development
 LABEL org.opencontainers.image.title="Decrumb" \
       org.opencontainers.image.description="Private Signal link cleaner with a browser dashboard" \
       org.opencontainers.image.source="https://github.com/moey823/decrumb" \
       org.opencontainers.image.licenses="AGPL-3.0-only" \
+      org.opencontainers.image.version=$RELEASE_VERSION \
       org.opencontainers.image.revision=$SOURCE_REVISION
 RUN apt-get update && apt-get install -y --no-install-recommends qrencode libstdc++6 ca-certificates \
     && rm -rf /var/lib/apt/lists/* \

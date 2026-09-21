@@ -1,5 +1,31 @@
 # Decrumb distribution and updates
 
+## One version for every platform
+
+`release.json` is the release source of truth for Mac, Raspberry Pi, and Umbrel.
+The current release is **Decrumb 1.0.0 RC5**: Mac/Pi version `1.0.0`, build `5`,
+and Umbrel version `1.0.0-rc.5`. Platform names belong in artifact names, not in
+independent version sequences. Experimental platform support does not change the
+shared application version.
+
+For the next release, update the version, monotonically increasing build number,
+and channel in `release.json`, then run:
+
+```sh
+python3 tools/release_version.py --write-umbrel
+python3 tools/release_version.py --check
+```
+
+Mac development builds and Pi packaging use these defaults. Explicit version or
+build arguments must match the file. CI rejects a divergent Umbrel manifest and
+derives the Pi archive path from the same metadata. Container CI supplies the
+same public version to the OCI version label; immutable source-commit image tags
+and digests still identify the exact platform build.
+
+Keep published binaries and tags immutable. The original Umbrel `0.1.0` preview
+is historical; its tested image now has the shared RC5 label in the community
+store. Future release notes group all platform downloads under one Decrumb tag.
+
 ## RC5: phone-command identity correction
 
 [RC5 is published](https://github.com/moey823/decrumb/releases/tag/v1.0.0-rc.5)
@@ -76,7 +102,7 @@ development build into a production release.
 
 ## Production commands
 
-First choose the version, increasing build number, tested minimum macOS version,
+Read the version and build number from `release.json`, then choose the tested minimum macOS version,
 an existing **Developer ID Application** identity, and an existing `notarytool`
 Keychain profile. The environment variables below are references and release
 inputs; passwords, API keys, and private key material do not belong in commands
@@ -88,6 +114,10 @@ identify its native dependencies. Then prepare verified corresponding sources
 and notices for the exact checkout and dependency versions:
 
 ```sh
+export DECRUMB_VERSION="$(python3 tools/release_version.py --field version)"
+export DECRUMB_BUILD_NUMBER="$(python3 tools/release_version.py --field build)"
+export DECRUMB_RELEASE_TAG="$(python3 tools/release_version.py --field tag)"
+
 python3 -B tools/prepare_release_materials.py \
   --version "$DECRUMB_VERSION" --build "$DECRUMB_BUILD_NUMBER"
 

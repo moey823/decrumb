@@ -18,14 +18,15 @@ import urllib.request
 import venv
 
 try:
-    from tools import sparkle
+    from tools import sparkle, release_version
 except ModuleNotFoundError:
-    import sparkle
+    import sparkle, release_version
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / 'build'
 APP = BUILD / 'Decrumb.app'
-VERSION = '0.1.0'
+RELEASE = release_version.load()
+VERSION = RELEASE['version']
 SIGNAL_VERSION = '0.14.8'
 SIGNAL_SHA = '3d77c18866fca4366128b2e716c5cffc63ae937af65172e197594d0802faddea'
 SIGNAL_URL = 'https://ghcr.io/v2/homebrew/core/signal-cli/blobs/sha256:' + SIGNAL_SHA
@@ -49,12 +50,16 @@ def release_options(args):
                                ('version', 'build_number', 'minimum_macos', 'release_materials')):
         raise ReleaseError('Production requires an explicit version, build number, tested minimum macOS, and release-material directory.')
     version = args.version or VERSION
-    build_number = args.build_number or '1'
+    build_number = args.build_number or RELEASE['build']
     minimum = args.minimum_macos or platform.mac_ver()[0]
     if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version):
         raise ReleaseError('Version must have three numeric components.')
     if not re.fullmatch(r'[1-9][0-9]{0,8}', build_number):
         raise ReleaseError('Build number must be a positive integer of at most nine digits.')
+    try:
+        release_version.resolve(version, build_number)
+    except ValueError as error:
+        raise ReleaseError(str(error)) from None
     if not re.fullmatch(r'[0-9]+\.[0-9]+(?:\.[0-9]+)?', minimum):
         raise ReleaseError('Minimum macOS must be a numeric operating-system version.')
     identity = args.signing_identity or os.environ.get('DECRUMB_SIGNING_IDENTITY', '-')

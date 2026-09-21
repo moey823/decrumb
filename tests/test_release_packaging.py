@@ -98,11 +98,13 @@ class ReleaseInputTests(ReleaseFixture):
         with patch.dict(os.environ, {}, clear=True), patch.object(builder.platform, 'mac_ver', return_value=('27.0', (), '')):
             result = builder.release_options(self.options())
         self.assertFalse(result['production'])
-        self.assertEqual((result['version'], result['build_number'], result['identity']), ('0.1.0', '1', '-'))
+        release = builder.release_version.load()
+        self.assertEqual((result['version'], result['build_number'], result['identity']), (release['version'], release['build'], '-'))
 
     def test_production_requires_explicit_version_build_os_and_materials(self):
+        release = builder.release_version.load()
         for flag in ('--version', '--build-number', '--minimum-macos', '--release-materials'):
-            values = {'--version': '1.0.0', '--build-number': '1', '--minimum-macos': '26.4',
+            values = {'--version': release['version'], '--build-number': release['build'], '--minimum-macos': '26.4',
                       '--release-materials': str(self.materials), '--signing-identity': FINGERPRINT}
             values.pop(flag)
             args = ['--production'] + [value for pair in values.items() for value in pair]
@@ -110,12 +112,21 @@ class ReleaseInputTests(ReleaseFixture):
                 builder.release_options(self.options(*args))
 
     def test_production_rejects_ad_hoc_identity_and_invalid_version_build(self):
+        release = builder.release_version.load()
         base = ['--production', '--minimum-macos', '26.4', '--release-materials', str(self.materials)]
         for version, number, identity in (('1.0', '1', FINGERPRINT), ('1.0.0', '0', FINGERPRINT),
-                                           ('1.0.0', '-1', FINGERPRINT), ('1.0.0', '1', '-')):
+                                           ('1.0.0', '-1', FINGERPRINT), (release['version'], release['build'], '-')):
             with self.subTest(version=version, build=number, identity=identity), self.assertRaises(builder.ReleaseError):
                 builder.release_options(self.options(*base, '--version', version, '--build-number', number,
                                                      '--signing-identity', identity))
+
+    def test_production_accepts_explicit_shared_release(self):
+        release = builder.release_version.load()
+        result = builder.release_options(self.options('--production', '--version', release['version'],
+            '--build-number', release['build'], '--minimum-macos', '26.4',
+            '--release-materials', str(self.materials), '--signing-identity', FINGERPRINT))
+        self.assertTrue(result['production'])
+        self.assertEqual(result['identity'], FINGERPRINT)
 
     def test_materials_must_be_complete_current_and_match_checksums(self):
         cases = [('status', 'blocked'), ('blockers', [{'id': 'missing', 'detail': 'Synthetic'}]),

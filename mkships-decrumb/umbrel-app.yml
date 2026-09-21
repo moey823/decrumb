@@ -2,7 +2,7 @@ manifestVersion: 1
 id: mkships-decrumb
 category: social
 name: Decrumb
-version: "0.1.0"
+version: "1.0.0-rc.5"
 tagline: Clean Signal links, waiting in Note to Self
 description: >-
   Run Decrumb on your always-on Umbrel. It removes tracking from incoming Signal

@@ -4,7 +4,7 @@ Decrumb is a good fit for an always-on home server: incoming Signal links are
 cleaned while your phone and laptop come and go. Your Umbrel must stay powered on
 and online. Decrumb only sends the result to your Signal **Note to Self**.
 
-The Umbrel edition is an **experimental community app, version 0.1.0**, for ARM64
+The Umbrel edition is an **experimental community app, Decrumb 1.0.0 RC5**, for ARM64
 and Intel/AMD 64-bit systems. Both container architectures pass automated tests.
 Real Signal pairing and delivery on an Umbrel device remain an acceptance check.
 This is not an official Umbrel App Store listing.
@@ -119,7 +119,7 @@ for a private server behind Umbrel's authentication proxy, not public hosting.
 Native Signal pairing and delivery on an actual Umbrel installation remain a
 separate acceptance check; synthetic tests do not establish that result.
 
-Version 0.1.0 uses the image built from source commit
+Decrumb 1.0.0 RC5 uses the image built from source commit
 `0b717d11e685ef02af20eaad11f5f0792e6735d9`, with multiarchitecture digest
 `sha256:8ac77f433bd0cfc63b682972e16ac1fa2f7e118463af79f049657bbc342592de`.
 The [native container checks](https://github.com/moey823/decrumb/actions/runs/35596751734)
@@ -127,3 +127,9 @@ passed on both architectures. Anonymous manifest downloads confirmed that the
 images are public. Browser tests covered login, preview, saved settings, logout,
 and layouts at 375, 768, and 1280 pixels. No real account was linked or moved
 during these tests.
+
+All platforms share the release in `release.json`. Umbrel displays the equivalent
+SemVer string `1.0.0-rc.5`; Mac and Pi use version `1.0.0`, build `5`. The first
+Umbrel preview was labelled `0.1.0`; that historical tag remains available, but
+current releases use the shared Decrumb version. This label correction keeps the
+same tested container image and preserves existing account data.

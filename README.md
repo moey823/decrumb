@@ -24,8 +24,10 @@ private browser dashboard for an always-on server; see the
 [Umbrel guide](docs/UMBREL.md) for its release and validation status.
 
 **[Download the signed release candidate](https://mkships.app/decrumb/download/).**
-Decrumb 1.0.0 RC5 targets Apple Silicon Macs with macOS 26.4 or later, and
-Raspberry Pi OS 64-bit (Bookworm or later). Mac releases are signed and
+All platforms use **Decrumb 1.0.0 RC5** (build 5; `1.0.0-rc.5` in Umbrel).
+The release targets Apple Silicon Macs with macOS 26.4 or later,
+Raspberry Pi OS 64-bit (Bookworm or later), and ARM64 or Intel/AMD Umbrel servers.
+Mac releases are signed and
 Apple-notarized; the Pi edition is an experimental command-line release.
 Installation and real-device acceptance testing are underway
 before stable v1. See [v1 readiness](docs/V1-READINESS.md) for the remaining checks.
@@ -76,6 +78,9 @@ install **Decrumb** from the **mkships** store. Pair Signal and manage the helpe
 from its private browser dashboard. ARM64 and Intel/AMD 64-bit containers are
 available as an experimental release. See the [Umbrel setup guide](docs/UMBREL.md)
 for the app password, persistent storage, updates, and validation limits.
+
+Release versions come from [`release.json`](release.json); see the
+[shared release process](docs/DISTRIBUTION.md#one-version-for-every-platform).
 
 ## Optional phone commands
 

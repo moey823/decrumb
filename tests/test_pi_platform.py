@@ -288,9 +288,9 @@ class PiPlatformTests(unittest.TestCase):
         self.assertIn('tools/prepare_release_materials.py', files)
 
     def test_archive_contains_only_selected_source_and_valid_manifest(self):
-        archive = package_pi.package(ROOT, self.base / 'out', '1.0.0', '4')
+        archive = package_pi.package(ROOT, self.base / 'out')
         original = archive.read_bytes()
-        self.assertEqual(package_pi.package(ROOT, self.base / 'out', '1.0.0', '4').read_bytes(), original)
+        self.assertEqual(package_pi.package(ROOT, self.base / 'out').read_bytes(), original)
         unpack = self.base / 'unpacked'
         with tarfile.open(archive) as bundle:
             names = bundle.getnames()
@@ -298,6 +298,10 @@ class PiPlatformTests(unittest.TestCase):
             bundle.extractall(unpack)
         extracted = next(unpack.iterdir())
         manifest = install_pi.read_manifest(extracted)
+        release = package_pi.release_version.load(extracted)
+        self.assertEqual((manifest['version'], manifest['build'], manifest['release'], manifest['release_tag']),
+                         tuple(release[k] for k in ('version', 'build', 'public_version', 'tag')))
+        self.assertTrue((extracted / 'tools/release_version.py').is_file())
         self.assertIn('phone_commands.py', manifest['files'])
         self.assertNotIn('signal-cli', manifest['files'])
 

@@ -2,7 +2,7 @@ name: Umbrel container
 
 on:
   pull_request:
-    paths: ['web/**', 'container/**', '*_server.py', 'container_dependency.py', 'decrumb.py', 'notes.py', 'phone_commands.py', 'portable_cleaner.py', 'rules/**', 'tools/smoke_web.py', '.github/workflows/container.yml']
+    paths: ['web/**', 'container/**', '*_server.py', 'container_dependency.py', 'decrumb.py', 'notes.py', 'phone_commands.py', 'portable_cleaner.py', 'rules/**', 'tools/smoke_web.py', 'release.json', 'tools/release_version.py', 'mkships-decrumb/**', '.github/workflows/container.yml']
   workflow_dispatch:
 
 permissions:
@@ -26,7 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Build native container
-        run: docker build --build-arg SOURCE_REVISION="$GITHUB_SHA" -f container/Dockerfile -t decrumb-test .
+        run: |
+          python3 tools/release_version.py --check
+          docker build --build-arg SOURCE_REVISION="$GITHUB_SHA" --build-arg RELEASE_VERSION="$(python3 tools/release_version.py --field public_version)" -f container/Dockerfile -t decrumb-test .
       - name: Test installed native dependency and browser lifecycle
         run: |
           mkdir -p "$RUNNER_TEMP/decrumb-state" "$RUNNER_TEMP/decrumb-native-temp"
