@@ -3,15 +3,14 @@
 ## One version for every platform
 
 `release.json` is the release source of truth for Mac, Raspberry Pi, Umbrel, and Windows.
-The current source release is **Decrumb 1.1.3**: Mac/Pi/Windows version `1.1.3`,
-build `10`, and Umbrel version `1.1.3`. This release is in preparation; see the
-[release preparation record](RELEASE-1.1.3.md).
-Platform names belong in artifact names, not in
-independent version sequences. Experimental platform support does not change the
-shared application version. Release 1.1.2 Mac/Pi artifacts remain published; the Mac
+The current release is **Decrumb 1.1.3**: Mac/Pi/Windows version `1.1.3`,
+build `10`, and Umbrel version `1.1.3`. Platform names belong in artifact names,
+not in independent version sequences. Experimental platform support does not
+change the shared application version. Mac/Pi artifacts are published; the Mac
 app and DMG are signed, Apple-notarized and stapled. The tested Umbrel image is
 published and pinned. Hosted acceptance passed, and the verified signed Mac feed
-now offers 1.1.2/build 9 through **Check for Updates**.
+now offers 1.1.3/build 10 through **Check for Updates**. See the
+[release record](RELEASE-1.1.3.md).
 Source version changes alone do not update installed apps or containers.
 
 For the next release, update the version, monotonically increasing build number,
@@ -43,9 +42,21 @@ sent-note records, the linked account, settings and Start at login preference.
 cleaning. A pending update keeps its recovery checkpoint until installation can
 be reconciled on a later launch, without a Quit-created watchdog reopening the app.
 
-Mac packaging and general publication are pending. The 1.1.3 store manifest
-now pins the tested ARM64 and AMD64 image from source `7ef5e4a`; see
-[UMBREL.md](UMBREL.md) for its immutable digest and validation evidence.
+Published September 25, 2026: [Decrumb 1.1.3](https://github.com/moey823/decrumb/releases/tag/v1.1.3).
+Tag `v1.1.3` identifies source `c3c11117b325a9d034173009dba774b18f4f350b`.
+The offline suite passed 309 tests with 4 platform skips (313 total); native
+status checks, development and production packaged smoke, fourteen signed
+Sparkle scenarios and final-source Mac/Linux/Windows CI passed. The standard
+updater's install, failed-prepare/retry and Quit buttons were exercised; Quit
+with a ready update verified replacement without relaunch and preservation of
+synthetic account, queue and receipt data.
+
+The app and DMG received accepted Apple notarizations, stapled tickets and
+passing Gatekeeper assessments. Published downloads and the stable signed feed
+passed hosted acceptance. The 1.1.3 store manifest pins the tested ARM64 and AMD64
+image from source `7ef5e4a`; see [UMBREL.md](UMBREL.md) for its immutable digest.
+The [release record](RELEASE-1.1.3.md) contains artifact hashes and publication,
+packaging, CI and website evidence.
 
 ## 1.1.2: disappearing messages and visible cleaning rules
 
@@ -84,7 +95,7 @@ Mkships commit `d42de5659f52a51dc7c542774c98154aaa5f1482` deployed the feed and
 updated download, release, privacy and support pages. GitHub Pages built
 successfully; every live file matches its expected bytes, and the downloaded
 live feed passed official Sparkle signature verification. **Check for Updates**
-now offers 1.1.2/build 9. See [RELEASE-1.1.2.md](RELEASE-1.1.2.md) for evidence
+offered 1.1.2/build 9 at publication. See [RELEASE-1.1.2.md](RELEASE-1.1.2.md) for evidence
 and the mounted-DMG smoke timing limitation.
 Windows remains an unsigned source-build preview; live-device validation limits
 are unchanged.
@@ -349,7 +360,7 @@ automatic download/install options; both default off. Turning automatic checks
 off also disables automatic installation. Updates install when the user accepts,
 or on quit when automatic installation was selected. Pairing and active settings
 changes finish before installation proceeds. **Install and Relaunch** starts
-cleaning after the updated app reopens. In 1.1.3 source, an explicit **Quit
+cleaning after the updated app reopens. Starting with 1.1.3, an explicit **Quit
 Decrumb** stops cleaning and exits without requesting a relaunch; a downloaded
 update may finish installing on exit. A durable transition prevents cleaning
 from starting before an interrupted installation is reconciled. **Hide Decrumb**

@@ -25,17 +25,14 @@ private browser dashboard for an always-on server; see the
 [Umbrel guide](docs/UMBREL.md) for its release and validation status.
 
 **[Decrumb downloads](https://mkships.app/decrumb/download/).**
-**Decrumb 1.1.2** (build 9; `1.1.2` in Umbrel) cleans links in disappearing
-messages, adds a built-in domains and rules list in Mac settings, and includes
-release notes in the updater. The signed, notarized Mac app and matching Pi archive
-are [published](https://github.com/moey823/decrumb/releases/tag/v1.1.2), alongside
-the tested Umbrel image. Hosted acceptance passed and the verified signed feed
-is live. Choose **Check for Updates** on Mac to install build 9. Windows remains a
-source-build preview.
-See the [release notes](docs/RELEASE-NOTES.md).
-Source is preparing **1.1.3/build 10** with Mac updater recovery fixes and a Quit
-command that stops cleaning; these changes are not yet in the published app.
-See the [release preparation record](docs/RELEASE-1.1.3.md).
+**Decrumb 1.1.3** (build 10; `1.1.3` in Umbrel) fixes Mac update preparation
+and retry, makes Quit stop cleaning, and adds Hide for keeping cleaning active.
+The signed, notarized Mac app and matching Pi archive are
+[published](https://github.com/moey823/decrumb/releases/tag/v1.1.3), alongside the
+tested Umbrel image. Hosted acceptance passed and the verified signed feed is
+live. Choose **Check for Updates** on Mac to install build 10. Windows remains a
+source-build preview. See the [release notes](docs/RELEASE-NOTES.md) and
+[release record](docs/RELEASE-1.1.3.md).
 The release targets Apple Silicon Macs with macOS 26.4 or later,
 Raspberry Pi OS 64-bit (Bookworm or later), and ARM64 or Intel/AMD Umbrel servers.
 Mac releases are signed and
@@ -74,10 +71,10 @@ for platform validation and release limits.
 - **Import/export:** transfer versioned JSON rules without account keys or state.
 - **Start at login:** optionally run the menu bar interface and enabled worker at
   login. The Mac must remain awake, online and logged in.
-- **Quit and Hide (1.1.3 source):** Quit Decrumb stops cleaning and exits, preserving
+- **Quit and Hide:** Quit Decrumb stops cleaning and exits, preserving
   queued links, sent-note records, your Signal connection, settings and Start at
   login preference. Hide Decrumb hides the windows while cleaning continues.
-  Reopening resumes cleaning. In published 1.1.2 and earlier, Quit only closes
+  Reopening resumes cleaning. In 1.1.2 and earlier, Quit only closes
   the interface; use Pause first to stop those versions from cleaning.
 
 ## Raspberry Pi

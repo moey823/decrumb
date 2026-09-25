@@ -1,6 +1,6 @@
 # Decrumb release notes
 
-## 1.1.3 — Mac update recovery and complete Quit (build 10, in preparation)
+## 1.1.3 — Mac update recovery and complete Quit (build 10)
 
 - Keeps update ownership with the native app across helper launches, so an
   interrupted or failed preparation can be claimed and retried safely.
@@ -15,10 +15,12 @@
   Opening Decrumb again resumes cleaning. An update pending at Quit keeps a
   recovery checkpoint until the next launch reconciles the installation.
 
-These changes are in source; the published Mac release remains 1.1.2/build 9.
-Release packaging, final acceptance and publication are pending. Pi, Umbrel and
-Windows retain the same cleaning behavior. See the [release preparation
-record](RELEASE-1.1.3.md).
+Published September 25, 2026. The signed, notarized Mac app passed packaged
+smoke, fourteen signed Sparkle scenarios, final-source cross-platform CI and
+hosted acceptance. The matching Pi archive and tested Umbrel image are published.
+The verified signed feed is live; Mac **Check for Updates** offers 1.1.3/build 10.
+Pi, Umbrel and Windows retain the same cleaning behavior. See the
+[release record](RELEASE-1.1.3.md).
 
 ## 1.1.2 — disappearing messages and visible cleaning rules (build 9)
 
@@ -37,8 +39,8 @@ Published September 25, 2026. The app and DMG are signed, Apple-notarized and
 stapled. The build, synthetic packaged delivery tests, signed update acceptance
 and cross-platform CI passed. The matching Pi archive and tested Umbrel image
 are published. Downloaded-artifact checks and installed-copy packaged smoke
-passed. The verified signed feed is live; Mac **Check for Updates** now offers
-1.1.2/build 9. See the [release record](RELEASE-1.1.2.md).
+passed. At publication, the verified signed feed offered
+1.1.2/build 9 through Mac **Check for Updates**. See the [release record](RELEASE-1.1.2.md).
 
 ## 1.1.1 — X/Twitter link cleanup and status version (build 8)
 
