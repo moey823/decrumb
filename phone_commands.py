@@ -4,6 +4,8 @@ import hashlib
 import json
 from typing import NamedTuple
 
+import diagnostics
+
 
 MAX_AGE_MS = 24 * 60 * 60 * 1000
 MAX_COMMAND_BYTES = 4096
@@ -125,9 +127,14 @@ def process(event, aliases, store, config, cleaner, current, started_at):
             lines = ["No links changed under your current cleaning rules. No links were opened or fetched."]
     elif command.operation == "status":
         counts = store.counts()
+        release = diagnostics.release()
+        version = release["version"]
+        if release["build"]:
+            version += f" (build {release['build']})"
         mode = {"all": "All sites", "selected": "Selected sites", "off": "Off"}.get(config.get("settings", {}).get("mode"), "Off")
         lines = [
             "The helper is running and received your command.\n"
+            f"Version: {version}\n"
             f"Cleaning: {mode}\n"
             f"Queued: {counts.get('pending', 0)} · Sent: {counts.get('sent', 0)} · Unconfirmed: {counts.get('uncertain', 0)}\n"
             "Counts include command replies. Sent means Signal acknowledged the send."

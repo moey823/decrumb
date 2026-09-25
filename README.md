@@ -108,8 +108,9 @@ on the Pi. Then write one of these commands in Signal's **Note to Self**:
 ```
 
 `clean` uses your current cleaning rules and replies with changed links, or
-explains that no links changed. `status` returns cleaning mode and
-queue counts, without machine names, account identifiers, or message content.
+explains that no links changed. `status` returns the running app's version and
+build number, cleaning mode, and queue counts, without machine names, account
+identifiers, or message content.
 Replies go through the same bounded queue and note-removal controls as cleaned
 links. Nothing visits the URL, reads machine files, runs a shell command, or calls
 an AI provider. This feature is off by default and accepts only your own self-to-self
