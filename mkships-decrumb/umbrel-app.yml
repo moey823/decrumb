@@ -2,7 +2,7 @@ manifestVersion: 1
 id: mkships-decrumb
 category: social
 name: Decrumb
-version: "1.1.2"
+version: "1.1.3"
 tagline: Clean Signal links, waiting in Note to Self
 description: >-
   Run Decrumb on your always-on Umbrel. It removes tracking from incoming Signal
@@ -25,10 +25,10 @@ description: >-
   Automated container tests pass on both architectures. Decrumb uses
   the unofficial signal-cli client and is independent of Signal and Umbrel.
 releaseNotes: >-
-  Decrumb 1.1.2 now cleans links from disappearing-message chats and accepts
-  authenticated phone commands when Note to Self has a timer. Cleaned notes
-  follow your Note to Self timer and Decrumb note-cleanup preferences, rather
-  than the original chat timer. View-once content and spoilers remain excluded.
+  Decrumb 1.1.3 aligns the shared release version across platforms. Link
+  cleaning, disappearing-message support, phone commands and Note to Self
+  behavior are unchanged on Umbrel. This release's updater and Quit changes
+  apply to the Mac app.
 developer: Matthew Kearney
 website: https://mkships.app/decrumb/
 dependencies: []

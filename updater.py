@@ -73,9 +73,14 @@ def guard(root):
         raise decrumb.SafeError('An app update is preparing to install. Finish or cancel the update first.')
 
 
-def prepare(root, control, resources, target_build, owner=None):
+def validate_target_build(target_build):
     if not isinstance(target_build, str) or not re.fullmatch(r"[1-9][0-9]{0,8}", target_build):
         raise decrumb.SafeError("The update build number is invalid.")
+    return target_build
+
+
+def prepare(root, control, resources, target_build, owner=None):
+    target_build = validate_target_build(target_build)
     identity = owner_identity(owner)
     previous = marker(root)
     if previous and (previous['owner'] != owner or previous['identity'] != identity):

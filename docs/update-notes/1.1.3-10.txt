@@ -1,0 +1,7 @@
+Decrumb 1.1.3 (build 10)
+
+Fixes update preparation and retry when Install and Relaunch could appear unresponsive. Update recovery now has a time limit, and blocked installs show an explanation and a retry action.
+
+Quit Decrumb now stops cleaning and exits the app. Your Signal connection, settings, queued links and sent-note records are preserved, even if Pause is set to discard queued links. Your Start at login preference is unchanged.
+
+Choose Hide Decrumb to hide the windows while keeping cleaning running. Opening Decrumb again resumes cleaning.

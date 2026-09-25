@@ -1,6 +1,6 @@
 # Decrumb release notes
 
-## Unreleased — Mac update handoff
+## 1.1.3 — Mac update recovery and complete Quit (build 10, in preparation)
 
 - Keeps update ownership with the native app across helper launches, so an
   interrupted or failed preparation can be claimed and retried safely.
@@ -8,8 +8,17 @@
   result is uncertain, returning an actionable error instead of waiting forever.
 - Brings blocked-install explanations into view, with an explicit **Install and
   Relaunch** retry action and a way to review unsaved settings.
+- Makes **Quit Decrumb** stop cleaning and exit the app. Queued links, sent-note
+  records, your Signal connection, settings and Start at login preference are
+  preserved, including when Pause is configured to discard queued links.
+- Adds **Hide Decrumb** to keep cleaning while hiding the app's windows.
+  Opening Decrumb again resumes cleaning. An update pending at Quit keeps a
+  recovery checkpoint until the next launch reconciles the installation.
 
 These changes are in source; the published Mac release remains 1.1.2/build 9.
+Release packaging, final acceptance and publication are pending. Pi, Umbrel and
+Windows retain the same cleaning behavior. See the [release preparation
+record](RELEASE-1.1.3.md).
 
 ## 1.1.2 — disappearing messages and visible cleaning rules (build 9)
 

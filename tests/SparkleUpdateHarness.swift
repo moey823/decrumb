@@ -106,10 +106,115 @@ enum Backend {
     let model = AppModel()
     let driver = FixtureDriver()
     var updater: AppUpdater!
+    var standardUITimer: Timer?
+    var standardUISnapshots = Set<String>()
+    var clickedStandardUpdate = false
+    var clickedStandardReady = false
+    var attentionWindow: NSWindow?
+    var retryButton: NSButton?
+    var usesStandardUI: Bool { driver.mode.hasPrefix("standard-") }
+
+    // Inspect only this generated fixture process's own views. These identifiers
+    // come from pinned Sparkle 2.10.0's SUUpdateAlert.xib and standard user driver.
+    func button(in view: NSView, identifier: String) -> NSButton? {
+        if let button = view as? NSButton, button.isEnabled, !button.isHidden {
+            if button.accessibilityIdentifier() == identifier { return button }
+            // Some AppKit versions omit XIB accessibility identifiers at runtime.
+            // The observed initial Install Update button uses this pinned source action.
+            if identifier == "SPUUserUpdateChoiceInstall", button.title == "Install Update",
+               button.action.map(NSStringFromSelector) == "installUpdate:" { return button }
+        }
+        for child in view.subviews {
+            if let found = button(in: child, identifier: identifier) { return found }
+        }
+        return nil
+    }
+    func standardButton(_ identifier: String) -> NSButton? {
+        for window in NSApp.windows where window.isVisible {
+            if let content = window.contentView, let found = button(in: content, identifier: identifier) {
+                return found
+            }
+        }
+        return nil
+    }
+    func startStandardUI() {
+        driver.record("standard-poll-started")
+        standardUITimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in self?.advanceStandardUI() }
+        }
+    }
+    func standardButtonDescriptions(_ view: NSView) -> [String] {
+        var descriptions: [String] = []
+        if let button = view as? NSButton {
+            descriptions.append((button.accessibilityIdentifier() ?? "no-id") + ":" + button.title + ":" + String(button.isEnabled))
+        }
+        for child in view.subviews { descriptions += standardButtonDescriptions(child) }
+        return descriptions
+    }
+    func advanceStandardUI() {
+        let snapshot = NSApp.windows.filter { $0.isVisible }.map { window in
+            String(describing: type(of: window)) + ":" + (window.contentView.map { standardButtonDescriptions($0).joined(separator: ",") } ?? "no-content")
+        }.joined(separator: ";")
+        if standardUISnapshots.insert(snapshot).inserted { driver.record("standard-ui:" + snapshot) }
+        if !clickedStandardUpdate, let button = standardButton("SPUUserUpdateChoiceInstall") {
+            clickedStandardUpdate = true
+            driver.record("standard-update-click")
+            button.performClick(nil)
+        } else if !clickedStandardReady, let button = standardButton("SUStatusInstallAndRelaunch") {
+            clickedStandardReady = true
+            if driver.mode == "standard-quit-pending" {
+                driver.record("standard-ready-visible")
+                Task {
+                    if await updater.prepareForCompleteQuit() {
+                        driver.record("complete-quit-ready")
+                        NSApp.terminate(nil)
+                    } else { driver.record("complete-quit-failed") }
+                }
+            } else {
+                driver.record("standard-ready-click")
+                button.performClick(nil)
+            }
+        }
+    }
+    func showPreparationFailure() {
+        guard usesStandardUI, driver.mode == "standard-prepare-failure", updater.canCheck,
+              let message = updater.message, !message.isEmpty else { return }
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 560, height: 180),
+                              styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.title = "Decrumb Update Fixture — Attention"
+        window.isReleasedWhenClosed = false
+        let content = NSView(frame: NSRect(x: 0, y: 0, width: 560, height: 180))
+        let explanation = NSTextField(wrappingLabelWithString: message)
+        explanation.frame = NSRect(x: 20, y: 65, width: 520, height: 90)
+        content.addSubview(explanation)
+        let button = NSButton(title: updater.actionTitle, target: self, action: #selector(retryStandardInstall))
+        button.setAccessibilityIdentifier("FixtureRetryInstall")
+        button.frame = NSRect(x: 330, y: 20, width: 210, height: 32)
+        button.isEnabled = updater.canCheck
+        content.addSubview(button)
+        window.contentView = content
+        attentionWindow = window
+        retryButton = button
+        window.makeKeyAndOrderFront(nil)
+        if window.isVisible && explanation.stringValue == message {
+            driver.record("attention-visible:" + message)
+            driver.record("retry-action:" + button.title)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.retryButton?.performClick(nil)
+            }
+        }
+    }
+    @objc func retryStandardInstall() {
+        guard updater.canCheck, attentionWindow?.isVisible == true else { return }
+        driver.record("standard-retry-click")
+        updater.checkForUpdates()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
-        updater = AppUpdater(model: model, userDriver: driver)
+        updater = usesStandardUI ? AppUpdater(model: model) : AppUpdater(model: model, userDriver: driver)
         updater.onNeedsAttention = { [self] in
             driver.record("attention")
+            showPreparationFailure()
             if driver.mode == "prepare-failure", updater.canCheck {
                 driver.record("retry-action:" + updater.actionTitle)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in updater.checkForUpdates() }
@@ -118,7 +223,9 @@ enum Backend {
         driver.record("launch:" + (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as! String))
         Task {
             do {
+                driver.record("bootstrap-start")
                 _ = try await Backend.request("bootstrap")
+                driver.record("bootstrap-finished")
                 if Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String == "2" {
                     driver.record("recovered:2")
                     NSApp.terminate(nil)
@@ -137,6 +244,10 @@ enum Backend {
                                 model.pairing = false
                             }
                         }
+                    }
+                    if usesStandardUI {
+                        driver.record("standard-can-check:" + String(updater.canCheck))
+                        startStandardUI()
                     }
                     updater.checkForUpdates()
                 }

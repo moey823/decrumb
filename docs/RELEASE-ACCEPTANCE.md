@@ -23,6 +23,9 @@ Check Applications, per-user Applications, and Decrumb's dedicated login items.
 If a development installation exists, pause its worker, disable its login
 startup, quit its interface, and remove that app. Confirm its worker has stopped.
 Removing the interface alone does not stop an already running worker.
+Starting with 1.1.3, **Quit Decrumb** stops the worker before exiting;
+**Hide Decrumb** leaves it active. The Pause-first sequence remains necessary
+when retiring 1.1.2 or an earlier installation.
 
 For subsequent Decrumb upgrades, preserve `~/Library/Application Support/Decrumb`
 and its linked account. Do not delete Signal credentials, reset the account,
@@ -71,6 +74,11 @@ or account data to a bug report.
 - Pause, quit/reopen, and test login startup. Reopening must end the pause. Verify offline
   recovery and confirm that changing cleaning rules clears pending work made
   under the previous rules.
+- For 1.1.3 and later, verify **Quit Decrumb** stops the worker and preserves
+  queued links even with discard-on-pause enabled, sent-note records, the linked
+  account, settings and Start at login preference. Verify **Hide Decrumb** leaves
+  cleaning active. Quit during a downloaded update must not request a relaunch;
+  reopening must reconcile any pending installation before cleaning starts.
 - After fresh pairing, confirm cleaning starts without pressing Resume. Quit and
   reopen an enabled installation with its worker stopped; it should start once.
   Reopening while it is running must not restart it. A failed connection should

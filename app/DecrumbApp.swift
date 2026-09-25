@@ -909,6 +909,7 @@ struct RootView: View {
     var window: NSWindow!
     var item: NSStatusItem!
     var updater: AppUpdater!
+    private var quitTask: Task<Void, Never>?
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         updater = AppUpdater(model: model)
@@ -936,6 +937,7 @@ struct RootView: View {
         let settingsItem = appMenu.addItem(withTitle: "Settings…", action: #selector(settings), keyEquivalent: ","); settingsItem.target = self
         let updatesItem = appMenu.addItem(withTitle: "Check for Updates…", action: #selector(checkUpdates), keyEquivalent: ""); updatesItem.target = self
         appMenu.addItem(.separator())
+        let hideItem = appMenu.addItem(withTitle: "Hide Decrumb", action: #selector(hide), keyEquivalent: "h"); hideItem.target = self
         let quitItem = appMenu.addItem(withTitle: "Quit Decrumb", action: #selector(quit), keyEquivalent: "q"); quitItem.target = self
         appItem.submenu = appMenu; mainMenu.addItem(appItem)
         let editItem = NSMenuItem(title: "Edit", action: nil, keyEquivalent: "")
@@ -961,7 +963,8 @@ struct RootView: View {
         let settings = menu.addItem(withTitle: "Settings…", action: #selector(settings), keyEquivalent: ","); settings.target = self
         let updates = menu.addItem(withTitle: "Check for Updates…", action: #selector(checkUpdates), keyEquivalent: ""); updates.target = self; updates.isEnabled = updater?.canCheck == true
         menu.addItem(.separator())
-        let quit = menu.addItem(withTitle: model.running ? "Quit interface (keep cleaning)" : "Quit Decrumb", action: #selector(quit), keyEquivalent: "q"); quit.target = self
+        let hide = menu.addItem(withTitle: "Hide Decrumb", action: #selector(hide), keyEquivalent: "h"); hide.target = self
+        let quit = menu.addItem(withTitle: "Quit Decrumb", action: #selector(quit), keyEquivalent: "q"); quit.target = self
         item.menu = menu
     }
     @objc func show() { model.reopen(); showWindow() }
@@ -969,8 +972,30 @@ struct RootView: View {
     @objc func settings() { model.page = "rules"; showWindow() }
     @objc func toggle() { model.toggle() }
     @objc func checkUpdates() { updater.checkForUpdates() }
+    @objc func hide() { NSApp.hide(nil) }
     @objc func quit() {
-        NSApp.terminate(nil)
+        guard quitTask == nil else { return }
+        if model.dirty || model.notesDirty {
+            let alert = NSAlert()
+            alert.messageText = "Quit without saving your changes?"
+            alert.informativeText = "Cleaning will stop. Your previously saved settings and queued links will be kept."
+            alert.addButton(withTitle: "Keep Editing")
+            alert.addButton(withTitle: "Discard Changes and Quit")
+            guard alert.runModal() == .alertSecondButtonReturn else { return }
+            model.discardDrafts()
+        }
+        if model.pairing { model.cancelPairing() }
+        quitTask = Task {
+            defer { quitTask = nil }
+            // Allow cancelled pairing or an explicit draft discard to release
+            // its operation lock before asking the backend to stop the worker.
+            let deadline = Date().addingTimeInterval(20)
+            while (model.pairing || model.busy) && !updater.installing && Date() < deadline {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+            if model.demo { NSApp.terminate(nil) }
+            else if await updater.prepareForCompleteQuit() { NSApp.terminate(nil) }
+        }
     }
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         if let reply = updater.shouldTerminate() { return reply }

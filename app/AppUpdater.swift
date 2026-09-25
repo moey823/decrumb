@@ -9,6 +9,7 @@ import Sparkle
     @Published var automaticInstallation = false
     @Published var installing = false
     @Published var waitingToInstall = false
+    @Published var quitting = false
     @Published var message: String?
     var onNeedsAttention: (() -> Void)?
     weak var model: AppModel?
@@ -24,6 +25,8 @@ import Sparkle
     private var targetBuild = ""
     private var postponedInstallation: (() -> Void)?
     private var postponement: Task<Void, Never>?
+    private var handoffStarted = false
+    private var completeQuitReady = false
 
     init(model: AppModel, userDriver: SPUUserDriver? = nil) {
         self.model = model
@@ -62,7 +65,7 @@ import Sparkle
         updater.automaticallyDownloadsUpdates = enabled && automaticChecks
         synchronizePreferences()
     }
-    var canCheck: Bool { (core?.canCheckForUpdates == true || postponedInstallation != nil) && !installing }
+    var canCheck: Bool { (core?.canCheckForUpdates == true || postponedInstallation != nil) && !installing && !quitting }
     var actionTitle: String { waitingToInstall ? "Install and Relaunch" : "Check for Updates…" }
     private func needsAttention(_ explanation: String) {
         message = explanation
@@ -84,6 +87,7 @@ import Sparkle
         targetBuild = item.versionString
     }
     func updater(_ updater: SPUUpdater, willInstallUpdate item: SUAppcastItem) {
+        handoffStarted = true
         installRequested = true
         pendingInstallation = true
         targetBuild = item.versionString
@@ -105,7 +109,7 @@ import Sparkle
         return true
     }
     private func continuePostponedInstallation() {
-        guard postponement == nil else { return }
+        guard postponement == nil, !quitting else { return }
         postponement = Task {
             defer { postponement = nil }
             var lastExplanation: String?
@@ -120,14 +124,62 @@ import Sparkle
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 if Task.isCancelled { return }
             }
-            if await prepare(), let handler = postponedInstallation {
+            if await prepare(), !Task.isCancelled, !quitting, let handler = postponedInstallation {
                 postponedInstallation = nil
                 installRequested = true
+                handoffStarted = true
                 handler()
             }
         }
     }
     func updaterShouldRelaunchApplication(_ updater: SPUUpdater) -> Bool { true }
+
+    /// Stop the worker before a deliberate Quit. Before installer handoff,
+    /// Sparkle observes normal termination and can install without relaunching.
+    func prepareForCompleteQuit() async -> Bool {
+        guard !quitting, !handoffStarted else {
+            needsAttention("The update is already installing. Let it finish, then quit Decrumb.")
+            return false
+        }
+        guard let model, !model.loading, !model.pairing, !model.dirty, !model.notesDirty,
+              !model.busy || preparation != nil else {
+            needsAttention("Finish the current action and save or discard pending settings before quitting.")
+            return false
+        }
+        quitting = true
+        postponement?.cancel()
+        if let preparation { _ = await preparation.value }
+        guard !handoffStarted else {
+            quitting = false
+            needsAttention("The update is already installing. Let it finish, then quit Decrumb.")
+            return false
+        }
+        model.busy = true
+        message = "Stopping cleaning before quitting…"
+        do {
+            var value: [String: Any] = [:]
+            if pendingInstallation || preparedToken != nil {
+                let owner: [String: Any] = ["owner_pid": ProcessInfo.processInfo.processIdentifier]
+                let claim = try await Backend.request("update-claim", input: JSONSerialization.data(withJSONObject: owner))
+                value = owner
+                if let token = claim["token"] as? String { value["token"] = token }
+                let build = claim["target_build"] as? String ?? targetBuild
+                if !build.isEmpty { value["target_build"] = build }
+            }
+            let input = try JSONSerialization.data(withJSONObject: value)
+            _ = try await Backend.request("quit", input: input)
+            // Never invoke either relaunch continuation for an explicit Quit.
+            postponedInstallation = nil
+            onQuitInstallation = nil
+            completeQuitReady = true
+            return true
+        } catch {
+            quitting = false
+            model.busy = false
+            needsAttention(error.localizedDescription)
+            return false
+        }
+    }
 
     private func prepare() async -> Bool {
         if verifiedQuiesced { return true }
@@ -168,6 +220,7 @@ import Sparkle
                 let input = try JSONSerialization.data(withJSONObject: ["owner_pid": ProcessInfo.processInfo.processIdentifier])
                 let result = try await Backend.request("update-claim", input: input)
                 preparedToken = result["token"] as? String
+                if let build = result["target_build"] as? String { targetBuild = build }
                 message = "Finishing an interrupted update before cleaning resumes."
                 core.checkForUpdates()
             } catch { needsAttention(error.localizedDescription) }
@@ -176,12 +229,15 @@ import Sparkle
 
     /// Covers Sparkle's install-on-quit path, which may skip its relaunch delegate.
     func shouldTerminate() -> NSApplication.TerminateReply? {
+        if completeQuitReady { return .terminateNow }
+        if quitting { return .terminateCancel }
         guard pendingInstallation else { return nil }
         if verifiedQuiesced && preparedToken != nil && installRequested { return .terminateNow }
         if let handler = onQuitInstallation {
             Task {
-                if await prepare() {
+                if await prepare(), !quitting {
                     installRequested = true
+                    handoffStarted = true
                     handler() // request a relaunch so enabled cleaning resumes
                 }
             }
@@ -193,7 +249,8 @@ import Sparkle
             return .terminateCancel
         }
         Task {
-            let ready = await prepare()
+            let prepared = await prepare()
+            let ready = prepared && !quitting
             if ready { installRequested = true }
             NSApp.reply(toApplicationShouldTerminate: ready)
         }
@@ -205,6 +262,7 @@ import Sparkle
     }
     private func restoreAfterAbort() {
         pendingInstallation = false
+        handoffStarted = false
         waitingToInstall = false
         installRequested = false
         onQuitInstallation = nil
@@ -234,7 +292,7 @@ struct UpdatePreferences: View {
             Toggle("Automatically check for updates", isOn: Binding(get: { updater.automaticChecks }, set: updater.setAutomaticChecks))
             Toggle("Automatically download and install updates when Decrumb quits", isOn: Binding(get: { updater.automaticInstallation }, set: updater.setAutomaticInstallation))
                 .disabled(!updater.automaticChecks)
-            Text("Both options are off initially. Updates are verified before installation. Pairing and settings changes must finish first; Decrumb reopens after installation and restores your cleaning preference.").font(.callout).foregroundStyle(.secondary)
+            Text("Both options are off initially. Updates are verified before installation. Pairing and settings changes must finish first. Install and Relaunch reopens Decrumb and resumes cleaning. Quit Decrumb stops cleaning and leaves the app closed, including after a downloaded update installs.").font(.callout).foregroundStyle(.secondary)
             Text("Update checks contact mkships.app and downloads contact GitHub. These services receive ordinary connection information, including your IP address. No Signal identity, contacts, message content, rules, note IDs, or system profile are sent.").font(.callout).foregroundStyle(.secondary)
             if let message = updater.message { Text(message).font(.callout) }
         }

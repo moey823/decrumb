@@ -7,6 +7,8 @@ import json
 import os
 from pathlib import Path
 import sys
+import time
+import uuid
 
 import service
 import decrumb
@@ -106,7 +108,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=decrumb.DEFAULT_ROOT)
     parser.add_argument('--resources', type=Path, required=True)
-    parser.add_argument('command', choices=['bootstrap', 'snapshot', 'pair', 'pause', 'resume', 'apply', 'preview', 'run',
+    parser.add_argument('command', choices=['bootstrap', 'snapshot', 'pair', 'pause', 'quit', 'resume', 'apply', 'preview', 'run',
                                            'notes-list', 'notes-settings', 'clear-queue', 'cleanup', 'note-lifetime',
                                            'update-prepare', 'update-abort', 'update-claim',
                                            'diagnostics', 'clear-diagnostics'])
@@ -123,6 +125,13 @@ def main():
         return
     helper, signal_cli = resources / 'url-cleaner', resources / 'signal-cli'
     if not (root / 'config.json').exists():
+        if args.command == 'quit':
+            # Setup has not created a worker for this runtime. In particular,
+            # do not try to stop a service owned by another runtime directory.
+            with updater.operation(root):
+                updater.guard(root)
+                emit({'paused': True})
+            return
         if args.command != 'bootstrap':
             raise decrumb.SafeError('Finish app setup first.')
         with decrumb.exclusive(root):
@@ -142,7 +151,24 @@ def main():
     with contextlib.ExitStack() as operations:
         if args.command not in ('snapshot', 'preview', 'notes-list', 'run'):
             operations.enter_context(updater.operation(root))
-            if args.command not in ('bootstrap', 'update-prepare', 'update-abort', 'update-claim'):
+            if args.command == 'quit':
+                quit_transition = updater.marker(root)
+                value = request()
+                if quit_transition:
+                    if value.get('token') != quit_transition['token']:
+                        updater.guard(root)
+                elif 'target_build' in value:
+                    target_build = updater.validate_target_build(value['target_build'])
+                    owner = value.get('owner_pid')
+                    identity = updater.owner_identity(owner)
+                    # An update waiting to install on normal exit needs a durable
+                    # checkpoint, but must not arm a watchdog that reopens the app.
+                    quit_transition = {
+                        'version': 1, 'created': time.time(), 'owner': owner, 'identity': identity,
+                        'token': uuid.uuid4().hex, 'target_build': target_build,
+                        'resume': False, 'ready': True,
+                    }
+            elif args.command not in ('bootstrap', 'update-prepare', 'update-abort', 'update-claim'):
                 updater.guard(root)
         def snapshot():
             maintenance = decrumb.maintain_outbox(root)
@@ -222,6 +248,21 @@ def main():
                     emit({'event': 'cleaning_started', 'startup_requested_at': started_at})
                 except decrumb.SafeError:
                     raise decrumb.SafeError('Signal connected, but cleaning could not start. Choose Retry connection.') from None
+        elif args.command == 'quit':
+            control.stop(disable_login=True)
+            with decrumb.exclusive(root):
+                config['paused'] = True
+                decrumb.write_json(root / 'config.json', config)
+                if quit_transition:
+                    # Keep the transition until the next explicit app launch
+                    # reconciles it, with cleaning stopped in the meantime.
+                    quit_transition.update(resume=False, ready=True)
+                    decrumb.write_json(root / updater.MARKER, quit_transition)
+            if quit_transition:
+                service.UpdateRecovery(root, resources.parent / 'MacOS/Decrumb').disarm()
+            # Quitting must preserve queued links even if pausing would discard
+            # them. Avoid snapshot maintenance, which can also prune the queue.
+            emit({'paused': True})
         elif args.command == 'pause':
             control.stop(disable_login=True)
             with decrumb.exclusive(root):

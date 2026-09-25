@@ -3,10 +3,12 @@
 ## One version for every platform
 
 `release.json` is the release source of truth for Mac, Raspberry Pi, Umbrel, and Windows.
-The current source release is **Decrumb 1.1.2**: Mac/Pi/Windows version `1.1.2`,
-build `9`, and Umbrel version `1.1.2`. Platform names belong in artifact names, not in
+The current source release is **Decrumb 1.1.3**: Mac/Pi/Windows version `1.1.3`,
+build `10`, and Umbrel version `1.1.3`. This release is in preparation; see the
+[release preparation record](RELEASE-1.1.3.md).
+Platform names belong in artifact names, not in
 independent version sequences. Experimental platform support does not change the
-shared application version. Release 1.1.2 Mac/Pi artifacts are published; the Mac
+shared application version. Release 1.1.2 Mac/Pi artifacts remain published; the Mac
 app and DMG are signed, Apple-notarized and stapled. The tested Umbrel image is
 published and pinned. Hosted acceptance passed, and the verified signed Mac feed
 now offers 1.1.2/build 9 through **Check for Updates**.
@@ -30,6 +32,20 @@ Keep published binaries and tags immutable. The original Umbrel `0.1.0` preview
 is historical. Store updates must pin a tested image of the matching new release;
 changing only the store's version label is not a platform update.
 Release notes group all platform downloads under one Decrumb tag.
+
+## 1.1.3: Mac update recovery and complete Quit
+
+Build 10 keeps update coordination with the native app across helper launches,
+bounds recovery-service operations and makes blocked-install reasons and retry
+actions visible. **Quit Decrumb** stops cleaning and preserves queued links,
+sent-note records, the linked account, settings and Start at login preference.
+**Hide Decrumb** keeps cleaning active while hiding the windows. Reopening resumes
+cleaning. A pending update keeps its recovery checkpoint until installation can
+be reconciled on a later launch, without a Quit-created watchdog reopening the app.
+
+Packaging and publication are pending. The current store manifest version is
+1.1.3, but its image pin remains the tested 1.1.2 image until replacement container
+acceptance passes. Do not treat the changed version label as a deployed update.
 
 ## 1.1.2: disappearing messages and visible cleaning rules
 
@@ -287,7 +303,7 @@ other helpers do not receive that exception.
 
 Before packaging, add UTF-8 plain-text release notes in
 `docs/update-notes/<version>-<build>.txt` matching the app's version and build
-(for example, `docs/update-notes/1.1.2-9.txt`). Keep them nonempty and under 16 KiB.
+(for example, `docs/update-notes/1.1.3-10.txt`). Keep them nonempty and under 16 KiB.
 The update packager embeds these notes in the signed feed and rejects missing or
 mismatched notes. This lets the updater display notes without another network request.
 
@@ -332,8 +348,12 @@ and menu-bar menus. App updates settings offer separate automatic-check and
 automatic download/install options; both default off. Turning automatic checks
 off also disables automatic installation. Updates install when the user accepts,
 or on quit when automatic installation was selected. Pairing and active settings
-changes finish before installation proceeds. Decrumb relaunches after installing
-and starts cleaning automatically. Pause lasts only until the app is reopened.
+changes finish before installation proceeds. **Install and Relaunch** starts
+cleaning after the updated app reopens. In 1.1.3 source, an explicit **Quit
+Decrumb** stops cleaning and exits without requesting a relaunch; a downloaded
+update may finish installing on exit. A durable transition prevents cleaning
+from starting before an interrupted installation is reconciled. **Hide Decrumb**
+keeps cleaning active. Pause lasts only until the app is reopened.
 
 The stable HTTPS feed and update archive require EdDSA signatures using the
 public key embedded in the app. Invalid feeds fail immediately (no expired-feed

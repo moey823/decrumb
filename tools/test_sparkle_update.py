@@ -44,7 +44,7 @@ if command == 'worker':
         (root / 'worker-ready').write_text(str(os.getpid()))
         while True: time.sleep(1)
 class Control:
-    def stop(self):
+    def stop(self, disable_login=False):
         pidfile = root / 'worker-ready'
         if pidfile.exists():
             pid = int(pidfile.read_text())
@@ -70,19 +70,29 @@ if command == 'start': control.start(); print('{}'); sys.exit()
 if command == 'stop': control.stop(); print('{}'); sys.exit()
 value = json.load(sys.stdin)
 with patch.object(service, 'UpdateRecovery'), patch.object(service, 'configure_app_login'):
+    if command == 'quit':
+        import desktop
+        # Exercise the production desktop Quit branch; replace only the real service.
+        sys.argv = [__file__, '--root', folder, '--resources', str(resources), 'quit']
+        with patch.object(service, 'Service', return_value=control), patch.object(desktop, 'request', return_value=value):
+            desktop.main()
+        sys.exit()
     with updater.operation(root):
         if command == 'update-prepare':
+            with (root / 'events.txt').open('a') as output: output.write('prepare-attempt\n')
             info = plistlib.loads((pathlib.Path(app) / 'Contents/Info.plist').read_bytes())
             assert type(value.get('owner_pid')) is int and value['owner_pid'] == int(owner), 'Update owner must be the GUI'
             if info['FixtureMode'] in ('drafts', 'pairing'):
                 assert 'settings-finished' in (root / 'events.txt').read_text(), 'Unsaved changes were interrupted'
-            if info['FixtureMode'] == 'prepare-failure' and not (root / 'prepare-failed').exists():
+            if info['FixtureMode'] in ('prepare-failure', 'standard-prepare-failure') and not (root / 'prepare-failed').exists():
                 (root / 'prepare-failed').touch()
                 print(json.dumps({'error': 'Synthetic update preparation failure.'}))
                 sys.exit()
             result = updater.prepare(root, control, resources, owner=value['owner_pid'], target_build=value['target_build'])
             if info['FixtureMode'] == 'crash':
                 os.kill(int(owner), signal.SIGKILL)
+        elif command == 'update-claim':
+            result = updater.claim(root, owner=value['owner_pid'])
         elif command == 'update-abort':
             updater.recover(root, resources, control, token=value['token'])
             result = {}
@@ -171,6 +181,7 @@ def scenario(parent, binary, framework, args, mode):
                     '<channel><title>Isolated updater test</title><item><title>Fixture 2</title>'
                     '<sparkle:version>2</sparkle:version><sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>'
                     '<sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>'
+                    '<description sparkle:format="plain-text">Synthetic release notes for fixture build 2.</description>'
                     f'<enclosure url="{escape(address)}update.zip" length="{archive.stat().st_size}" '
                     f'type="application/octet-stream" sparkle:edSignature="{signature}" />'
                     '</item></channel></rss>\n')
@@ -196,8 +207,29 @@ def scenario(parent, binary, framework, args, mode):
             run(sys.executable, backend, 'start', runtime, old, os.getpid())
         log = (folder / 'host.log').open('w')
         process = subprocess.Popen([str(old / 'Contents/MacOS/Decrumb')], stdout=log, stderr=log)
-        success = mode in ('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'prepare-failure')
-        if success:
+        success = mode in ('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'prepare-failure', 'standard-install', 'standard-prepare-failure')
+        if mode == 'standard-quit-pending':
+            wait_for(lambda: 'complete-quit-ready' in read_events())
+            process.wait(timeout=20)
+            # Sparkle may install after observing normal termination, but explicit
+            # Quit must leave cleaning and the interface stopped throughout.
+            deadline = time.monotonic() + 12
+            while time.monotonic() < deadline:
+                assert 'launch:2' not in read_events(), 'Complete Quit unexpectedly relaunched the app'
+                assert not (runtime / 'worker-ready').exists(), 'Complete Quit restarted cleaning'
+                time.sleep(.2)
+            assert plistlib.loads((old / 'Contents/Info.plist').read_bytes())['CFBundleVersion'] == '2', 'Sparkle must complete replacement without reopening after Quit'
+            transition = json.loads((runtime / 'update-transition.json').read_text())
+            assert transition['resume'] is False and transition['ready'] is True
+            assert transition['target_build'] == '2'
+            updated = json.loads((runtime / 'config.json').read_text())
+            assert updated['paused'] is True
+            assert updated['account'] == config['account'] and updated['settings'] == config['settings']
+            assert updated['start_at_login'] == config['start_at_login']
+            assert 'standard-ready-visible' in read_events()
+            assert 'standard-ready-click' not in read_events()
+            assert (runtime / 'service-events').read_text().splitlines() == ['start', 'stop']
+        elif success:
             if mode == 'crash':
                 # Replace only the watchdog's open action. Sparkle must perform
                 # the actual replacement after the old GUI is forcibly killed.
@@ -215,10 +247,23 @@ def scenario(parent, binary, framework, args, mode):
             assert updated['account'] == config['account']
             assert updated['settings'] == config['settings']
             assert updated['start_at_login'] == config['start_at_login']
-            if mode in ('drafts', 'pairing', 'prepare-failure'):
+            if mode in ('drafts', 'pairing', 'prepare-failure', 'standard-prepare-failure'):
                 assert 'attention' in read_events(), 'A blocked install must surface its explanation'
-            if mode == 'prepare-failure':
+            if mode in ('prepare-failure', 'standard-prepare-failure'):
                 assert 'retry-action:Install and Relaunch' in read_events(), 'A failed preparation must offer an install retry'
+            if mode.startswith('standard-'):
+                recorded = read_events().splitlines()
+                assert recorded.count('standard-update-click') == 1, 'Expected one real standard update-alert click'
+                assert recorded.count('standard-ready-click') == 1, 'Expected one real Install and Relaunch click'
+                assert recorded.index('standard-update-click') < recorded.index('standard-ready-click') < recorded.index('prepare-attempt') < recorded.index('recovered:2')
+                expected_attempts = 2 if mode == 'standard-prepare-failure' else 1
+                assert recorded.count('prepare-attempt') == expected_attempts, 'Unexpected number of worker preparation attempts'
+                if mode == 'standard-prepare-failure':
+                    visible = 'attention-visible:Synthetic update preparation failure. Try Install and Relaunch again.'
+                    assert visible in recorded, 'Preparation failure must visibly surface its explanation'
+                    assert recorded.count('standard-retry-click') == 1, 'Expected one explicit AppUpdater retry action'
+                    assert recorded.index('prepare-attempt') < recorded.index(visible) < recorded.index('standard-retry-click') < len(recorded) - 1 - recorded[::-1].index('prepare-attempt')
+
         else:
             wait_for(lambda: ('error:' in read_events()) if mode.startswith('bad-') else ('ready' in read_events() and 'dismissed' in read_events()))
             assert plistlib.loads((old / 'Contents/Info.plist').read_bytes())['CFBundleVersion'] == '1'
@@ -260,7 +305,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--identity', required=True, help='Developer ID Application identity or SHA1')
     parser.add_argument('--account', default='decrumb-updates', help='EdDSA Keychain account, never a private key')
-    parser.add_argument('--mode', choices=('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'prepare-failure', 'cancel', 'bad-feed', 'bad-archive'), action='append')
+    parser.add_argument('--mode', choices=('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'prepare-failure', 'standard-install', 'standard-prepare-failure', 'standard-quit-pending', 'cancel', 'bad-feed', 'bad-archive'), action='append')
     parser.add_argument('--keep', action='store_true', help='Keep synthetic artifacts in build/ for diagnosis')
     args = parser.parse_args()
     framework = ROOT / 'build/sparkle/Sparkle.framework'
@@ -277,7 +322,7 @@ def main():
             ROOT / 'app/AppUpdater.swift', ROOT / 'tests/SparkleUpdateHarness.swift',
             '-F', folder, '-framework', 'Sparkle', '-Xlinker', '-rpath', '-Xlinker', '@executable_path/../Frameworks',
             '-module-cache-path', ROOT / 'build/ModuleCache', '-o', binary)
-        for mode in args.mode or ('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'prepare-failure', 'cancel', 'bad-feed', 'bad-archive'):
+        for mode in args.mode or ('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'prepare-failure', 'standard-install', 'standard-prepare-failure', 'standard-quit-pending', 'cancel', 'bad-feed', 'bad-archive'):
             scenario(folder, binary, private_framework, args, mode)
     finally:
         if args.keep: print('Synthetic fixture artifacts: ' + str(folder))
