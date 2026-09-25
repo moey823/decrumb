@@ -6,9 +6,10 @@
 The current source release is **Decrumb 1.1.2**: Mac/Pi/Windows version `1.1.2`,
 build `9`, and Umbrel version `1.1.2`. Platform names belong in artifact names, not in
 independent version sequences. Experimental platform support does not change the
-shared application version. Release 1.1.2 is in preparation; its signed Mac update,
-Mac/Pi downloads and matching tested Umbrel image are not yet published. The
-published Mac update remains 1.1.1/build 8 until the new release passes acceptance.
+shared application version. Release 1.1.2 Mac/Pi artifacts are published; the Mac
+app and DMG are signed, Apple-notarized and stapled. The tested Umbrel image is
+published and pinned. Hosted acceptance passed, and the verified signed Mac feed
+now offers 1.1.2/build 9 through **Check for Updates**.
 Source version changes alone do not update installed apps or containers.
 
 For the next release, update the version, monotonically increasing build number,
@@ -42,10 +43,33 @@ defaults, including global parameters, Instagram and X/Twitter rules, exceptions
 and limits. The update packager embeds version-specific notes in its signed feed
 so the release-notes box has content to display.
 
-Preparation is in progress. Signing/notarization, packaged smoke, signed Sparkle
-acceptance, cross-platform CI, matching container publication and hosted artifact
-checks remain pending. Planned release tag: `v1.1.2`. See
-[RELEASE-1.1.2.md](RELEASE-1.1.2.md) for the acceptance record and artifact names.
+Release source `d88d022570931fdedc62c5f62ebf58f50b3a0223` passed
+[Mac/Linux CI](https://github.com/moey823/decrumb/actions/runs/36154172238) and
+[native Windows CI](https://github.com/moey823/decrumb/actions/runs/36154175687).
+The offline suite passed 279 tests with 4 platform skips (283 total), and the
+build/native status checks passed. Development and production packaged synthetic
+smoke verified disappearing X-link cleaning and phone commands. All ten signed
+Sparkle acceptance scenarios passed.
+
+[Container CI](https://github.com/moey823/decrumb/actions/runs/36153723444) built,
+tested and published both architectures from source
+`b03d5a4701ab0b5e62a521ebca2513254a5f678e`. The immutable digest is pinned and
+anonymously verified; see [UMBREL.md](UMBREL.md) for image provenance.
+
+Published September 25, 2026: [Decrumb 1.1.2](https://github.com/moey823/decrumb/releases/tag/v1.1.2).
+Tag `v1.1.2` identifies source `d88d022570931fdedc62c5f62ebf58f50b3a0223`.
+The app and DMG have accepted Apple notarizations, stapled tickets and passing
+Gatekeeper assessments. All eleven public GitHub asset sizes and SHA-256 digests
+match the local artifacts. Downloaded checksums, signatures, stapled tickets,
+Gatekeeper assessments and all six packaged smoke groups passed against an
+isolated installed copy of the downloaded app. Official Sparkle verification
+accepted the downloaded archive and feed, including the expected embedded notes.
+Mkships commit `d42de5659f52a51dc7c542774c98154aaa5f1482` deployed the feed and
+updated download, release, privacy and support pages. GitHub Pages built
+successfully; every live file matches its expected bytes, and the downloaded
+live feed passed official Sparkle signature verification. **Check for Updates**
+now offers 1.1.2/build 9. See [RELEASE-1.1.2.md](RELEASE-1.1.2.md) for evidence
+and the mounted-DMG smoke timing limitation.
 Windows remains an unsigned source-build preview; live-device validation limits
 are unchanged.
 
@@ -75,8 +99,8 @@ Published 2026-09-25: [Decrumb 1.1.1](https://github.com/moey823/decrumb/release
 All eleven hosted assets match their local sizes and GitHub SHA-256 digests.
 The downloaded Mac DMG passed signature, stapled-ticket, Gatekeeper and packaged
 smoke checks. Downloaded update/archive signatures passed official Sparkle
-verification, and the live signed feed advertises build 8 with identical bytes.
-**Check for Updates** now offers build 8. See the complete evidence in
+verification. At publication, the live signed feed advertised build 8 with
+identical bytes and **Check for Updates** offered it. See the complete evidence in
 [RELEASE-1.1.1.md](RELEASE-1.1.1.md). Historical release assets remain immutable.
 
 ## 1.1.0: native Windows CLI

@@ -13,10 +13,12 @@
 - Embeds release notes in the signed update feed so the updater's notes area
   displays them. Packaging rejects missing or mismatched notes.
 
-Release preparation is in progress. Signed/notarized Mac packaging, update
-acceptance, cross-platform CI, hosted download checks and publication are pending.
-The published Mac update remains 1.1.1/build 8. See the
-[release record](RELEASE-1.1.2.md).
+Published September 25, 2026. The app and DMG are signed, Apple-notarized and
+stapled. The build, synthetic packaged delivery tests, signed update acceptance
+and cross-platform CI passed. The matching Pi archive and tested Umbrel image
+are published. Downloaded-artifact checks and installed-copy packaged smoke
+passed. The verified signed feed is live; Mac **Check for Updates** now offers
+1.1.2/build 9. See the [release record](RELEASE-1.1.2.md).
 
 ## 1.1.1 — X/Twitter link cleanup and status version (build 8)
 
@@ -26,8 +28,8 @@ The published Mac update remains 1.1.1/build 8. See the
   `/decrumb status` reply, for example `Version: 1.1.1 (build 8)`.
 
 Published September 25, 2026. The signed, notarized Mac app passed packaged smoke,
-signed update acceptance and downloaded-artifact checks. Mac **Check for Updates**
-now offers build 8 through the verified signed feed. The matching Pi archive and
+signed update acceptance and downloaded-artifact checks. At publication, Mac
+**Check for Updates** offered build 8 through the verified signed feed. The matching Pi archive and
 tested Umbrel image are also published; Windows remains a source-build preview. See
 [distribution status](DISTRIBUTION.md#111-xtwitter-link-cleanup-and-status-version).
 
