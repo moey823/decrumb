@@ -108,3 +108,12 @@ by version, upstream URL and SHA-256 in `windows/dependencies.json`. Upstream
 notices are retained. This does not change the existing Mac or Linux dependency
 pins. The unsigned development ZIP is not a public release; Windows runtime,
 live-pairing and corresponding-source acceptance are documented in [WINDOWS.md](WINDOWS.md).
+
+## X/Twitter sharing rules, 2026-09-25
+
+The shared defaults now remove the exact `s` and `t` query names on `x.com` and
+`twitter.com`, preserving them under `/i/redirect`. These parameter names and
+the redirect exception were checked against [ClearURLs' bundled rules](https://github.com/ClearURLs/Rules/blob/master/data.min.json).
+The change uses Decrumb's existing domain matching and remove/keep schema;
+no upstream cleaner code or executable rule expressions were imported. Synthetic
+offline fixtures cover both the Swift and portable cleaners.

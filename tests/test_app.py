@@ -58,7 +58,7 @@ class RulesTests(unittest.TestCase):
         self.assertEqual(result['changes'][0]['removed'], ['utm_source'])
         self.assertEqual(result['changes'][0]['cleaned'], 'https://example.com/?id=a%2Bb&id=2#anchor')
         self.assertEqual(result['settings']['excludedURLs'], ['https://other.example/news'])
-        self.assertEqual(result['revision'], '2026-09-20')
+        self.assertEqual(result['revision'], '2026-09-25')
 
     def test_empty_parameter_name_does_not_crash_explanation(self):
         self.assertEqual(self.clean('https://example.com/?=keep&utm_source=x'), ['https://example.com/?=keep'])

@@ -192,8 +192,9 @@ one manual installation of an updater-enabled release. See
 ## Cleaning behavior
 
 Defaults live in [rules/defaults.json](rules/defaults.json). They include 19 exact
-global tracking parameter names and Instagram-specific `stkn`, `igsh`, and
-`igshid`. Custom rules are bounded data, not executable plugins or regexes.
+global tracking parameter names, Instagram-specific `stkn`, `igsh`, and
+`igshid`, and X/Twitter-specific `s` and `t` (preserved under `/i/redirect`).
+Custom rules are bounded data, not executable plugins or regexes.
 
 Rule precedence: recognized signature parameters protect the whole link;
 excluded sites stay untouched; the mode and selected sites determine eligibility;

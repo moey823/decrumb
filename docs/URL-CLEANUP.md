@@ -24,6 +24,11 @@ Instagram links additionally lose `stkn`, `igsh`, and `igshid`; these sharing
 identifiers are removed only on `instagram.com` and its subdomains. Parameters
 such as `img_index` and `story_media_id` remain intact. Thus a reel link ending
 in `?utm_source=ig_web_copy_link&stkn=abc==` becomes the plain reel URL.
+X/Twitter links additionally lose `s` and `t` on `x.com`, `twitter.com`, and
+their subdomains. For example, a post link ending in
+`?s=46&t=synthetic_share_token` becomes the plain post URL. Both fields remain
+intact under `/i/redirect`, where they may be needed for the redirect. They are
+not removed on unrelated domains; other fields such as `lang` remain intact.
 Other query fields, byte encoding, duplicate functional fields, paths, and
 fragments are preserved. Links containing `sig`, `signature`, `X-Amz-Signature`,
 or `X-Goog-Signature` are left intact because the signature can cover the query.
@@ -37,6 +42,10 @@ and [Mozilla query stripping](https://firefox-source-docs.mozilla.org/toolkit/co
 Instagram references: [ClearURLs' Instagram share-token proposal](https://github.com/ClearURLs/Rules/pull/332)
 (open at the time of implementation), [AdGuard's report](https://github.com/AdguardTeam/AdguardFilters/issues/240901),
 and [FixupXer's implemented Instagram cleanup](https://github.com/NeatCode-Labs/fixupxer-telegram-bot#changes-in-032-2026-09-05).
+X/Twitter reference: [ClearURLs' bundled rules](https://github.com/ClearURLs/Rules/blob/master/data.min.json)
+list `s` and `t` for both domains and exempt `/i/redirect` (checked 2026-09-25).
+Decrumb adopts only these two exact names, with path-scoped keep rules for the
+redirect exception; existing global removals still apply there.
 
 ## Extensible rules
 

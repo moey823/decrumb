@@ -20,6 +20,46 @@ RULES = cleaner.load_rules(ROOT / "rules/defaults.json")
 SETTINGS = {"mode": "all", "baseURLs": []}
 
 
+def x_tracking_cases():
+    """Synthetic expected results also exercised through the built Swift helper."""
+    path = "/example/status/1234567890"
+    tracking = "?s=46&t=synthetic_share_token"
+    cases = []
+    for host in ("x.com", "twitter.com", "www.x.com", "mobile.twitter.com"):
+        for scheme, port in (("https", ""), ("https", ":443"), ("http", ":80")):
+            base = scheme + "://" + host + port + path
+            cases.append((base + tracking, SETTINGS, [base]))
+    for host in ("x.com", "twitter.com"):
+        base = "https://" + host
+        media = base + path + "/photo/1"
+        cases.append((media + "?s=46&id=a%2Bb&id=%26&t=synthetic_share_token&lang=en#media",
+                      SETTINGS, [media + "?id=a%2Bb&id=%26&lang=en#media"]))
+        cases.append((base + path + "?%73=46&T=synthetic_share_token&text=hello+world",
+                      SETTINGS, [base + path + "?text=hello+world"]))
+        for redirect in ("/i/redirect", "/i/redirect/", "/i/redirect/child"):
+            # These names can be functional redirect inputs. Global trackers
+            # may still be removed without discarding the redirect inputs.
+            original = base + redirect + tracking
+            cases.append((original, SETTINGS, []))
+            cases.append((original + "&utm_source=synthetic", SETTINGS, [original]))
+        cases.append((base + "/i/redirected" + tracking, SETTINGS, [base + "/i/redirected"]))
+        cases.append((base + path + tracking + "&sig=synthetic_signature", SETTINGS, []))
+    for host in ("example.com", "notx.com", "x.com.example", "nottwitter.com", "twitter.com.example", "x.com:8443"):
+        cases.append(("https://" + host + path + tracking, SETTINGS, []))
+    original = "https://x.com" + path + tracking
+    cases.extend([
+        (original, {**SETTINGS, "rules": [{"site": "x.com", "remove": [], "keep": ["s"]}]},
+         ["https://x.com" + path + "?s=46"]),
+        (original, {**SETTINGS, "excludedURLs": ["x.com/example"]}, []),
+        (original, {"mode": "selected", "baseURLs": ["x.com/example"]}, ["https://x.com" + path]),
+        (original, {"mode": "selected", "baseURLs": ["x.com/other"]}, []),
+        (original, {"mode": "off", "baseURLs": []}, []),
+        (original + "&X-Amz-Signature=synthetic_signature",
+         {**SETTINGS, "rules": [{"site": "x.com", "remove": ["X-Amz-Signature"], "keep": []}]}, []),
+    ])
+    return cases
+
+
 def swift_reference_available():
     if sys.platform != "darwin":
         return False
@@ -33,6 +73,11 @@ def swift_reference_available():
 class PortableCleanerTests(unittest.TestCase):
     def result(self, text, **options):
         return cleaner.request({"text": text, "settings": {**SETTINGS, **options}}, RULES)
+
+    def test_x_tracking_rules_preserve_functional_inputs_and_user_controls(self):
+        for text, options, expected in x_tracking_cases():
+            with self.subTest(text=text, options=options):
+                self.assertEqual(self.result(text, **options)["urls"], expected)
 
     def test_preserves_query_bytes_and_functional_empty_fields(self):
         values = {
@@ -136,6 +181,7 @@ class PortableCleanerTests(unittest.TestCase):
             "mailto:hello@example.com?utm_source=x", "ftp://example.com/?utm_source=x",
         ]
         cases = [(text, SETTINGS) for text in texts]
+        cases.extend((text, options) for text, options, _ in x_tracking_cases())
         for options in ({"mode": "off", "baseURLs": []},
                         {"mode": "selected", "baseURLs": [" example.com/news/ "]},
                         {**SETTINGS, "excludedURLs": ["example.com/news"]},

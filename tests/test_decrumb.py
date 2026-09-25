@@ -50,6 +50,7 @@ class CleanerTests(unittest.TestCase):
             ("https://notinstagram.com/?stkn=abc==", []),
             ("https://instagram.com.evil.example/?stkn=abc==", []),
             ("https://instagram.com/p/a?igsh=abc&img_index=2", ["https://instagram.com/p/a?img_index=2"]),
+            ("https://x.com/example/status/1234567890?s=46&t=synthetic_share_token", ["https://x.com/example/status/1234567890"]),
             ("www.instagram.com/reel/a/?stkn=abc==", ["http://www.instagram.com/reel/a/"]),
             ("https://example.com/?page=3", []),
             ("mailto:hello@example.com?utm_source=x", []),
