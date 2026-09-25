@@ -53,7 +53,7 @@ def main():
     subprocess.run(compiler + [str(ROOT / 'swift/DecrumbURLCleaner.swift'), str(ROOT / 'swift/main.swift'),
                               '-o', str(OUTPUT / 'url-cleaner')], check=True)
     shutil.copyfile(ROOT / 'rules/defaults.json', OUTPUT / 'rules.json')
-    subprocess.run(compiler + ['-parse-as-library', str(ROOT / 'app/WorkerStatus.swift'), str(ROOT / 'app/AppUpdater.swift'), str(ROOT / 'app/DecrumbApp.swift'),
+    subprocess.run(compiler + ['-parse-as-library', str(ROOT / 'app/WorkerStatus.swift'), str(ROOT / 'app/AppUpdater.swift'), str(ROOT / 'app/BuiltInRules.swift'), str(ROOT / 'app/DecrumbApp.swift'),
                               '-F', str(sparkle_root), '-framework', 'Sparkle', '-Xlinker', '-rpath', '-Xlinker', '@executable_path/../Frameworks', '-o', str(OUTPUT / 'Decrumb')], check=True)
     subprocess.run(compiler + ['-parse-as-library', str(ROOT / 'app/WorkerStatus.swift'), str(ROOT / 'tests/StatusTests.swift'), '-o', str(OUTPUT / 'status-tests')], check=True)
     if args.app:

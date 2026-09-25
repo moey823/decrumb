@@ -136,6 +136,7 @@ enum Backend {
     @Published var notes: [GeneratedNote] = []
     @Published var noteCounts: [String: Int] = [:]
     @Published var diagnosticReport = ""
+    let builtInRules = try? BuiltInRuleSet.load(from: Bundle.main.bundleURL.appendingPathComponent("Contents/Resources/rules.json"))
     var updater: AppUpdater?
     let demo = CommandLine.arguments.contains("--demo") || CommandLine.arguments.contains("--demo-connected")
     private var pairProcess: Process?
@@ -513,6 +514,7 @@ struct RootView: View {
     @ObservedObject var model: AppModel
     @State private var confirmAllRemoval = false
     @State private var confirmQueueClear = false
+    @State private var showBuiltInRules = false
     var body: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 28) {
@@ -567,6 +569,14 @@ struct RootView: View {
                 }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
         }.frame(minWidth: 830, minHeight: 650).tint(accent)
+            .sheet(isPresented: $showBuiltInRules) {
+                if let rules = model.builtInRules {
+                    BuiltInRulesView(rules: rules) {
+                        showBuiltInRules = false
+                        model.page = "preview"
+                    }
+                }
+            }
             .onChange(of: model.page) { if model.page == "notes" { model.loadNotes() } }
             .confirmationDialog("Request removal of all eligible Decrumb notes?", isPresented: $confirmAllRemoval) {
                 Button("Request removal", role: .destructive) { model.noteAction("cleanup") }
@@ -709,6 +719,19 @@ struct RootView: View {
     var rules: some View {
         VStack(alignment: .leading, spacing: 22) {
             heading("YOUR LINKS, YOUR RULES", "A careful clean.", "Built-in rules remove known trackers. Add site-specific rules when you want more control.")
+            card {
+                Label("Built-in rules", systemImage: "list.bullet.rectangle").font(.headline)
+                if let rules = model.builtInRules {
+                    Text("\(rules.globalRemove.count) common tracking parameters are removed on any site. Extra rules cover \(rules.sites.filter { !$0.remove.isEmpty }.map(\.site).joined(separator: ", ")).")
+                        .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Button("View domains and rules…") { showBuiltInRules = true }
+                    Text("See the exact parameters, exceptions and limits. Your mode, excluded sites and custom Keep rules still apply.")
+                        .font(.caption).foregroundStyle(.secondary)
+                } else {
+                    Text("The built-in rule list could not be loaded. Reinstall Decrumb to restore its bundled rules.")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
+            }
             card {
                 Text("Where to clean").font(.headline)
                 Picker("Mode", selection: $model.settings.mode) { Text("All sites").tag("all"); Text("Selected sites").tag("selected"); Text("Off").tag("off") }.pickerStyle(.segmented).labelsHidden().onChange(of: model.settings.mode) { model.dirty = true }

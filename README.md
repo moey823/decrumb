@@ -197,6 +197,10 @@ one manual installation of an updater-enabled release. See
 Defaults live in [rules/defaults.json](rules/defaults.json). They include 19 exact
 global tracking parameter names, Instagram-specific `stkn`, `igsh`, and
 `igshid`, and X/Twitter-specific `s` and `t` (preserved under `/i/redirect`).
+On Mac, open **Settings → Cleaning rules → View domains and rules** to see the
+installed defaults, including every parameter, domain exception, and protection.
+Global cleanup applies to other websites too. Unlisted parameters stay intact;
+short links are not expanded. **Try a link** previews your current rules locally.
 Custom rules are bounded data, not executable plugins or regexes.
 
 Rule precedence: recognized signature parameters protect the whole link;
