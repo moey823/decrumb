@@ -8,7 +8,9 @@ import Sparkle
     @Published var automaticChecks = false
     @Published var automaticInstallation = false
     @Published var installing = false
+    @Published var waitingToInstall = false
     @Published var message: String?
+    var onNeedsAttention: (() -> Void)?
     weak var model: AppModel?
     private var controller: SPUStandardUpdaterController!
     private var core: SPUUpdater!
@@ -61,6 +63,11 @@ import Sparkle
         synchronizePreferences()
     }
     var canCheck: Bool { (core?.canCheckForUpdates == true || postponedInstallation != nil) && !installing }
+    var actionTitle: String { waitingToInstall ? "Install and Relaunch" : "Check for Updates…" }
+    private func needsAttention(_ explanation: String) {
+        message = explanation
+        onNeedsAttention?()
+    }
     @objc func checkForUpdates() {
         guard canCheck else { return }
         if postponedInstallation != nil { continuePostponedInstallation(); return }
@@ -86,6 +93,7 @@ import Sparkle
         pendingInstallation = true
         targetBuild = item.versionString
         postponedInstallation = installHandler
+        waitingToInstall = true
         continuePostponedInstallation()
         return true
     }
@@ -100,10 +108,15 @@ import Sparkle
         guard postponement == nil else { return }
         postponement = Task {
             defer { postponement = nil }
+            var lastExplanation: String?
             while model?.pairing == true || (model?.busy == true && !verifiedQuiesced) || model?.loading == true || model?.dirty == true || model?.notesDirty == true {
-                message = (model?.dirty == true || model?.notesDirty == true)
+                let explanation = (model?.dirty == true || model?.notesDirty == true)
                     ? "Save or discard your pending settings before this update installs."
                     : "The update will install after the current action finishes."
+                if explanation != lastExplanation {
+                    needsAttention(explanation)
+                    lastExplanation = explanation
+                }
                 try? await Task.sleep(nanoseconds: 250_000_000)
                 if Task.isCancelled { return }
             }
@@ -120,23 +133,25 @@ import Sparkle
         if verifiedQuiesced { return true }
         if let preparation { return await preparation.value }
         guard let model, !model.pairing, !model.busy, !model.loading, !model.dirty, !model.notesDirty else {
-            message = "The update is waiting. Finish pairing, save or discard pending settings, then try again."
+            needsAttention("The update is waiting. Finish pairing, save or discard pending settings, then try again.")
             return false
         }
         installing = true
         model.busy = true
+        message = "Preparing to install the update…"
         let task = Task { [self] in
             do {
-                let input = try JSONSerialization.data(withJSONObject: ["target_build": targetBuild])
+                let input = try JSONSerialization.data(withJSONObject: ["target_build": targetBuild,
+                    "owner_pid": ProcessInfo.processInfo.processIdentifier])
                 let result = try await Backend.request("update-prepare", input: input)
                 guard let token = result["token"] as? String, result["ready"] as? Bool == true else { throw AppError(message: "The worker could not prepare for this update.") }
                 preparedToken = token
                 verifiedQuiesced = true
                 return true
             } catch {
-                message = error.localizedDescription
                 installing = false
                 model.busy = false
+                needsAttention(error.localizedDescription + " Try Install and Relaunch again.")
                 return false
             }
         }
@@ -150,11 +165,12 @@ import Sparkle
         guard let core, core.canCheckForUpdates else { return }
         Task {
             do {
-                let result = try await Backend.request("update-claim")
+                let input = try JSONSerialization.data(withJSONObject: ["owner_pid": ProcessInfo.processInfo.processIdentifier])
+                let result = try await Backend.request("update-claim", input: input)
                 preparedToken = result["token"] as? String
                 message = "Finishing an interrupted update before cleaning resumes."
                 core.checkForUpdates()
-            } catch { message = error.localizedDescription }
+            } catch { needsAttention(error.localizedDescription) }
         }
     }
 
@@ -189,6 +205,7 @@ import Sparkle
     }
     private func restoreAfterAbort() {
         pendingInstallation = false
+        waitingToInstall = false
         installRequested = false
         onQuitInstallation = nil
         postponedInstallation = nil
@@ -213,7 +230,7 @@ struct UpdatePreferences: View {
         VStack(alignment: .leading, spacing: 18) {
             Text("App updates").font(.largeTitle.bold())
             Text("Keep Decrumb and its bundled Signal connection up to date.").foregroundStyle(.secondary)
-            Button("Check for Updates…") { updater.checkForUpdates() }.disabled(!updater.canCheck)
+            Button(updater.actionTitle) { updater.checkForUpdates() }.disabled(!updater.canCheck)
             Toggle("Automatically check for updates", isOn: Binding(get: { updater.automaticChecks }, set: updater.setAutomaticChecks))
             Toggle("Automatically download and install updates when Decrumb quits", isOn: Binding(get: { updater.automaticInstallation }, set: updater.setAutomaticInstallation))
                 .disabled(!updater.automaticChecks)

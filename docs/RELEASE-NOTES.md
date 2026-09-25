@@ -1,5 +1,16 @@
 # Decrumb release notes
 
+## Unreleased — Mac update handoff
+
+- Keeps update ownership with the native app across helper launches, so an
+  interrupted or failed preparation can be claimed and retried safely.
+- Bounds recovery-service operations and preserves recovery state when their
+  result is uncertain, returning an actionable error instead of waiting forever.
+- Brings blocked-install explanations into view, with an explicit **Install and
+  Relaunch** retry action and a way to review unsaved settings.
+
+These changes are in source; the published Mac release remains 1.1.2/build 9.
+
 ## 1.1.2 — disappearing messages and visible cleaning rules (build 9)
 
 - Cleans links in incoming disappearing messages. Generated notes follow your

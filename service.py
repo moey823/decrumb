@@ -162,10 +162,21 @@ class UpdateRecovery:
         self.domain = 'gui/' + str(os.getuid())
         self.path = root / 'update-recovery.plist'
 
+    def launch(self, *arguments):
+        try:
+            return subprocess.run(['/bin/launchctl', *arguments],
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                  check=False, timeout=20)
+        except subprocess.TimeoutExpired:
+            # A timed-out bootstrap/bootout may still have changed launchd state.
+            # Keep the ownership plist until a later check confirms removal.
+            raise SafeError('Update recovery took too long. Reopen Decrumb and retry the update.') from None
+        except (OSError, subprocess.SubprocessError):
+            raise SafeError('Update recovery could not be checked. Reopen Decrumb and retry the update.') from None
+
     def arm(self):
         if not self.path.exists():
-            loaded = subprocess.run(['/bin/launchctl', 'print', self.domain + '/' + self.label],
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            loaded = self.launch('print', self.domain + '/' + self.label)
             if loaded.returncode == 0:
                 raise SafeError('A running update recovery service belongs to another runtime directory.')
         self.disarm()
@@ -173,11 +184,9 @@ class UpdateRecovery:
                               'ProgramArguments': ['/usr/bin/open', '-g', str(self.executable.parent.parent.parent)],
                               'StartInterval': 120, 'RunAtLoad': False,
                               'StandardOutPath': '/dev/null', 'StandardErrorPath': '/dev/null'})
-        result = subprocess.run(['/bin/launchctl', 'bootstrap', self.domain, str(self.path)],
-                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        result = self.launch('bootstrap', self.domain, str(self.path))
         if result.returncode:
-            loaded = subprocess.run(['/bin/launchctl', 'print', self.domain + '/' + self.label],
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            loaded = self.launch('print', self.domain + '/' + self.label)
             if loaded.returncode == 0:
                 raise SafeError('Update recovery is still stopping. Reopen Decrumb to retry cleanup.')
             self.path.unlink(missing_ok=True)
@@ -191,10 +200,8 @@ class UpdateRecovery:
                     raise ValueError()
             except (OSError, ValueError, plistlib.InvalidFileException):
                 raise SafeError('Update recovery belongs to another runtime directory.') from None
-            subprocess.run(['/bin/launchctl', 'bootout', self.domain + '/' + self.label],
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
-            loaded = subprocess.run(['/bin/launchctl', 'print', self.domain + '/' + self.label],
-                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            self.launch('bootout', self.domain + '/' + self.label)
+            loaded = self.launch('print', self.domain + '/' + self.label)
             if loaded.returncode == 0:
                 raise SafeError('Update recovery is still stopping. Reopen Decrumb to retry cleanup.')
             self.path.unlink(missing_ok=True)

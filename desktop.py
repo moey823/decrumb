@@ -165,9 +165,10 @@ def main():
             config['helper'], config['signal_cli'] = str(helper), str(signal_cli)
 
         if args.command == 'update-claim':
-            emit(updater.claim(root))
+            emit(updater.claim(root, owner=request().get('owner_pid')))
         elif args.command == 'update-prepare':
-            emit(updater.prepare(root, control, resources, request().get('target_build')))
+            value = request()
+            emit(updater.prepare(root, control, resources, value.get('target_build'), owner=value.get('owner_pid')))
         elif args.command == 'update-abort':
             updater.recover(root, resources, control, token=request().get('token'))
             emit(snapshot())

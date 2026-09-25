@@ -52,6 +52,16 @@ class WorkerUpdateTests(unittest.TestCase):
         with updater.operation(self.root):
             return updater.recover(self.root, self.resources, self.control, **kwargs)
 
+    def desktop_update(self, command, payload):
+        with patch.object(sys, 'argv', ['desktop.py', '--root', str(self.root),
+                '--resources', str(self.resources), command]), \
+                patch.object(desktop, 'request', return_value=payload), \
+                patch.object(desktop, 'emit') as emit, \
+                patch.object(desktop.diagnostics, 'configure'), \
+                patch.object(service, 'Service', return_value=self.control):
+            desktop.main()
+        return emit.call_args.args[0]
+
     def test_active_worker_quiesces_and_resumes_without_mutating_queue_or_preferences(self):
         result = self.prepare()
         self.control.stop.assert_called_once_with()
@@ -156,6 +166,67 @@ class WorkerUpdateTests(unittest.TestCase):
         self.assertTrue(result['ready'])
         self.assertTrue(updater.marker(self.root)['ready'])
         self.assertEqual(self.control.stop.call_count, 3)
+
+    def test_bridge_retry_keeps_gui_owner_across_separate_helper_parents(self):
+        payload = {'owner_pid': 4321, 'target_build': '3'}
+        with patch.object(os, 'getppid', return_value=1234):
+            with decrumb.exclusive(self.root), self.assertRaises(decrumb.SafeError):
+                self.desktop_update('update-prepare', payload)
+        previous = updater.marker(self.root)
+        self.assertEqual(previous['owner'], 4321)
+        self.assertFalse(previous['ready'])
+        with patch.object(os, 'getppid', return_value=2345):
+            result = self.desktop_update('update-prepare', payload)
+        self.assertEqual(result, {'token': previous['token'], 'ready': True})
+        self.assertEqual(updater.marker(self.root)['owner'], 4321)
+        self.assertEqual(self.control.stop.call_count, 2)
+        self.assertEqual((self.root / 'outbox.sqlite3').read_bytes(), self.database)
+
+    def test_bridge_claim_then_prepare_uses_gui_owner_after_old_helper_exits(self):
+        first = self.prepare()
+        # Version 1.1.2 could leave a marker owned by a helper that has exited.
+        self.identity.side_effect = lambda pid: 'replacement GUI' if pid == 5432 else None
+        with patch.object(os, 'getppid', return_value=1234):
+            claimed = self.desktop_update('update-claim', {'owner_pid': 5432})
+        self.assertEqual(claimed, {'token': first['token'], 'target_build': '3'})
+        self.assertEqual(updater.marker(self.root)['owner'], 5432)
+        with patch.object(os, 'getppid', return_value=2345):
+            prepared = self.desktop_update('update-prepare', {'owner_pid': 5432, 'target_build': '4'})
+        self.assertEqual(prepared, {'token': first['token'], 'ready': True})
+        self.assertEqual(updater.marker(self.root)['target_build'], '4')
+        self.assertEqual(self.control.stop.call_count, 2)
+        self.control.start.assert_not_called()
+
+    def test_claim_cannot_take_over_another_live_owner(self):
+        self.prepare()
+        original = (self.root / updater.MARKER).read_bytes()
+        with self.assertRaisesRegex(decrumb.SafeError, 'Another app instance'):
+            self.desktop_update('update-claim', {'owner_pid': 5432})
+        self.assertEqual((self.root / updater.MARKER).read_bytes(), original)
+
+    def test_update_owner_requires_explicit_valid_pid(self):
+        self.prepare()
+        original = (self.root / updater.MARKER).read_bytes()
+        self.identity.reset_mock()
+        self.control.reset_mock()
+        self.watchdog.reset_mock()
+        for owner in (None, 0, 1, -1, True, False, 4321.0, '4321', {}, [], 2**31):
+            for command in ('update-prepare', 'update-claim'):
+                with self.subTest(owner=owner, command=command), self.assertRaises(decrumb.SafeError):
+                    self.desktop_update(command, {'owner_pid': owner, 'target_build': '3'})
+        self.identity.assert_not_called()
+        self.control.stop.assert_not_called()
+        self.watchdog.assert_not_called()
+        self.assertEqual((self.root / updater.MARKER).read_bytes(), original)
+
+    def test_update_owner_must_still_be_alive(self):
+        self.identity.return_value = None
+        for command in ('update-prepare', 'update-claim'):
+            with self.subTest(command=command), self.assertRaisesRegex(decrumb.SafeError, 'no longer available'):
+                self.desktop_update(command, {'owner_pid': 4321, 'target_build': '3'})
+        self.control.stop.assert_not_called()
+        self.watchdog.assert_not_called()
+        self.assertIsNone(updater.marker(self.root))
 
     def test_spawned_worker_does_not_contend_with_parent_operation_lock(self):
         with updater.operation(self.root), patch.object(sys, 'argv', ['desktop.py', '--root', str(self.root),

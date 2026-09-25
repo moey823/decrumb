@@ -41,7 +41,9 @@ enum Backend {
             FileHandle.standardError.write(detail)
             throw AppError(message: "Fixture backend failed for " + command)
         }
-        return try JSONSerialization.jsonObject(with: output) as! [String: Any]
+        let result = try JSONSerialization.jsonObject(with: output) as! [String: Any]
+        if let error = result["error"] as? String { throw AppError(message: error) }
+        return result
     }
 }
 
@@ -106,6 +108,13 @@ enum Backend {
     var updater: AppUpdater!
     func applicationDidFinishLaunching(_ notification: Notification) {
         updater = AppUpdater(model: model, userDriver: driver)
+        updater.onNeedsAttention = { [self] in
+            driver.record("attention")
+            if driver.mode == "prepare-failure", updater.canCheck {
+                driver.record("retry-action:" + updater.actionTitle)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [self] in updater.checkForUpdates() }
+            }
+        }
         driver.record("launch:" + (Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as! String))
         Task {
             do {

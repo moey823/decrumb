@@ -544,7 +544,12 @@ struct RootView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
-                        if model.page == "updates", let updater = model.updater { UpdatePreferences(updater: updater) }
+                        if model.page == "updates", let updater = model.updater {
+                            UpdatePreferences(updater: updater)
+                            if model.dirty || model.notesDirty {
+                                Button("Review unsaved settings") { model.page = model.dirty ? "rules" : "notes" }
+                            }
+                        }
                         else if model.page == "overview" { overview }
                         else if model.page == "rules" { rules }
                         else if model.page == "notes" { savedNotes }
@@ -908,6 +913,13 @@ struct RootView: View {
         NSApp.setActivationPolicy(.accessory)
         updater = AppUpdater(model: model)
         model.updater = updater
+        updater.onNeedsAttention = { [weak self] in
+            guard let self else { return }
+            // Bring blocked-install reasons into view instead of leaving them
+            // behind Sparkle's Install and Relaunch window.
+            self.model.page = "updates"
+            self.showWindow()
+        }
         item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.button?.image = NSImage(systemSymbolName: "link", accessibilityDescription: "Decrumb")
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 900, height: 710), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)

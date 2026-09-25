@@ -73,9 +73,14 @@ with patch.object(service, 'UpdateRecovery'), patch.object(service, 'configure_a
     with updater.operation(root):
         if command == 'update-prepare':
             info = plistlib.loads((pathlib.Path(app) / 'Contents/Info.plist').read_bytes())
+            assert type(value.get('owner_pid')) is int and value['owner_pid'] == int(owner), 'Update owner must be the GUI'
             if info['FixtureMode'] in ('drafts', 'pairing'):
                 assert 'settings-finished' in (root / 'events.txt').read_text(), 'Unsaved changes were interrupted'
-            result = updater.prepare(root, control, resources, owner=int(owner), target_build=value['target_build'])
+            if info['FixtureMode'] == 'prepare-failure' and not (root / 'prepare-failed').exists():
+                (root / 'prepare-failed').touch()
+                print(json.dumps({'error': 'Synthetic update preparation failure.'}))
+                sys.exit()
+            result = updater.prepare(root, control, resources, owner=value['owner_pid'], target_build=value['target_build'])
             if info['FixtureMode'] == 'crash':
                 os.kill(int(owner), signal.SIGKILL)
         elif command == 'update-abort':
@@ -191,7 +196,7 @@ def scenario(parent, binary, framework, args, mode):
             run(sys.executable, backend, 'start', runtime, old, os.getpid())
         log = (folder / 'host.log').open('w')
         process = subprocess.Popen([str(old / 'Contents/MacOS/Decrumb')], stdout=log, stderr=log)
-        success = mode in ('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash')
+        success = mode in ('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'prepare-failure')
         if success:
             if mode == 'crash':
                 # Replace only the watchdog's open action. Sparkle must perform
@@ -210,6 +215,10 @@ def scenario(parent, binary, framework, args, mode):
             assert updated['account'] == config['account']
             assert updated['settings'] == config['settings']
             assert updated['start_at_login'] == config['start_at_login']
+            if mode in ('drafts', 'pairing', 'prepare-failure'):
+                assert 'attention' in read_events(), 'A blocked install must surface its explanation'
+            if mode == 'prepare-failure':
+                assert 'retry-action:Install and Relaunch' in read_events(), 'A failed preparation must offer an install retry'
         else:
             wait_for(lambda: ('error:' in read_events()) if mode.startswith('bad-') else ('ready' in read_events() and 'dismissed' in read_events()))
             assert plistlib.loads((old / 'Contents/Info.plist').read_bytes())['CFBundleVersion'] == '1'
@@ -251,7 +260,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--identity', required=True, help='Developer ID Application identity or SHA1')
     parser.add_argument('--account', default='decrumb-updates', help='EdDSA Keychain account, never a private key')
-    parser.add_argument('--mode', choices=('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'cancel', 'bad-feed', 'bad-archive'), action='append')
+    parser.add_argument('--mode', choices=('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'prepare-failure', 'cancel', 'bad-feed', 'bad-archive'), action='append')
     parser.add_argument('--keep', action='store_true', help='Keep synthetic artifacts in build/ for diagnosis')
     args = parser.parse_args()
     framework = ROOT / 'build/sparkle/Sparkle.framework'
@@ -268,7 +277,7 @@ def main():
             ROOT / 'app/AppUpdater.swift', ROOT / 'tests/SparkleUpdateHarness.swift',
             '-F', folder, '-framework', 'Sparkle', '-Xlinker', '-rpath', '-Xlinker', '@executable_path/../Frameworks',
             '-module-cache-path', ROOT / 'build/ModuleCache', '-o', binary)
-        for mode in args.mode or ('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'cancel', 'bad-feed', 'bad-archive'):
+        for mode in args.mode or ('install', 'paused', 'quit', 'automatic', 'drafts', 'pairing', 'crash', 'prepare-failure', 'cancel', 'bad-feed', 'bad-archive'):
             scenario(folder, binary, private_framework, args, mode)
     finally:
         if args.keep: print('Synthetic fixture artifacts: ' + str(folder))

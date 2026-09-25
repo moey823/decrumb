@@ -3,7 +3,6 @@
 import contextlib
 import fcntl
 import json
-import os
 import re
 import plistlib
 from pathlib import Path
@@ -17,7 +16,7 @@ MARKER = 'update-transition.json'
 
 
 def process_identity(pid):
-    if type(pid) is not int or pid <= 1:
+    if type(pid) is not int or not 1 < pid <= 2**31 - 1:
         return None
     result = subprocess.run(['/bin/ps', '-p', str(pid), '-o', 'stat=', '-o', 'lstart='],
                             capture_output=True, text=True, check=False)
@@ -25,6 +24,17 @@ def process_identity(pid):
     if result.returncode or len(fields) != 2 or fields[0].startswith(('Z', 'X')):
         return None
     return fields[1]
+
+
+def owner_identity(owner):
+    # The one-file Python executable has its own short-lived parent process.
+    # Only the native app can supply the stable owner of the whole transition.
+    if type(owner) is not int or not 1 < owner <= 2**31 - 1:
+        raise decrumb.SafeError('The app update coordinator is invalid. Reopen Decrumb and try again.')
+    identity = process_identity(owner)
+    if identity is None:
+        raise decrumb.SafeError('The app is no longer available to coordinate its update.')
+    return identity
 
 
 @contextlib.contextmanager
@@ -66,10 +76,7 @@ def guard(root):
 def prepare(root, control, resources, target_build, owner=None):
     if not isinstance(target_build, str) or not re.fullmatch(r"[1-9][0-9]{0,8}", target_build):
         raise decrumb.SafeError("The update build number is invalid.")
-    owner = owner or os.getppid()
-    identity = process_identity(owner)
-    if identity is None:
-        raise decrumb.SafeError('The app is no longer available to coordinate its update.')
+    identity = owner_identity(owner)
     previous = marker(root)
     if previous and (previous['owner'] != owner or previous['identity'] != identity):
         raise decrumb.SafeError('Another app instance is coordinating an update. Reopen Decrumb after it finishes.')
@@ -145,12 +152,11 @@ def recover(root, resources, control, *, token=None, bootstrap=False, current_bu
 
 def claim(root, owner=None):
     """A new interface reattaches Sparkle to the interrupted transition."""
+    identity = owner_identity(owner)
     value = marker(root)
     if value is None:
         return {}
-    owner = owner or os.getppid()
-    identity = process_identity(owner)
-    if identity is None or (live(value) and value['owner'] != owner):
+    if live(value) and value['owner'] != owner:
         raise decrumb.SafeError('Another app instance is still coordinating the update.')
     value.update(owner=owner, identity=identity)
     decrumb.write_json(root / MARKER, value)
