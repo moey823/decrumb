@@ -23,7 +23,10 @@ def main():
         suite.addTests(loader.loadTestsFromName(name))
     import test_decrumb
     for name in loader.getTestCaseNames(test_decrumb.TransportTests):
-        if name != 'test_full_worker_with_fake_signal_server':
+        # These fixtures execute a POSIX shebang script. WindowsNativeTests
+        # exercises the same ordinary/disappearing delivery through native startup.
+        if name not in {'test_full_worker_with_fake_signal_server',
+                        'test_full_worker_cleans_disappearing_x_link_to_note_to_self'}:
             suite.addTest(test_decrumb.TransportTests(name))
     return 0 if unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful() else 1
 

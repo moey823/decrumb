@@ -85,7 +85,7 @@ for line in sys.stdin:
   lines=r['params']['message'].splitlines()
   assert len(lines)==3
   assert lines[0]=='Decrumb · From Synthetic Sender'
-  assert lines[1]=='https://example.com/?id=1'
+  assert lines[1]=='https://x.com/example/status/1234567890'
   assert re.fullmatch(r'#decrumb_[0-9a-f]{24}',lines[2])
   assert not (root/'synthetic-sends').exists(), 'Duplicate synthetic send'
   receipt={'timestamp':int(time.time()*1000),'marker':lines[2]}
@@ -103,7 +103,7 @@ for line in sys.stdin:
  if method=='subscribeReceive' and not (root/'synthetic-event-emitted').exists():
   (root/'synthetic-event-emitted').touch()
   timestamp=int(time.time()*1000)
-  data={'timestamp':timestamp,'message':'https://example.com/?utm_source=x&id=1','expiresInSeconds':0,'viewOnce':False,'textStyles':[]}
+  data={'timestamp':timestamp,'message':'https://x.com/example/status/1234567890?s=46&t=synthetic','expiresInSeconds':60,'viewOnce':False,'textStyles':[]}
   event={'method':'receive','params':{'account':'+15550000001','envelope':{'sourceUuid':'synthetic-peer','sourceName':'Synthetic Sender','dataMessage':data}}}
   print(json.dumps(event),flush=True); print(json.dumps(event),flush=True)
 ''')
@@ -130,14 +130,15 @@ for line in sys.stdin:
         assert note['sent_at'] == receipt['timestamp']
         assert note['marker'] == receipt['marker'] == '#' + note['id']
         assert note['can_cleanup'] is True
+        assert note['expires_at'] is None, 'Source chat timer changed the default manual cleanup policy'
         metadata = json.dumps(ledger)
-        for private_value in ('example.com', 'utm_source', 'Synthetic Sender', 'synthetic-peer', '+15550000001'):
+        for private_value in ('x.com', 'synthetic-peer', 'Synthetic Sender', '+15550000001'):
             assert private_value not in metadata, 'Receipt metadata included synthetic private content'
         assert not {'body', 'message', 'url', 'urls', 'sender', 'account', 'account_hash'} & set(note)
         status = call('snapshot')
         assert status['counts'] == {'sent': 1}
         assert status['state'] == 'stopped'
-        print('Packaged incoming-message processing, deduplication, Note to Self delivery, and shutdown passed.')
+        print('Packaged disappearing-message X cleanup, deduplication, Note to Self delivery, and shutdown passed.')
         # Seed only this temporary installation's own recorded receipt. Avoid desktop
         # lifecycle commands here: they manage real LaunchAgents even with --root.
         with decrumb.exclusive(root), contextlib.closing(decrumb.Store(root / 'outbox.sqlite3')) as store:
@@ -186,7 +187,7 @@ for line in sys.stdin:
   result={'timestamp':int(time.time()*1000),'results':[{'type':'SUCCESS'}]}
  print(json.dumps({'id':r['id'],'result':result}),flush=True)
  if method=='subscribeReceive':
-  data={'destinationNumber':'+15550000001','destinationUuid':'00000000-0000-4000-8000-000000000001','timestamp':int(time.time()*1000),'message':'/decrumb status','expiresInSeconds':0,'viewOnce':False,'textStyles':[]}
+  data={'destinationNumber':'+15550000001','destinationUuid':'00000000-0000-4000-8000-000000000001','timestamp':int(time.time()*1000),'message':'/decrumb status','expiresInSeconds':60,'viewOnce':False,'textStyles':[]}
   event={'method':'receive','params':{'account':'+15550000001','envelope':{'sourceNumber':'+15550000001','sourceUuid':'00000000-0000-4000-8000-000000000001','syncMessage':{'sentMessage':data}}}}
   print(json.dumps(event),flush=True); print(json.dumps(event),flush=True)
 ''')
@@ -210,7 +211,7 @@ for line in sys.stdin:
             stdout, stderr = worker.communicate(timeout=15)
         assert not stdout + stderr, 'Packaged phone command emitted unexpected diagnostics'
         assert call('snapshot')['counts']['sent'] == 2
-        print('Packaged optional phone command and duplicate suppression passed with fake Signal.')
+        print('Packaged disappearing-message phone command and duplicate suppression passed with fake Signal.')
     result = subprocess.run([str(helpers / 'signal-cli'), '--version'], capture_output=True, check=True, env=ENV, timeout=30)
     assert result.stdout.strip() == b'signal-cli 0.14.8'
     with tempfile.TemporaryDirectory(prefix='decrumb-native-smoke-') as directory:

@@ -4,7 +4,7 @@ Decrumb is a good fit for an always-on home server: incoming Signal links are
 cleaned while your phone and laptop come and go. Your Umbrel must stay powered on
 and online. Decrumb only sends the result to your Signal **Note to Self**.
 
-The Umbrel edition is an **experimental community app, Decrumb 1.1.1**, for ARM64
+The Umbrel edition is an **experimental community app, Decrumb 1.1.2**, for ARM64
 and Intel/AMD 64-bit systems. Both container architectures pass automated tests.
 The maintainer confirmed live Umbrel testing for an earlier release on 2026-09-21; see the
 [validation record](VALIDATION.md#maintainer-confirmed-umbrel-testing-2026-09-21).
@@ -123,14 +123,25 @@ for a private server behind Umbrel's authentication proxy, not public hosting.
 Native Signal pairing and delivery are covered by the maintainer's separate
 live-test confirmation; synthetic tests do not establish that result.
 
-Decrumb 1.1.1 uses source commit
+Decrumb 1.1.2 uses source commit
+`b03d5a4701ab0b5e62a521ebca2513254a5f678e`, with multiarchitecture digest
+`sha256:bd41c8c9b61a9e5f0171e4d2a3af0fbddc5fecaa5c4b67225f46dafe0e7b54ce`.
+The [native container build, tests and publication](https://github.com/moey823/decrumb/actions/runs/36153723444)
+passed on ARM64 and AMD64. The store pins this tested digest. Anonymous registry
+downloads verified the manifest, both architectures and their source/version
+labels. Both images carry the shared `1.1.2` release label. This release cleans
+links from disappearing messages and accepts phone commands when Note to Self
+has a disappearing-message timer. Generated notes use the Note to Self timer
+and configured cleanup policy, not the source chat's timer. View-once content
+and spoilers remain excluded.
+
+Decrumb 1.1.1 used source commit
 `318ac635900377a9f1a2e79c6db622cddb3639c1`, with multiarchitecture digest
 `sha256:ebc0162421a5ee7d153211159e326e9088406e0b517ff55f52a1fde39cd94f72`.
 The [native container build, tests and publication](https://github.com/moey823/decrumb/actions/runs/36140653704)
-passed on ARM64 and AMD64. The store on `main` pins this tested digest, and an
-anonymous manifest download verified public availability. Both images carry the
-shared `1.1.1` release label. This release adds X/Twitter share-link cleanup and
-the running version/build in the optional `/decrumb status` reply.
+passed on ARM64 and AMD64. Both images carry the shared `1.1.1` release label.
+That release added X/Twitter share-link cleanup and the running version/build
+in the optional `/decrumb status` reply.
 
 Decrumb 1.1.0 used source commit
 `27c41e493a462d9d201be15b5e688b8fbe83b821`, with multiarchitecture digest
@@ -148,7 +159,7 @@ and layouts at 375, 768, and 1280 pixels. No real account was linked or moved
 during these tests.
 
 All platforms share the release in `release.json`. Umbrel displays the equivalent
-SemVer string `1.1.1`; Mac, Pi and Windows use version `1.1.1`, build `8`. The first
+SemVer string `1.1.2`; Mac, Pi and Windows use version `1.1.2`, build `9`. The first
 Umbrel preview was labelled `0.1.0`; that historical tag remains available, but
 current releases use the shared Decrumb version. Each new release pins its tested
 container image while preserving existing account data.
