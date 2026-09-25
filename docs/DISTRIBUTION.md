@@ -3,11 +3,12 @@
 ## One version for every platform
 
 `release.json` is the release source of truth for Mac, Raspberry Pi, Umbrel, and Windows.
-The current source release candidate is **Decrumb 1.1.1**: Mac/Pi/Windows version `1.1.1`,
+The current source release is **Decrumb 1.1.1**: Mac/Pi/Windows version `1.1.1`,
 build `8`, and Umbrel version `1.1.1`. Platform names belong in artifact names, not in
 independent version sequences. Experimental platform support does not change the
-shared application version. Public downloads remain at 1.1.0 until new artifacts
-are published; source version changes do not update installed apps or containers.
+shared application version. Mac/Pi assets and the verified signed Mac update feed
+are published; the tested 1.1.1 Umbrel image is published and pinned.
+Source version changes alone do not update installed apps or containers.
 
 For the next release, update the version, monotonically increasing build number,
 and channel in `release.json`, then run:
@@ -34,17 +35,29 @@ Build 8 removes the `s` and `t` share parameters from X/Twitter links and adds
 the running version/build to the optional `/decrumb status` reply. These changes
 use the shared cleaner and phone-command implementation.
 
-The Mac release is being prepared. Signing, notarization, packaged validation,
-asset publication and deployment of the signed Sparkle feed must complete before
-**Check for Updates** can offer build 8. A commit pushed to `main` does not update
-the feed or an installed app. The release checklist is in
-[RELEASE-1.1.1.md](RELEASE-1.1.1.md); no build 8 publication or artifact validation
-is claimed here yet.
+Tag `v1.1.1` records source commit `3b955b92eabe77ffb1809099484b432a23cdf53f`.
+The 67.2 MB Mac DMG and app are Developer ID signed, Apple-notarized and stapled.
+The matching corresponding-source archive, signed Sparkle archive/feed, checksums
+and release receipt are published. Packaged synthetic smoke and all ten signed
+Sparkle acceptance scenarios passed. The Python suite passed 272 tests with
+4 skipped (276 total); Mac status tests passed. The fresh bundle reports 1.1.1,
+build 8, and its X/Twitter cleanup was verified.
 
-Pi and Umbrel publication requires matching tested artifacts. Existing platform
-downloads, image pins and historical release assets remain at their published
-versions until those artifacts are available. Windows remains a source-build
-preview.
+The source passed [Mac/Linux checks](https://github.com/moey823/decrumb/actions/runs/36140645832)
+and [native Windows checks](https://github.com/moey823/decrumb/actions/runs/36140649249).
+The matching Pi archive is published. Both Umbrel architectures passed
+[container checks and publication](https://github.com/moey823/decrumb/actions/runs/36140653704);
+their tested digest is pinned on `main` and verified publicly accessible. See
+[UMBREL.md](UMBREL.md) for exact image provenance. Windows remains a source-build
+preview; existing live-device validation limits still apply.
+
+Published 2026-09-25: [Decrumb 1.1.1](https://github.com/moey823/decrumb/releases/tag/v1.1.1).
+All eleven hosted assets match their local sizes and GitHub SHA-256 digests.
+The downloaded Mac DMG passed signature, stapled-ticket, Gatekeeper and packaged
+smoke checks. Downloaded update/archive signatures passed official Sparkle
+verification, and the live signed feed advertises build 8 with identical bytes.
+**Check for Updates** now offers build 8. See the complete evidence in
+[RELEASE-1.1.1.md](RELEASE-1.1.1.md). Historical release assets remain immutable.
 
 ## 1.1.0: native Windows CLI
 

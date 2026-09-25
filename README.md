@@ -25,12 +25,11 @@ private browser dashboard for an always-on server; see the
 [Umbrel guide](docs/UMBREL.md) for its release and validation status.
 
 **[Decrumb downloads](https://mkships.app/decrumb/download/).**
-The current published release is **Decrumb 1.1.0** (build 7; `1.1.0` in Umbrel),
-shared by Mac, Raspberry Pi, Umbrel and Windows. Matching Mac/Pi downloads and
-the Umbrel image are published; Windows is a source-build preview.
-**Decrumb 1.1.1** (build 8) is being prepared with X/Twitter share-link cleanup
-and version/build information in `/decrumb status`. Its Mac update is pending
-publication; pushing source changes alone does not make an update available.
+**Decrumb 1.1.1** (build 8; `1.1.1` in Umbrel) adds X/Twitter share-link cleanup
+and version/build information in `/decrumb status`. The signed, notarized Mac
+download and update feed are published and verified, alongside the matching Pi
+archive and tested Umbrel image. Choose **Check for Updates** on Mac to install
+build 8. Windows remains a source-build preview.
 See the [release notes](docs/RELEASE-NOTES.md).
 The release targets Apple Silicon Macs with macOS 26.4 or later,
 Raspberry Pi OS 64-bit (Bookworm or later), and ARM64 or Intel/AMD Umbrel servers.
