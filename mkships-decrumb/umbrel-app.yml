@@ -2,7 +2,7 @@ manifestVersion: 1
 id: mkships-decrumb
 category: social
 name: Decrumb
-version: "1.1.0"
+version: "1.1.1"
 tagline: Clean Signal links, waiting in Note to Self
 description: >-
   Run Decrumb on your always-on Umbrel. It removes tracking from incoming Signal
@@ -25,11 +25,11 @@ description: >-
   Automated container tests pass on both architectures. Decrumb uses
   the unofficial signal-cli client and is independent of Signal and Umbrel.
 releaseNotes: >-
-  Decrumb 1.1.0 adds an experimental native Windows CLI alongside Mac, Raspberry
-  Pi and Umbrel. All platforms share version 1.1.0 and the same cleaning rules,
-  privacy filters, delivery queue and content-free diagnostics. This Umbrel
-  update includes the shared runtime changes and preserves linked accounts,
-  saved rules and generated-note receipts.
+  Decrumb 1.1.1 cleans X and Twitter share links by removing the s and t tracking
+  parameters, while preserving redirect inputs and other functional fields.
+  The optional /decrumb status phone command now reports the running app's
+  version and build number. This update preserves linked accounts, saved rules
+  and generated-note receipts.
 developer: Matthew Kearney
 website: https://mkships.app/decrumb/
 dependencies: []

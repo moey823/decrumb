@@ -1,5 +1,17 @@
 # Decrumb release notes
 
+## 1.1.1 — X/Twitter link cleanup and status version (build 8)
+
+- Removes the `s` and `t` share parameters from X/Twitter links using the shared
+  cleaning rules, including links to posts.
+- Includes the running version and build number in the optional
+  `/decrumb status` reply, for example `Version: 1.1.1 (build 8)`.
+
+Release candidate; publication of the signed Mac update is pending. Mac
+**Check for Updates** reads the published update feed, so source commits alone
+do not deliver these changes to an installed app. See
+[distribution status](DISTRIBUTION.md#111-xtwitter-link-cleanup-and-status-version).
+
 ## 1.1.0 — native Windows CLI (build 7)
 
 - Adds an experimental native Windows x64 CLI with terminal QR pairing, hidden

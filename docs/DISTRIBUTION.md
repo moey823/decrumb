@@ -3,10 +3,11 @@
 ## One version for every platform
 
 `release.json` is the release source of truth for Mac, Raspberry Pi, Umbrel, and Windows.
-The current source release is **Decrumb 1.1.0**: Mac/Pi/Windows version `1.1.0`,
-build `7`, and Umbrel version `1.1.0`. Platform names belong in artifact names, not in
+The current source release candidate is **Decrumb 1.1.1**: Mac/Pi/Windows version `1.1.1`,
+build `8`, and Umbrel version `1.1.1`. Platform names belong in artifact names, not in
 independent version sequences. Experimental platform support does not change the
-shared application version.
+shared application version. Public downloads remain at 1.1.0 until new artifacts
+are published; source version changes do not update installed apps or containers.
 
 For the next release, update the version, monotonically increasing build number,
 and channel in `release.json`, then run:
@@ -26,6 +27,24 @@ Keep published binaries and tags immutable. The original Umbrel `0.1.0` preview
 is historical. Store updates must pin a tested image of the matching new release;
 changing only the store's version label is not a platform update.
 Release notes group all platform downloads under one Decrumb tag.
+
+## 1.1.1: X/Twitter link cleanup and status version
+
+Build 8 removes the `s` and `t` share parameters from X/Twitter links and adds
+the running version/build to the optional `/decrumb status` reply. These changes
+use the shared cleaner and phone-command implementation.
+
+The Mac release is being prepared. Signing, notarization, packaged validation,
+asset publication and deployment of the signed Sparkle feed must complete before
+**Check for Updates** can offer build 8. A commit pushed to `main` does not update
+the feed or an installed app. The release checklist is in
+[RELEASE-1.1.1.md](RELEASE-1.1.1.md); no build 8 publication or artifact validation
+is claimed here yet.
+
+Pi and Umbrel publication requires matching tested artifacts. Existing platform
+downloads, image pins and historical release assets remain at their published
+versions until those artifacts are available. Windows remains a source-build
+preview.
 
 ## 1.1.0: native Windows CLI
 
