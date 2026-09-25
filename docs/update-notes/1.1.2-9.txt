@@ -1,0 +1,9 @@
+Decrumb 1.1.2 (build 9)
+
+Links in disappearing messages are now cleaned. Saved notes follow your Note to Self timer and Decrumb cleanup preferences; the source chat's timer is not copied. View-once content and spoilers remain excluded.
+
+Phone commands also work when Note to Self has a disappearing-message timer enabled.
+
+Settings > Cleaning rules > View domains and rules now lists the installed defaults, site rules, exceptions and limits.
+
+The updater now includes release notes in its signed feed so they can display immediately.

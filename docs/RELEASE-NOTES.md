@@ -1,5 +1,23 @@
 # Decrumb release notes
 
+## 1.1.2 — disappearing messages and visible cleaning rules (build 9)
+
+- Cleans links in incoming disappearing messages. Generated notes follow your
+  Note to Self timer and Decrumb cleanup preferences; the source chat's timer is
+  not copied. View-once content and spoilers stay excluded.
+- Accepts optional `/decrumb` phone commands when Note to Self has a
+  disappearing-message timer enabled.
+- Adds **Settings → Cleaning rules → View domains and rules** on Mac, listing
+  the installed global parameters, Instagram and X/Twitter rules, exceptions and
+  limits, including no short-link expansion.
+- Embeds release notes in the signed update feed so the updater's notes area
+  displays them. Packaging rejects missing or mismatched notes.
+
+Release preparation is in progress. Signed/notarized Mac packaging, update
+acceptance, cross-platform CI, hosted download checks and publication are pending.
+The published Mac update remains 1.1.1/build 8. See the
+[release record](RELEASE-1.1.2.md).
+
 ## 1.1.1 — X/Twitter link cleanup and status version (build 8)
 
 - Removes the `s` and `t` share parameters from X/Twitter links using the shared

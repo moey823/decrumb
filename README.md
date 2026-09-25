@@ -25,11 +25,11 @@ private browser dashboard for an always-on server; see the
 [Umbrel guide](docs/UMBREL.md) for its release and validation status.
 
 **[Decrumb downloads](https://mkships.app/decrumb/download/).**
-**Decrumb 1.1.1** (build 8; `1.1.1` in Umbrel) adds X/Twitter share-link cleanup
-and version/build information in `/decrumb status`. The signed, notarized Mac
-download and update feed are published and verified, alongside the matching Pi
-archive and tested Umbrel image. Choose **Check for Updates** on Mac to install
-build 8. Windows remains a source-build preview.
+**Decrumb 1.1.2** (build 9; `1.1.2` in Umbrel) is being prepared for release.
+It cleans links in disappearing messages, adds a built-in domains and rules list
+in Mac settings, and includes release notes in the updater. Signing, notarization,
+hosted checks and publication are pending; **Check for Updates** still offers the
+published 1.1.1/build 8. Windows remains a source-build preview.
 See the [release notes](docs/RELEASE-NOTES.md).
 The release targets Apple Silicon Macs with macOS 26.4 or later,
 Raspberry Pi OS 64-bit (Bookworm or later), and ARM64 or Intel/AMD Umbrel servers.
@@ -62,7 +62,8 @@ for platform validation and release limits.
   periodic cleanup. Clear queued links locally without removing sent notes.
 - **Cleaning rules:** choose all sites, selected sites, or off. Exclude sites;
   remove or preserve exact parameter names per site. Save validates the rules and
-  clears pending links authorized under the previous settings.
+  clears pending links authorized under the previous settings. **View domains and
+  rules** lists the installed defaults, exceptions and protections.
 - **Try a link:** preview unsaved settings locally. Shows before/after and removed
   parameter names. Nothing is fetched, sent, or saved by the preview.
 - **Import/export:** transfer versioned JSON rules without account keys or state.

@@ -3,11 +3,12 @@
 ## One version for every platform
 
 `release.json` is the release source of truth for Mac, Raspberry Pi, Umbrel, and Windows.
-The current source release is **Decrumb 1.1.1**: Mac/Pi/Windows version `1.1.1`,
-build `8`, and Umbrel version `1.1.1`. Platform names belong in artifact names, not in
+The current source release is **Decrumb 1.1.2**: Mac/Pi/Windows version `1.1.2`,
+build `9`, and Umbrel version `1.1.2`. Platform names belong in artifact names, not in
 independent version sequences. Experimental platform support does not change the
-shared application version. Mac/Pi assets and the verified signed Mac update feed
-are published; the tested 1.1.1 Umbrel image is published and pinned.
+shared application version. Release 1.1.2 is in preparation; its signed Mac update,
+Mac/Pi downloads and matching tested Umbrel image are not yet published. The
+published Mac update remains 1.1.1/build 8 until the new release passes acceptance.
 Source version changes alone do not update installed apps or containers.
 
 For the next release, update the version, monotonically increasing build number,
@@ -28,6 +29,25 @@ Keep published binaries and tags immutable. The original Umbrel `0.1.0` preview
 is historical. Store updates must pin a tested image of the matching new release;
 changing only the store's version label is not a platform update.
 Release notes group all platform downloads under one Decrumb tag.
+
+## 1.1.2: disappearing messages and visible cleaning rules
+
+Build 9 cleans links in incoming disappearing messages and accepts authenticated
+phone commands when Note to Self has a disappearing-message timer. Generated notes
+follow the Note to Self timer and configured note-cleanup policy; the source chat's
+timer is not copied. View-once content, spoilers and loop exclusions remain.
+
+Mac **Settings → Cleaning rules → View domains and rules** shows the installed
+defaults, including global parameters, Instagram and X/Twitter rules, exceptions,
+and limits. The update packager embeds version-specific notes in its signed feed
+so the release-notes box has content to display.
+
+Preparation is in progress. Signing/notarization, packaged smoke, signed Sparkle
+acceptance, cross-platform CI, matching container publication and hosted artifact
+checks remain pending. Planned release tag: `v1.1.2`. See
+[RELEASE-1.1.2.md](RELEASE-1.1.2.md) for the acceptance record and artifact names.
+Windows remains an unsigned source-build preview; live-device validation limits
+are unchanged.
 
 ## 1.1.1: X/Twitter link cleanup and status version
 
@@ -243,7 +263,7 @@ other helpers do not receive that exception.
 
 Before packaging, add UTF-8 plain-text release notes in
 `docs/update-notes/<version>-<build>.txt` matching the app's version and build
-(for example, `docs/update-notes/1.1.1-8.txt`). Keep them nonempty and under 16 KiB.
+(for example, `docs/update-notes/1.1.2-9.txt`). Keep them nonempty and under 16 KiB.
 The update packager embeds these notes in the signed feed and rejects missing or
 mismatched notes. This lets the updater display notes without another network request.
 
