@@ -236,25 +236,64 @@ class UpdateReleaseTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 sparkle.validate_configuration(value)
 
-    def test_feed_must_bind_archive_version_os_architecture_signature_and_url(self):
+    def test_feed_must_bind_archive_version_os_architecture_signature_url_and_notes(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             archive, feed = root / 'update.zip', root / 'appcast.xml'
             archive.write_bytes(b'synthetic archive')
             info = {'CFBundleVersion': '3', 'CFBundleShortVersionString': '1.0.1', 'LSMinimumSystemVersion': '26.4'}
             url = 'https://github.com/moey823/decrumb/releases/download/v1.0.1/update.zip'
+            notes = '<description sparkle:format="plain-text">Synthetic release notes.</description>'
             xml = ('<rss xmlns:sparkle="' + prepare_update.SPARKLE_NS + '"><channel><item>'
                    '<sparkle:version>3</sparkle:version><sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>'
                    '<sparkle:minimumSystemVersion>26.4</sparkle:minimumSystemVersion>'
-                   '<sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>'
+                   '<sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>' + notes +
                    '<enclosure url="' + url + '" length="17" sparkle:edSignature="' + 'A' * 86 + '=="/>'
                    '</item></channel></rss>')
             feed.write_text(xml)
-            prepare_update.validate_feed(feed, archive, info, url)
+            prepare_update.validate_feed(feed, archive, info, url, expected_notes='Synthetic release notes.')
+            with self.assertRaises(ValueError):
+                prepare_update.validate_feed(feed, archive, info, url, expected_notes='Notes for another release.')
             modern = xml.replace('>26.4<', '>27.0<').replace('<sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>', '')
             feed.write_text(modern)
             prepare_update.validate_feed(feed, archive, {**info, 'LSMinimumSystemVersion': '27.0'}, url)
-            for before, after in [('>3<', '>2<'), ('>26.4<', '>27.0<'), ('>arm64<', '>x86_64<'), ('length="17"', 'length="18"'), ('https://github.com/', 'http://github.com/'), ('A' * 86, 'bad')]:
+            for before, after in [('>3<', '>2<'), ('>26.4<', '>27.0<'), ('>arm64<', '>x86_64<'),
+                                  ('length="17"', 'length="18"'), ('https://github.com/', 'http://github.com/'),
+                                  ('A' * 86, 'bad'), (notes, ''), ('Synthetic release notes.', '  \n '),
+                                  ('sparkle:format="plain-text"', 'sparkle:format="html"'),
+                                  (notes, notes + notes),
+                                  (notes, notes + '<sparkle:releaseNotesLink>https://example.com/notes</sparkle:releaseNotesLink>')]:
                 feed.write_text(xml.replace(before, after))
                 with self.subTest(before=before), self.assertRaises(ValueError):
                     prepare_update.validate_feed(feed, archive, info, url)
+
+    def test_release_notes_are_bound_to_version_and_build(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(prepare_update, 'NOTES_DIRECTORY', Path(folder)):
+            info = {'CFBundleVersion': '3', 'CFBundleShortVersionString': '1.0.1'}
+            (Path(folder) / '1.0.1-2.txt').write_text('Previous build notes.', encoding='utf-8')
+            with self.assertRaises(ValueError):
+                prepare_update.release_notes(info)
+            (Path(folder) / '1.0.1-3.txt').write_text('  Synthetic notes.\n', encoding='utf-8')
+            self.assertEqual(prepare_update.release_notes(info), 'Synthetic notes.')
+            for key, value in [('CFBundleVersion', '../3'), ('CFBundleShortVersionString', '../1.0.1')]:
+                with self.subTest(key=key), self.assertRaises(ValueError):
+                    prepare_update.release_notes({**info, key: value})
+
+    def test_release_notes_reject_blank_oversized_and_invalid_utf8_files(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(prepare_update, 'NOTES_DIRECTORY', Path(folder)):
+            path = Path(folder) / '1.0.1-3.txt'
+            info = {'CFBundleVersion': '3', 'CFBundleShortVersionString': '1.0.1'}
+            for contents in (b' \n\t', b'x' * 16385, b'\xff'):
+                path.write_bytes(contents)
+                with self.subTest(size=len(contents)), self.assertRaises(ValueError):
+                    prepare_update.release_notes(info)
+
+    def test_missing_release_notes_stop_packaging_before_signing(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(prepare_update, 'NOTES_DIRECTORY', Path(folder)), \
+                patch.object(sparkle, 'distribution') as distribution, patch.object(prepare_update, 'run') as command:
+            info = {**sparkle.configuration(), 'CFBundleVersion': '3', 'CFBundleShortVersionString': '1.0.1'}
+            with self.assertRaises(ValueError):
+                prepare_update.prepare(Path(folder) / 'Decrumb.app', Path(folder), 'Decrumb-1.0.1-3', info,
+                                       account='synthetic-signing-account', release_tag='v1.0.1')
+            distribution.assert_not_called()
+            command.assert_not_called()

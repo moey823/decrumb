@@ -12,6 +12,23 @@ except ModuleNotFoundError:
     import sparkle
 
 SPARKLE_NS = 'http://www.andymatuschak.org/xml-namespaces/sparkle'
+NOTES_DIRECTORY = Path(__file__).resolve().parents[1] / 'docs' / 'update-notes'
+
+
+def release_notes(info):
+    version, build = info['CFBundleShortVersionString'], info['CFBundleVersion']
+    if (not re.fullmatch(r'[0-9]+(?:\.[0-9]+)*', version) or
+            not re.fullmatch(r'[0-9]+', build)):
+        raise ValueError('Update release notes require a numeric version and build')
+    path = NOTES_DIRECTORY / (version + '-' + build + '.txt')
+    try:
+        content = path.read_bytes()
+        notes = content.decode('utf-8').strip()
+    except (OSError, UnicodeError):
+        raise ValueError('Add UTF-8 update release notes at ' + str(path)) from None
+    if not notes or len(content) > 16384:
+        raise ValueError('Update release notes must be nonempty and at most 16 KiB')
+    return notes
 
 
 def run(tool, *args):
@@ -24,13 +41,20 @@ def run(tool, *args):
     return result.stdout.strip()
 
 
-def validate_feed(path, archive, info, url):
+def validate_feed(path, archive, info, url, *, expected_notes=None):
     root = ET.parse(path).getroot()
     items = root.findall('./channel/item')
     if len(items) != 1:
         raise ValueError('Expected one explicitly versioned update item')
     item = items[0]
     field = lambda name: item.findtext('{' + SPARKLE_NS + '}' + name)
+    descriptions = item.findall('description')
+    # SUShowReleaseNotes forces the box open; without notes Sparkle keeps spinning.
+    if (len(descriptions) != 1 or not (descriptions[0].text or '').strip() or
+            descriptions[0].get('{' + SPARKLE_NS + '}format') != 'plain-text' or
+            item.find('{' + SPARKLE_NS + '}releaseNotesLink') is not None or
+            (expected_notes is not None and descriptions[0].text.strip() != expected_notes)):
+        raise ValueError('Generated update feed must embed the matching plain-text release notes')
     enclosure = item.find('enclosure')
     # Official Sparkle omits arm64 on macOS 27+, which itself excludes Intel.
     minimum_major = int(info['LSMinimumSystemVersion'].split('.')[0])
@@ -50,6 +74,7 @@ def prepare(app, destination, stem, info, *, account, release_tag):
     if not account or not re.fullmatch(r'[A-Za-z0-9._-]+', release_tag or ''):
         raise ValueError('Update packaging requires a Keychain account reference and immutable release tag')
     sparkle.validate_configuration(info)
+    notes = release_notes(info)
     tools = sparkle.distribution() / 'bin'
     public = run(tools / 'generate_keys', '--account', account, '-p')
     if public != info['SUPublicEDKey']:
@@ -58,11 +83,13 @@ def prepare(app, destination, stem, info, *, account, release_tag):
     folder.mkdir()
     archive = folder / (stem + '-update.zip')
     run('/usr/bin/ditto', '-c', '-k', '--sequesterRsrc', '--keepParent', app, archive)
+    archive.with_suffix('.txt').write_text(notes, encoding='utf-8')
     prefix = 'https://github.com/moey823/decrumb/releases/download/' + release_tag + '/'
     run(tools / 'generate_appcast', '--account', account, '--download-url-prefix', prefix,
-        '--maximum-deltas', '0', '--maximum-versions', '1', '--link', 'https://mkships.app/decrumb/', folder)
+        '--maximum-deltas', '0', '--maximum-versions', '1', '--embed-release-notes',
+        '--link', 'https://mkships.app/decrumb/', folder)
     feed = folder / 'appcast.xml'
-    signature = validate_feed(feed, archive, info, prefix + archive.name)
+    signature = validate_feed(feed, archive, info, prefix + archive.name, expected_notes=notes)
     run(tools / 'sign_update', '--account', account, '--verify', archive, signature)
     run(tools / 'sign_update', '--account', account, '--verify', feed)
     final_archive = destination / archive.name

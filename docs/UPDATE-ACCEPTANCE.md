@@ -75,7 +75,10 @@ notarization Keychain profile, Sparkle Keychain account reference and immutable
 release tag. It produces the notarized/stapled DMG, matching source ZIP, update
 ZIP, signed appcast, checksums and release receipt. Upload assets before deploying
 the exact signed appcast to `https://mkships.app/decrumb/appcast.xml`. Verify the
-hosted bytes and signatures after download. Never hand-edit a signed appcast,
+hosted bytes, signatures and embedded plain-text release notes after download.
+Notes come from `docs/update-notes/<version>-<build>.txt`; confirm they match the
+advertised release and display in the updater without leaving its spinner running.
+Never hand-edit a signed appcast,
 replace an existing release asset, publish a development image as production,
 or bypass Gatekeeper for acceptance.
 

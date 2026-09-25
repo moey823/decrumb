@@ -241,6 +241,12 @@ native-library loading. Signal CLI alone needs a library-validation exception
 because its native image extracts embedded JNI libraries. The interface and
 other helpers do not receive that exception.
 
+Before packaging, add UTF-8 plain-text release notes in
+`docs/update-notes/<version>-<build>.txt` matching the app's version and build
+(for example, `docs/update-notes/1.1.1-8.txt`). Keep them nonempty and under 16 KiB.
+The update packager embeds these notes in the signed feed and rejects missing or
+mismatched notes. This lets the updater display notes without another network request.
+
 The production packager notarizes and staples a staged copy of the app, assesses
 it with Gatekeeper, creates and signs the DMG, then notarizes, staples, and assesses
 the DMG. Rejected or unconfirmed submissions do not produce a completed release.
@@ -268,7 +274,11 @@ release notes, and corresponding source/build materials. Keep version-specific
 URLs immutable. Production packaging emits an update archive and signed appcast
 for the stable feed `https://mkships.app/decrumb/appcast.xml`. Publish the archive
 at the exact GitHub release-tag URL embedded in the appcast, then deploy the
-appcast unchanged at that stable URL; changing XML invalidates its signature. No application server or message storage is
+appcast unchanged at that stable URL; changing XML invalidates its signature.
+To correct notes after publication, regenerate and verify the signed feed with
+Sparkle's official tools, preserving the immutable archive URL, signature,
+version and build, then deploy the regenerated feed at the stable URL. Leave
+the existing GitHub release assets unchanged. No application server or message storage is
 needed for this hosting arrangement.
 
 ## In-app updates

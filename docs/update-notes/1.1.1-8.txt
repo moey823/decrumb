@@ -1,0 +1,5 @@
+Decrumb 1.1.1 (build 8)
+
+Shared X/Twitter links now have their tracking parameters removed.
+
+The /decrumb status command now shows your running Decrumb version and build number.
