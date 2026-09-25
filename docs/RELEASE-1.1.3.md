@@ -31,14 +31,20 @@ these notes in the signed appcast unchanged.
 
 ## Pending release checks
 
-- [ ] Finish source changes and run the offline Python suite, native status
-  tests and development app build.
-- [ ] Pass isolated signed Sparkle installation, cancellation, retry, automatic
-  update, Quit and recovery scenarios, including the real packaged helper path.
+- [x] Core changes committed as `7ef5e4a`. Offline Python suite: 309 passed,
+  4 platform skips (313 total). Native status tests, development app build and
+  all six packaged synthetic smoke groups passed.
+- [x] All fourteen isolated signed Sparkle scenarios passed, including actual
+  standard updater buttons, preparation failure/retry and Quit with a ready
+  update. The Quit fixture verified replacement completed without relaunch,
+  stopped cleaning and preserved synthetic account, queue and receipt bytes.
+  The production coordinator/backend were used with a synthetic worker service.
 - [ ] Pass Mac/Linux and Windows CI for the frozen release source.
-- [ ] Test and publish both Umbrel architectures, verify their manifests and
-  pin the exact tested image digest. The store version alone is not an update;
-  the existing image pin remains from 1.1.2 during preparation.
+- [x] [Container CI](https://github.com/moey823/decrumb/actions/runs/36164404884)
+  passed both architectures and published source `7ef5e4a`. The store pins
+  `sha256:e0bad5861cb0c57c54dcbe0f3210971329d4235ded08a6ab7f62e93be16bf3c9`.
+  Anonymous index, child-manifest and config verification confirmed version
+  1.1.3 and the exact source on ARM64 and AMD64.
 - [ ] Collect complete corresponding-source materials for the final checkout.
 - [ ] Build the production Mac app; pass packaged synthetic smoke; notarize,
   staple and verify the app and DMG with Gatekeeper.

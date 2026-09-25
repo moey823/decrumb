@@ -43,9 +43,9 @@ sent-note records, the linked account, settings and Start at login preference.
 cleaning. A pending update keeps its recovery checkpoint until installation can
 be reconciled on a later launch, without a Quit-created watchdog reopening the app.
 
-Packaging and publication are pending. The current store manifest version is
-1.1.3, but its image pin remains the tested 1.1.2 image until replacement container
-acceptance passes. Do not treat the changed version label as a deployed update.
+Mac packaging and general publication are pending. The 1.1.3 store manifest
+now pins the tested ARM64 and AMD64 image from source `7ef5e4a`; see
+[UMBREL.md](UMBREL.md) for its immutable digest and validation evidence.
 
 ## 1.1.2: disappearing messages and visible cleaning rules
 
