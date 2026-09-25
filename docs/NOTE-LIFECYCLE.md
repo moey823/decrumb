@@ -34,7 +34,7 @@ receiver or change the pause preference.
 Sender attribution is part of the generated note's content. It is a display name,
 not verified identity. Normalize control characters and bound its length so it
 cannot add misleading note fields. When no suitable name is available, omit the
-attribution. Exclusions for disappearing messages, view-once content, spoilers,
+attribution. Exclusions for view-once content, spoilers,
 edits, outbound/synced messages, and Note to Self continue to apply before note
 generation.
 
@@ -86,6 +86,11 @@ separate Signal *delete for me* synchronization mechanism. Its Note to Self send
 path inherits the conversation's disappearing-message timer. Decrumb must not
 change that conversation-wide timer to implement its own note lifetimes, because
 doing so would affect unrelated personal notes.
+
+Links in incoming disappearing messages are cleaned using the same rules as other
+incoming links. Their generated notes follow the Note to Self timer and Decrumb's
+configured note-cleanup policy; the source chat's timer is not copied. Authenticated
+phone commands also work when Note to Self has a disappearing-message timer enabled.
 
 ## Local storage and privacy
 

@@ -655,7 +655,7 @@ struct RootView: View {
             HStack(alignment: .top, spacing: 22) {
                 promise("lock.shield", "Stays local", "No link fetching or tracking service.")
                 promise("note.text", "Only Note to Self", "Never replies to people or groups.")
-                promise("eye.slash", "Respects privacy", "Skips disappearing and spoiler messages.")
+                promise("eye.slash", "Respects privacy", "Skips view-once content and spoilers.")
             }
         }
     }
@@ -763,7 +763,7 @@ struct RootView: View {
                 Toggle("Enable commands from Note to Self", isOn: $model.phoneCommandsEnabled)
                     .onChange(of: model.phoneCommandsEnabled) { model.dirty = true }
                 Text("Send /decrumb help, /decrumb status, or /decrumb clean followed by a link to Note to Self. Replies stay in Note to Self and use your cleaning rules.").font(.callout).foregroundStyle(.secondary)
-                Text("The helper must already be running and online. Commands sent while it is stopped are ignored. Disappearing messages and spoilers are excluded. Commands never run shell commands, open files, or fetch links.").font(.caption).foregroundStyle(.secondary)
+                Text("The helper must already be running and online. Commands sent while it is stopped are ignored. View-once content and spoilers are excluded. Commands never run shell commands, open files, or fetch links.").font(.caption).foregroundStyle(.secondary)
             }
             card {
                 Toggle("Start Decrumb at login", isOn: $model.startAtLogin).onChange(of: model.startAtLogin) { model.dirty = true }

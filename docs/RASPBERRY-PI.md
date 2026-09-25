@@ -73,8 +73,10 @@ If `~/.local/bin` is on your `PATH`, you can use `decrumb` directly.
 
 Pause survives reboot on the Pi until you explicitly resume. Status reports
 connection state and counts without messages, account identifiers, or links.
-The worker still honors view-once, disappearing-message, spoiler, and loop
-exclusions. Its only automatic send destination is Note to Self.
+The worker cleans links in disappearing messages too, while preserving view-once,
+spoiler, and loop exclusions. Its only automatic send destination is Note to Self.
+Generated notes use the Note to Self timer and configured note-cleanup policy;
+the source chat's timer is not copied.
 
 Cleaning rules use the same JSON format as the Mac app. Write settings in a
 private file outside the extracted source folder, then apply them:

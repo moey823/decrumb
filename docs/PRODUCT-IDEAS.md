@@ -9,8 +9,9 @@ Ranked for usefulness across an always-on Mac and Raspberry Pi, 2026-09-20.
    bounded outbox and receipt tracking. They never fetch links, run shell commands,
    open files, change settings, or call an AI provider. The helper must already be
    running and online; old commands are not replayed when it starts. Only fresh,
-   authenticated self-to-self sent transcripts qualify. Disappearing messages,
-   view-once content, spoilers and unknown styles remain excluded. Off by default.
+   authenticated self-to-self sent transcripts qualify, including when Note to
+   Self has a disappearing-message timer enabled. View-once content, spoilers and
+   unknown styles remain excluded. Off by default.
 2. **A device health snapshot.** A future explicit command could return uptime,
    low-disk warnings and helper state, without hostnames, IP addresses or paths.
    Useful for a Pi out of sight; requires separate platform-specific validation.

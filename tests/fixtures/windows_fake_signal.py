@@ -37,11 +37,16 @@ for line in sys.stdin:
             'sourceNumber': '+15550000002', 'dataMessage': {'timestamp': timestamp,
             'message': 'https://example.invalid/?utm_source=synthetic&id=1',
             'expiresInSeconds': 0, 'viewOnce': False, 'textStyles': []}}}}}
-        # Duplicate delivery plus the three privacy exclusions.
+        # Duplicate delivery, a disappearing X link, and excluded metadata.
         for item in (event, event):
             print(json.dumps(item), flush=True)
-        for index, (key, value) in enumerate((('expiresInSeconds', 60), ('viewOnce', True),
+        disappearing = copy.deepcopy(event)
+        disappearing['params']['result']['envelope']['dataMessage'].update({
+            'timestamp': timestamp + 1, 'expiresInSeconds': 60,
+            'message': 'https://x.com/example/status/1234567890?s=46&t=synthetic_share_token'})
+        print(json.dumps(disappearing), flush=True)
+        for index, (key, value) in enumerate((('expiresInSeconds', -1), ('viewOnce', True),
                 ('textStyles', [{'style': 'SPOILER', 'start': 0, 'length': 4}]))):
             item = copy.deepcopy(event)
-            item['params']['result']['envelope']['dataMessage'].update({key: value, 'timestamp': timestamp + index + 1})
+            item['params']['result']['envelope']['dataMessage'].update({key: value, 'timestamp': timestamp + index + 2})
             print(json.dumps(item), flush=True)

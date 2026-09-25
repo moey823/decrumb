@@ -75,7 +75,7 @@ def candidate(event, aliases, enabled_at, current):
     for key in ("isExpirationUpdate", "isEndSession", "isProfileKeyUpdate"):
         if data.get(key) is not None and data.get(key) is not False:
             return None
-    if type(data.get("expiresInSeconds")) is not int or data["expiresInSeconds"] != 0 or data.get("viewOnce") is not False:
+    if type(data.get("expiresInSeconds")) is not int or data["expiresInSeconds"] < 0 or data.get("viewOnce") is not False:
         return None
     styles = data.get("textStyles", [])
     if not isinstance(styles, list) or any(

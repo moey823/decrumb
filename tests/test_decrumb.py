@@ -23,12 +23,12 @@ SELF = "+15550000001"
 PEER = "+15550000002"
 
 
-def event(timestamp, text=SAMPLE):
+def event(timestamp, text=SAMPLE, expires=0):
     return {"jsonrpc": "2.0", "method": "receive", "params": {"subscription": 0, "result": {
         "account": SELF, "envelope": {
             "sourceUuid": "synthetic-peer-uuid", "sourceNumber": PEER,
             "timestamp": timestamp, "dataMessage": {
-                "timestamp": timestamp, "message": text, "expiresInSeconds": 0,
+                "timestamp": timestamp, "message": text, "expiresInSeconds": expires,
                 "viewOnce": False, "textStyles": [],
             },
         },
@@ -101,7 +101,8 @@ class FilteringTests(unittest.TestCase):
 
     def test_private_and_control_messages_skipped(self):
         for key, value in [
-            ("expiresInSeconds", 60), ("expiresInSeconds", None), ("expiresInSeconds", "0"),
+            ("expiresInSeconds", -1), ("expiresInSeconds", None), ("expiresInSeconds", "0"),
+            ("expiresInSeconds", True), ("expiresInSeconds", False), ("expiresInSeconds", 60.0),
             ("viewOnce", True), ("isExpirationUpdate", True), ("isEndSession", True),
             ("reaction", {"emoji": "👍"}), ("remoteDelete", {"timestamp": 123}),
             ("storyContext", {"timestamp": 123}), ("pollCreate", {"question": "q"}),
@@ -113,6 +114,13 @@ class FilteringTests(unittest.TestCase):
                 changed = copy.deepcopy(self.value)
                 changed["params"]["result"]["envelope"]["dataMessage"][key] = value
                 self.assertIsNone(self.accept(changed))
+
+    def test_disappearing_messages_are_accepted_but_missing_timer_is_not(self):
+        for expires in (0, 1, 60, 604800):
+            with self.subTest(expires=expires):
+                self.assertEqual(self.accept(event(self.now, expires=expires))[1:], (self.now, SAMPLE))
+        self.value["params"]["result"]["envelope"]["dataMessage"].pop("expiresInSeconds")
+        self.assertIsNone(self.accept(self.value))
 
     def test_loop_and_account_protection(self):
         for key, value in [("syncMessage", {"sentMessage": {"message": SAMPLE}}), ("sourceNumber", SELF), ("sourceUuid", "self-uuid"), ("editMessage", {"targetSentTimestamp": 123})]:
@@ -256,6 +264,13 @@ for line in sys.stdin:
                 self.assertLess(time.monotonic() - start, 3)
 
     def test_full_worker_with_fake_signal_server(self):
+        self.run_worker(event(0), CLEAN)
+
+    def test_full_worker_cleans_disappearing_x_link_to_note_to_self(self):
+        self.run_worker(event(0, "https://x.com/example/status/1234567890?s=46&t=synthetic_share_token", expires=60),
+                        "https://x.com/example/status/1234567890")
+
+    def run_worker(self, received, cleaned):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             fake = root / "fake-signal"
@@ -276,7 +291,7 @@ for line in sys.stdin:
   e['params']['result']['envelope']['dataMessage']['timestamp']=int(time.time()*1000)
   print(json.dumps(e),flush=True)
   print(json.dumps(e),flush=True)
-'''.replace("PYTHON", sys.executable).replace("'SELF'", repr(SELF)).replace("EVENT", repr(event(0)))
+'''.replace("PYTHON", sys.executable).replace("'SELF'", repr(SELF)).replace("EVENT", repr(received))
             fake.write_text(script)
             fake.chmod(0o700)
             decrumb.write_json(root / "config.json", {"version": 1, "signal_cli": str(fake), "helper": str(HELPER), "account": SELF, "settings": SETTINGS})
@@ -290,7 +305,7 @@ for line in sys.stdin:
                 payload = json.loads(calls.read_text())["params"]
                 self.assertEqual(set(payload), {"account", "noteToSelf", "message"})
                 self.assertEqual((payload["account"], payload["noteToSelf"]), (SELF, True))
-                self.assertRegex(payload["message"], r"^Decrumb\n" + __import__('re').escape(CLEAN) + r"\n#decrumb_[0-9a-f]{24}$")
+                self.assertRegex(payload["message"], r"^Decrumb\n" + __import__('re').escape(cleaned) + r"\n#decrumb_[0-9a-f]{24}$")
             finally:
                 process.terminate()
                 stdout, stderr = process.communicate(timeout=10)
@@ -300,6 +315,7 @@ for line in sys.stdin:
             self.assertEqual(status["counts"], {"sent": 1})
             log = (root / "worker.log").read_text()
             self.assertNotIn("instagram", log)
+            self.assertNotIn("x.com", log)
             self.assertNotIn(SELF, log)
             self.assertNotIn(PEER, log)
             self.assertEqual((root / "config.json").stat().st_mode & 0o777, 0o600)

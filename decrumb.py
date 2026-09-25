@@ -321,8 +321,8 @@ def candidate(event, aliases, enabled_at, current):
         "remoteDelete", "adminDelete", "storyContext", "pollCreate", "pollVote", "pollTerminate",
     )):
         return None
-    # Fail closed if the upstream schema no longer exposes disappearing-message lifetime.
-    if type(data.get("expiresInSeconds")) is not int or data["expiresInSeconds"] != 0:
+    # A chat timer does not prevent cleanup; retain validation of the message schema.
+    if type(data.get("expiresInSeconds")) is not int or data["expiresInSeconds"] < 0:
         return None
     if type(data.get("viewOnce")) is not bool:
         return None

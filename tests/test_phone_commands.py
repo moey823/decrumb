@@ -24,12 +24,12 @@ ALIASES = {SELF, "00000000-0000-4000-8000-000000000001"}
 SELF_UUID = "00000000-0000-4000-8000-000000000001"
 
 
-def command_event(timestamp, text="/decrumb status"):
+def command_event(timestamp, text="/decrumb status", expires=0):
     return {"method": "receive", "params": {"result": {"account": SELF, "envelope": {
         "source": SELF, "sourceNumber": SELF, "sourceUuid": "00000000-0000-4000-8000-000000000001",
         "syncMessage": {"sentMessage": {
             "destination": SELF, "destinationNumber": SELF, "destinationUuid": "00000000-0000-4000-8000-000000000001",
-            "timestamp": timestamp, "message": text, "expiresInSeconds": 0,
+            "timestamp": timestamp, "message": text, "expiresInSeconds": expires,
             "viewOnce": False, "textStyles": [],
         }},
     }}}}
@@ -126,7 +126,8 @@ class CommandParsingTests(unittest.TestCase):
 
     def test_private_control_and_group_metadata_fail_closed(self):
         for key, value in (
-            ("expiresInSeconds", None), ("expiresInSeconds", 60), ("expiresInSeconds", "0"),
+            ("expiresInSeconds", None), ("expiresInSeconds", -1), ("expiresInSeconds", "0"),
+            ("expiresInSeconds", True), ("expiresInSeconds", False), ("expiresInSeconds", 60.0),
             ("viewOnce", True), ("viewOnce", None), ("viewOnce", 0),
             ("groupInfo", {}), ("editMessage", {}), ("storyContext", {}), ("remoteDelete", {}),
             ("adminDelete", {}), ("reaction", {}), ("quote", {}), ("pollVote", {}),
@@ -138,6 +139,13 @@ class CommandParsingTests(unittest.TestCase):
                 changed = copy.deepcopy(self.value)
                 sent(changed)[key] = value
                 self.assertIsNone(self.parse(changed))
+
+    def test_disappearing_commands_are_accepted_but_missing_timer_is_not(self):
+        for expires in (0, 1, 60, 604800):
+            with self.subTest(expires=expires):
+                self.assertEqual(self.parse(command_event(self.now, expires=expires)).operation, "status")
+        sent(self.value).pop("expiresInSeconds")
+        self.assertIsNone(self.parse(self.value))
 
     def test_unknown_commands_quotes_and_generated_replies_are_ignored(self):
         for text in ("/decrumb status now", "/Decrumb status", "Please /decrumb status", "/decrumb shell whoami",
@@ -285,10 +293,15 @@ class CommandTransportTests(unittest.TestCase):
     def test_full_worker_helper_failure_does_not_stop_next_command(self):
         self.run_transport(enabled=True, failing_helper=True)
 
-    def run_transport(self, enabled, restart=False, command="/decrumb status", expected="helper is running", failing_helper=False):
+    def test_full_worker_cleans_disappearing_command_and_deduplicates_reply(self):
+        self.run_transport(enabled=True, restart=True, expires=60,
+            command="/decrumb clean https://x.com/example/status/1234567890?s=46&t=synthetic_share_token",
+            expected="Decrumb\nhttps://x.com/example/status/1234567890\n#decrumb_")
+
+    def run_transport(self, enabled, restart=False, command="/decrumb status", expected="helper is running", failing_helper=False, expires=0):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
-            valid = command_event(0, command)
+            valid = command_event(0, command, expires=expires)
             invalid = []
             peer = copy.deepcopy(valid)
             peer["params"]["result"]["envelope"]["sourceNumber"] = PEER
@@ -296,7 +309,7 @@ class CommandTransportTests(unittest.TestCase):
             elsewhere = copy.deepcopy(valid)
             sent(elsewhere)["destinationNumber"] = PEER
             invalid.append(elsewhere)
-            for key, value in (("groupInfo", {}), ("expiresInSeconds", 60), ("viewOnce", True),
+            for key, value in (("groupInfo", {}), ("expiresInSeconds", -1), ("viewOnce", True),
                                ("textStyles", [{"style": "SPOILER"}])):
                 bad = copy.deepcopy(valid)
                 sent(bad)[key] = value

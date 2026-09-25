@@ -57,8 +57,12 @@ or account data to a bug report.
 - Have a test sender manually send an ordinary incoming message containing that
   URL. Confirm exactly one cleaned note arrives in Note to Self, with the random
   Decrumb code and the configured sender-attribution preference.
-- Verify outgoing and Note to Self messages do not loop. Confirm disappearing,
-  view-once, and spoiler test content does not create a cleaned note.
+- Repeat the incoming-link check in a chat with disappearing messages enabled.
+  Confirm a cleaned note arrives and follows the Note to Self timer and configured
+  note-cleanup policy, without copying the source chat's timer.
+- Verify outgoing and Note to Self messages do not loop. Confirm view-once and
+  spoiler test content does not create a cleaned note. With phone commands enabled,
+  confirm `/decrumb clean` works when Note to Self has a disappearing-message timer.
 - Request removal of a tracked synthetic note within the supported window.
   Check the actual Signal devices and any deleted-message marker. An accepted
   request alone is not proof of erasure.

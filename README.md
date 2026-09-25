@@ -117,7 +117,8 @@ Replies go through the same bounded queue and note-removal controls as cleaned
 links. Nothing visits the URL, reads machine files, runs a shell command, or calls
 an AI provider. This feature is off by default and accepts only your own self-to-self
 messages while the helper is running. Commands sent while stopped are skipped.
-Disappearing, view-once, spoiler, group, and edited commands are excluded.
+Commands also work when Note to Self has a disappearing-message timer enabled.
+View-once, spoiler, group, and edited commands are excluded.
 
 On Mac, copy the app to its final location (normally `/Applications`) before connecting
 and enabling login startup. If moved later, open it at its new location to
@@ -221,7 +222,10 @@ See [URL-CLEANUP.md](docs/URL-CLEANUP.md) for the schema and sources.
   loops. Writing a bare link to Note to Self does nothing. If you enable phone
   commands, the explicit `/decrumb` commands described above are accepted from
   your own self-to-self sync transcripts; generated replies cannot trigger them.
-- Disappearing messages, view-once content, spoilers, edits, story replies and
+- Links in disappearing messages are cleaned too. Generated notes follow your
+  Note to Self timer and Decrumb note-cleanup preferences; the source chat's
+  timer is not copied to the note.
+- View-once content, spoilers, edits, story replies and
   control messages are excluded. Unknown privacy/style metadata fails closed.
   Ordinary attachments, avatars, stories and stickers are skipped. Signal CLI
   0.14.8 makes an exception for long-text attachments: it downloads them through a

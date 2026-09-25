@@ -95,8 +95,10 @@ graceful stop through the private runtime directory and waits for the worker to
 release its locks. The Signal bridge contains Java in a kill-on-close Windows Job
 Object, so terminating the bridge also stops its child processes. The existing
 delivery queue treats interrupted sends as uncertain and does not resend them.
-Disappearing messages, view-once content and spoilers remain excluded; automated
-sends remain restricted to Note to Self.
+Links in disappearing messages are cleaned too. Generated notes use the Note to
+Self timer and configured note-cleanup policy, not the source chat's timer.
+View-once content and spoilers remain excluded; automated sends remain restricted
+to Note to Self.
 
 ## Update and removal
 

@@ -269,18 +269,26 @@ class WindowsNativeTests(unittest.TestCase):
             try:
                 deadline = time.monotonic() + 20
                 calls = root / 'signal-cli/calls.test'
-                while not calls.exists() and process.poll() is None and time.monotonic() < deadline:
+                values = []
+                while len(values) < 2 and process.poll() is None and time.monotonic() < deadline:
                     time.sleep(0.05)
-                self.assertTrue(calls.exists(), 'The synthetic worker did not deliver')
+                    if calls.exists():
+                        try:
+                            values = json.loads(calls.read_text())
+                        except json.JSONDecodeError:
+                            pass
+                self.assertEqual(len(values), 2, 'The synthetic worker did not deliver both links')
                 service.stop()
                 stdout, stderr = process.communicate(timeout=10)
                 self.assertEqual(process.returncode, 0)
                 values = json.loads(calls.read_text())
-                self.assertEqual(len(values), 1)
-                self.assertTrue(values[0]['noteToSelf'])
+                self.assertEqual(len(values), 2)
+                self.assertTrue(all(value['noteToSelf'] for value in values))
                 self.assertIn('https://example.invalid/?id=1', values[0]['message'])
+                self.assertIn('https://x.com/example/status/1234567890\n', values[1]['message'])
                 self.assertNotIn('example.invalid', (stdout + stderr).decode())
-                self.assertEqual(json.loads((root / 'status.json').read_text())['counts'], {'sent': 1})
+                self.assertNotIn('x.com', (stdout + stderr).decode())
+                self.assertEqual(json.loads((root / 'status.json').read_text())['counts'], {'sent': 2})
                 self.assertFalse(service.loaded())
                 # Background startup uses pythonw and runs after the control process returns.
                 service.start()
