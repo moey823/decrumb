@@ -4,6 +4,7 @@ import contextlib
 import copy
 import io
 import json
+import shutil
 from pathlib import Path
 import subprocess
 import sys
@@ -92,7 +93,9 @@ class CommandParsingTests(unittest.TestCase):
 
     def test_known_commands_and_direct_receive_shape(self):
         for text, operation in (("/decrumb", "help"), ("/decrumb help", "help"),
-                                ("/decrumb status", "status"), ("/decrumb clean https://example.com/?utm_source=x", "clean")):
+                                ("/decrumb status", "status"), ("/decrumb clean https://example.com/?utm_source=x", "clean"),
+                                ("/decrumb rules", "rules"), ("/decrumb rules 2", "rules"),
+                                ("/decrumb rules add doordash.com/store aw", "rules")):
             value = command_event(self.now, text)
             result = self.parse(value)
             self.assertEqual(result.operation, operation)
@@ -260,6 +263,179 @@ class CommandDeliveryTests(unittest.TestCase):
         self.assertEqual(self.store.metrics()["outbox_dropped"], 1)
 
 
+class RuleCommandTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.store = decrumb.Store(self.root / "outbox.sqlite3")
+        self.addCleanup(lambda: self.store.close())
+        self.config = {"version": 1, "account": SELF, "helper": str(HELPER),
+                       "signal_cli": str(self.root / "fake-signal"), "paused": False,
+                       "phone_commands": {"enabled": True},
+                       "settings": {"mode": "all", "baseURLs": [], "excludedURLs": [],
+                                    "rules": [{"site": "https://example.com", "remove": ["old"], "keep": []}]}}
+        decrumb.write_json(self.root / "config.json", self.config)
+        self.rules = decrumb.phone_rule_handler(self.root, self.config, self.store)
+        self.now = max(decrumb.now_ms(), self.store.enabled_at)
+        self.cleaner = lambda text: decrumb.clean(HELPER, text, self.config["settings"])
+
+    def process(self, text, value=None):
+        return phone_commands.process(value or command_event(self.now, text), ALIASES, self.store,
+                                      self.config, self.cleaner, self.now, self.store.enabled_at,
+                                      rules=self.rules)
+
+    def body(self):
+        return self.store.db.execute("SELECT body FROM outbox WHERE state='pending' ORDER BY timestamp DESC").fetchone()[0]
+
+    def test_lists_installed_bundled_custom_protections_and_controls(self):
+        self.config["settings"].update(mode="selected", baseURLs=["https://example.com"],
+                                       excludedURLs=["https://example.com/private"])
+        before = copy.deepcopy(self.config)
+        self.assertTrue(self.process("/decrumb rules"))
+        for value in ("Global remove: utm_source", "Protect entire signed link: signature",
+                      "Bundled site: https://instagram.com", "Custom site: https://example.com",
+                      "Remove: old", "Mode: selected", "Excluded site: https://example.com/private",
+                      "Selected site: https://example.com", "Page 1/"):
+            self.assertIn(value, self.body())
+        self.assertEqual(self.config, before)
+        self.assertEqual(self.store.db.execute("SELECT count(*) FROM phone_rule_changes").fetchone()[0], 0)
+
+    @unittest.skipUnless(sys.platform == "darwin", "requires the Swift app helper layout")
+    def test_packaged_mac_rules_are_read_from_resources(self):
+        app = self.root / "Fixture.app/Contents"
+        helper = app / "Helpers/url-cleaner"
+        helper.parent.mkdir(parents=True)
+        resources = app / "Resources"
+        resources.mkdir()
+        shutil.copy2(HELPER, helper)
+        shutil.copy2(Path(decrumb.__file__).parent / "rules/defaults.json", resources / "rules.json")
+        self.config["helper"] = str(helper)
+        self.rules = decrumb.phone_rule_handler(self.root, self.config, self.store)
+        self.assertFalse(helper.with_name("rules.json").exists())
+        self.assertTrue(self.process("/decrumb rules"))
+        self.assertIn("Global remove: utm_source", self.body())
+        self.assertIn("Bundled site: https://instagram.com", self.body())
+
+    def test_add_normalizes_merges_persists_and_cleans_immediately(self):
+        before = copy.deepcopy(self.config)
+        self.assertTrue(self.process("/decrumb rules add EXAMPLE.com/ SHARE_ID,ref"))
+        self.assertIn("Rule added", self.body())
+        expected = {"site":"https://example.com", "remove":["old", "share_id", "ref"], "keep":[]}
+        self.assertEqual(self.config["settings"]["rules"], [expected])
+        saved = json.loads((self.root / "config.json").read_bytes())
+        self.assertEqual(saved, self.config)
+        self.assertEqual({k:v for k,v in saved.items() if k != "settings"},
+                         {k:v for k,v in before.items() if k != "settings"})
+        self.assertEqual(self.cleaner("https://example.com/article?share_id=x&ref=y&id=42#menu"),
+                         ["https://example.com/article?id=42#menu"])
+        self.now += 1
+        self.assertTrue(self.process("/decrumb clean https://example.com/article?share_id=x&id=42"))
+        self.assertIn("https://example.com/article?id=42", self.body())
+        self.assertNotIn("share_id", self.body())
+
+    def test_add_preserves_scopes_and_signed_link_protection(self):
+        self.assertTrue(self.process("/decrumb rules add example.com/news share_id"))
+        self.assertEqual(self.cleaner("https://sub.example.com/news/a?share_id=x&item_id=42"),
+                         ["https://sub.example.com/news/a?item_id=42"])
+        for url in ("https://example.com/newsroom?share_id=x", "https://notexample.com/news?share_id=x",
+                    "https://example.com/news?share_id=x&sig=synthetic"):
+            self.assertEqual(self.cleaner(url), [])
+
+    def test_invalid_rules_limits_and_keep_conflict_never_write(self):
+        before = (self.root / "config.json").read_bytes()
+        for command in ("/decrumb rules add", "/decrumb rules add *.example.com ref",
+                        "/decrumb rules add https://example.com/?q=x ref",
+                        "/decrumb rules add example.com .*", "/decrumb rules add example.com ref,,id",
+                        "/decrumb rules add file:///etc/passwd ref",
+                        "/decrumb rules add example.com " + " ".join("p" + str(i) for i in range(51))):
+            with self.subTest(command=command):
+                self.now += 1
+                self.assertTrue(self.process(command))
+                self.assertNotIn("Rule added", self.body())
+                self.assertEqual((self.root / "config.json").read_bytes(), before)
+        self.config["settings"]["rules"][0]["keep"] = ["ref"]
+        self.now += 1
+        self.assertTrue(self.process("/decrumb rules add example.com ref"))
+        self.assertIn("keep rule", self.body())
+        self.assertEqual((self.root / "config.json").read_bytes(), before)
+        self.assertEqual(self.store.db.execute("SELECT count(*) FROM phone_rule_changes").fetchone()[0], 0)
+
+    def test_peer_spoiler_and_disabled_commands_cannot_mutate_rules(self):
+        before = (self.root / "config.json").read_bytes()
+        forged = command_event(self.now, "/decrumb rules add example.com ref")
+        forged["params"]["result"]["envelope"]["sourceNumber"] = PEER
+        self.assertFalse(self.process("", value=forged))
+        spoiler = command_event(self.now, "/decrumb rules add example.com ref")
+        sent(spoiler)["textStyles"] = [{"style":"SPOILER"}]
+        self.assertFalse(self.process("", value=spoiler))
+        self.config["phone_commands"]["enabled"] = False
+        self.assertFalse(self.process("/decrumb rules add example.com ref"))
+        self.assertEqual((self.root / "config.json").read_bytes(), before)
+
+    def test_queue_cancellation_reservations_and_restart_replay(self):
+        self.store.enqueue("synthetic-old", self.now, ["https://example.com/"])
+        self.assertTrue(self.process("/decrumb rules add example.com ref"))
+        self.assertEqual(self.store.counts(), {"cancelled":1, "pending":1})
+        self.store.clear_pending()
+        self.store.close()
+        self.store = decrumb.Store(self.root / "outbox.sqlite3")
+        self.config = json.loads((self.root / "config.json").read_bytes())
+        self.rules = decrumb.phone_rule_handler(self.root, self.config, self.store)
+        self.assertTrue(self.process("/decrumb rules add example.com ref"))
+        self.assertEqual(self.store.counts(), {"cancelled":2})
+        self.assertEqual(self.store.db.execute("SELECT count(*) FROM phone_rule_changes").fetchone()[0], 1)
+        self.now += 1
+        self.assertTrue(self.process("/decrumb rules add example.com ref"))
+        self.assertIn("already exists", self.body())
+
+    def test_crash_after_save_cannot_reapply_or_cancel_later_notes(self):
+        original = self.rules.save
+        def crash(settings):
+            original(settings)
+            raise RuntimeError("synthetic crash after persistence")
+        self.rules.save = crash
+        with self.assertRaises(RuntimeError):
+            self.process("/decrumb rules add example.com ref")
+        self.store.enqueue("synthetic-later", self.now + 1, ["https://example.com/"])
+        self.rules = decrumb.phone_rule_handler(self.root, self.config, self.store)
+        self.assertTrue(self.process("/decrumb rules add example.com ref"))
+        self.assertEqual(self.store.counts(), {"pending":1})
+        self.assertEqual(self.body().splitlines()[1], "https://example.com/")
+
+    def test_save_failure_gives_fixed_reply_and_fresh_command_can_retry(self):
+        before = (self.root / "config.json").read_bytes()
+        original = self.rules.save
+        self.rules.save = Mock(side_effect=OSError("private synthetic error"))
+        self.assertTrue(self.process("/decrumb rules add example.com ref"))
+        self.assertIn("could not be saved", self.body())
+        self.assertNotIn("private synthetic error", self.body())
+        self.assertEqual((self.root / "config.json").read_bytes(), before)
+        self.rules.save = original
+        self.now += 1
+        self.assertTrue(self.process("/decrumb rules add example.com ref"))
+        self.assertIn("Rule added", self.body())
+
+    def test_paginated_large_rule_lists_and_invalid_pages_are_bounded(self):
+        self.config["settings"]["rules"] = [
+            {"site":"https://site" + str(i) + ".example.com",
+             "remove":["field_" + str(n) for n in range(50)], "keep":[]} for i in range(100)]
+        pages = self.rules._pages(self.config)
+        self.assertGreater(len(pages), 1)
+        combined = ""
+        for page in range(1, len(pages) + 1):
+            self.now += 1
+            self.assertTrue(self.process("/decrumb rules " + str(page)))
+            body = self.body()
+            self.assertLess(len(body.encode()), 8192)
+            combined += body
+        self.assertIn("site99.example.com", combined)
+        for page in ("0", "999999999999999999999999999999999999", "-1", "2 extra"):
+            self.now += 1
+            self.assertTrue(self.process("/decrumb rules " + page))
+            self.assertLess(len(self.body().encode()), 8192)
+
+
 class AppPhonePreferenceTests(unittest.TestCase):
     def test_app_apply_saves_opt_in_and_restarts_only_active_worker(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -297,6 +473,13 @@ class CommandTransportTests(unittest.TestCase):
         self.run_transport(enabled=True, restart=True, expires=60,
             command="/decrumb clean https://x.com/example/status/1234567890?s=46&t=synthetic_share_token",
             expected="Decrumb\nhttps://x.com/example/status/1234567890\n#decrumb_")
+
+    def test_full_worker_adds_rules_persists_and_rejects_forgery_and_replay(self):
+        self.run_transport(enabled=True, restart=True,
+                           command="/decrumb rules add example.com share_id", expected="Rule added")
+
+    def test_full_worker_lists_bundled_and_custom_rules(self):
+        self.run_transport(enabled=True, command="/decrumb rules", expected="Global remove: utm_source")
 
     def run_transport(self, enabled, restart=False, command="/decrumb status", expected="helper is running", failing_helper=False, expires=0):
         with tempfile.TemporaryDirectory() as folder:
@@ -383,6 +566,12 @@ for line in sys.stdin:
                 self.assertEqual(set(calls[0]["params"]), {"account", "noteToSelf", "message"})
                 self.assertEqual((calls[0]["params"]["account"], calls[0]["params"]["noteToSelf"]), (SELF, True))
                 self.assertIn(expected, calls[0]["params"]["message"])
+                if command.startswith("/decrumb rules add "):
+                    saved = decrumb.load_config(root)
+                    self.assertEqual(saved["settings"]["rules"],
+                                     [{"site":"https://example.com", "remove":["share_id"], "keep":[]}])
+                    self.assertEqual(decrumb.clean(HELPER, "https://example.com/?share_id=x&id=42", saved["settings"]),
+                                     ["https://example.com/?id=42"])
             else:
                 self.assertFalse((root / "calls.jsonl").exists())
             with contextlib.closing(decrumb.Store(root / "outbox.sqlite3")) as store:

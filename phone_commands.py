@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Optional, bounded owner-to-Note-to-Self commands; no machine execution or fetches."""
+import copy
 import hashlib
 import json
 from typing import NamedTuple
@@ -14,6 +15,8 @@ HELP = (
     "/decrumb help — show this list\n"
     "/decrumb status — check the running helper\n"
     "/decrumb clean <link> — apply your cleaning rules\n"
+    "/decrumb rules [page] — show bundled and custom rules\n"
+    "/decrumb rules add <site> <parameter> [parameter …] — remove query fields\n"
     "The helper must be running and online. Links are never opened or fetched."
 )
 
@@ -96,6 +99,8 @@ def candidate(event, aliases, enabled_at, current):
     text = text.strip()
     if text in ("/decrumb", "/decrumb help", "/decrumb status"):
         operation, argument = ("status" if text.endswith(" status") else "help"), ""
+    elif text == "/decrumb rules" or text.startswith("/decrumb rules "):
+        operation, argument = "rules", text[len("/decrumb rules"):].strip()
     elif text.startswith("/decrumb clean "):
         operation, argument = "clean", text[len("/decrumb clean "):].strip()
         if not argument:
@@ -106,7 +111,7 @@ def candidate(event, aliases, enabled_at, current):
     return Command("phone_" + hashlib.sha256(identity.encode()).hexdigest(), timestamp, operation, argument)
 
 
-def process(event, aliases, store, config, cleaner, current, started_at):
+def process(event, aliases, store, config, cleaner, current, started_at, rules=None):
     """Queue a fixed reply or locally cleaned links through the ordinary outbox.
 
     The supplied cleaner is the same local helper used for incoming links. All
@@ -125,6 +130,8 @@ def process(event, aliases, store, config, cleaner, current, started_at):
         lines = cleaner(command.argument)
         if not lines:
             lines = ["No links changed under your current cleaning rules. No links were opened or fetched."]
+    elif command.operation == "rules":
+        lines = rules.handle(command, store, config) if rules else ["Rule commands are unavailable in this installation."]
     elif command.operation == "status":
         counts = store.counts()
         release = diagnostics.release()
@@ -143,3 +150,117 @@ def process(event, aliases, store, config, cleaner, current, started_at):
         lines = [HELP]
     store.enqueue(command.event_id, command.timestamp, lines, options=config.get("notes"))
     return True
+
+
+RULE_USAGE = (
+    "/decrumb rules [page] — show rules\n"
+    "/decrumb rules add <site> <parameter> [parameter …]\n"
+    "Example: /decrumb rules add doordash.com/store aw\n"
+    "Use exact query names, separated by spaces or commas. No wildcards or regex."
+)
+
+
+class RuleCommands:
+    """Worker-owned rule operations. Callbacks access only installed rules/config."""
+
+    def __init__(self, defaults, validate, save):
+        self.defaults, self.validate, self.save = defaults, validate, save
+
+    @staticmethod
+    def _names(label, names):
+        if not names:
+            return [label + ": none"]
+        lines, line = [], label + ": "
+        for name in names:
+            if len(line) + len(name) > 1000:
+                lines.append(line.rstrip(", "))
+                line = label + " (continued): "
+            line += name + ", "
+        return lines + [line.rstrip(", ")]
+
+    def _pages(self, config):
+        bundled = self.defaults()
+        settings = self.validate(config["settings"])
+        lines = [
+            "Cleaning rules — bundled revision " + bundled["revision"],
+            "Mode: " + settings["mode"],
+        ]
+        # Site lists may each contain 100 long values; keep every response bounded.
+        lines = lines[:2] + [
+            "Selected site: " + site for site in settings["baseURLs"]
+        ] + ["Excluded site: " + site for site in settings["excludedURLs"]]
+        lines += self._names("Global remove", bundled["globalRemove"])
+        lines += self._names("Protect entire signed link", bundled["protectedParameters"])
+        for label, entries in (("Bundled", bundled["sites"]), ("Custom", settings["rules"])):
+            if not entries:
+                lines.append(label + " rules: none")
+            for entry in entries:
+                lines.append(label + " site: " + entry["site"])
+                lines += self._names("  Remove", entry["remove"])
+                lines += self._names("  Keep", entry["keep"])
+        lines.append("Keep rules override removals. Exclusions, cleaning mode and signed-link protection still apply.")
+        pages, page, size = [], "", 0
+        for line in lines:
+            # Normalized sites can contain Unicode. Bound actual UTF-8 bytes.
+            for character in line + "\n":
+                width = len(character.encode())
+                if size + width > 5000:
+                    pages.append(page)
+                    page, size = "", 0
+                page += character
+                size += width
+        if page:
+            pages.append(page)
+        return pages
+
+    def handle(self, command, store, config):
+        args = command.argument.split()
+        if not args or (len(args) == 1 and args[0].isascii() and args[0].isdigit()):
+            try:
+                pages = self._pages(config)
+            except (ValueError, OSError, KeyError, TypeError):
+                return ["Rules could not be read. Retry the command or check the app."]
+            page = int(args[0]) if args else 1
+            if not 1 <= page <= len(pages):
+                return [f"Choose a rules page from 1 to {len(pages)}: /decrumb rules <page>"]
+            footer = f"Page {page}/{len(pages)}."
+            if page < len(pages):
+                footer += f" Next: /decrumb rules {page + 1}"
+            return [pages[page - 1] + footer]
+        if args[0] != "add" or len(args) < 3:
+            return [RULE_USAGE]
+        if store.rule_change_seen(command.event_id):
+            return []
+        try:
+            names = [name for item in args[2:] for name in item.split(",")]
+            addition = self.validate({"mode": "all", "baseURLs": [], "rules": [
+                {"site": args[1], "remove": names, "keep": []}
+            ]})["rules"][0]
+            previous = self.validate(config["settings"])
+            settings = copy.deepcopy(previous)
+            existing = next((entry for entry in settings["rules"] if entry["site"] == addition["site"]), None)
+            if existing is None:
+                settings["rules"].append(addition)
+            else:
+                if set(addition["remove"]).intersection(existing["keep"]):
+                    return ["An existing keep rule preserves these names. Edit that keep rule in the app first."]
+                existing["remove"] = list(dict.fromkeys(existing["remove"] + addition["remove"]))
+            settings = self.validate(settings)
+        except (ValueError, KeyError, TypeError):
+            return ["Invalid rule or rule limit reached. No settings changed.\n" + RULE_USAGE]
+        if settings == previous:
+            return ["This custom rule already exists. No settings changed."]
+        # Reserve before any write. A crash or missing reply must never replay a
+        # settings mutation; the owner can send a fresh command to retry.
+        if not store.reserve_rule_change(command.event_id, command.timestamp):
+            return []
+        try:
+            self.save(settings)
+        except (OSError, ValueError):
+            return ["The rule could not be saved. Retry with a new command or check the app."]
+        return [
+            "Rule added. Remove " + str(len(addition["remove"])) + " query parameter(s)."
+            "\nUse /decrumb rules to see the saved rule." +
+            "\nSaved and active; no restart needed. Pending notes from the previous rules were discarded."
+            "\nKeep rules, exclusions, cleaning mode and signed-link protection still apply."
+        ]

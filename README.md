@@ -114,14 +114,36 @@ on the Pi. Then write one of these commands in Signal's **Note to Self**:
 /decrumb help
 /decrumb status
 /decrumb clean https://example.com/article?utm_source=share&id=42
+/decrumb rules
+/decrumb rules add doordash.com/store aw
 ```
 
 `clean` uses your current cleaning rules and replies with changed links, or
 explains that no links changed. `status` returns the running app's version and
 build number, cleaning mode, and queue counts, without machine names, account
 identifiers, or message content.
+
+`rules` lists the installed bundled rules, custom rules, global removals,
+signature protections, cleaning mode, selected sites and exclusions. Long lists
+are paginated; use `/decrumb rules 2` for the next page shown in the reply.
+`rules add <site> <parameter> [parameter …]` adds exact removal names for a
+domain (including subdomains) or path prefix. Names may be separated by spaces
+or commas. For example, `/decrumb rules add example.com/news share_id ref`
+removes those two fields only within that scope. The same app validation and
+limits apply. Additions merge with existing custom removals, save immediately
+and survive restarts; exclusions, keep rules, cleaning mode and signature
+protections still apply. Adding a name preserved by that site's existing custom
+keep rule is rejected; edit the keep rule in the app first. Built-in rules remain
+bundled data. There are no phone commands for deleting or overriding keep rules.
+
+As when applying rules in the app, a successful change discards pending notes
+authorized under the previous rules before queuing its acknowledgement. An
+identical addition reports that the rule already exists. Changes have durable
+replay protection even if saving or replying is interrupted; send a fresh command
+to retry a failed or unconfirmed addition.
+
 Replies go through the same bounded queue and note-removal controls as cleaned
-links. Nothing visits the URL, reads machine files, runs a shell command, or calls
+links. Nothing visits the URL, reads arbitrary files, runs a shell command, or calls
 an AI provider. This feature is off by default and accepts only your own self-to-self
 messages while the helper is running. Commands sent while stopped are skipped.
 Commands also work when Note to Self has a disappearing-message timer enabled.
@@ -202,9 +224,10 @@ one manual installation of an updater-enabled release. See
 
 ## Cleaning behavior
 
-Defaults live in [rules/defaults.json](rules/defaults.json). They include 19 exact
-global tracking parameter names, Instagram-specific `stkn`, `igsh`, and
-`igshid`, and X/Twitter-specific `s` and `t` (preserved under `/i/redirect`).
+Defaults live in [rules/defaults.json](rules/defaults.json). They include 20 exact
+global removal names (including `si` on every domain), Instagram-specific `stkn`, `igsh`, `igshid`, and
+`rpxt`, DoorDash store-share `aw` (under `/store`), and X/Twitter-specific
+`s` and `t` (preserved under `/i/redirect`).
 On Mac, open **Settings → Cleaning rules → View domains and rules** to see the
 installed defaults, including every parameter, domain exception, and protection.
 Global cleanup applies to other websites too. Unlisted parameters stay intact;

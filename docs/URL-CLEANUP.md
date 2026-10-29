@@ -18,9 +18,9 @@ The worker sends only changed URLs to Note to Self; it does not edit the source
 message or retain a copy of the original message body. See the main README for
 message eligibility, delivery limits and privacy behavior.
 
-The conservative global list contains Google's nine documented UTM campaign
+The global list contains Google's nine documented UTM campaign
 keys, `gclid`, `msclkid`, and Mozilla's eight documented initial tracking keys.
-Instagram links additionally lose `stkn`, `igsh`, and `igshid`; these sharing
+Instagram links additionally lose `stkn`, `igsh`, `igshid`, and `rpxt`; these sharing
 identifiers are removed only on `instagram.com` and its subdomains. Parameters
 such as `img_index` and `story_media_id` remain intact. Thus a reel link ending
 in `?utm_source=ig_web_copy_link&stkn=abc==` becomes the plain reel URL.
@@ -29,6 +29,18 @@ their subdomains. For example, a post link ending in
 `?s=46&t=synthetic_share_token` becomes the plain post URL. Both fields remain
 intact under `/i/redirect`, where they may be needed for the redirect. They are
 not removed on unrelated domains; other fields such as `lang` remain intact.
+DoorDash store links additionally lose `aw` under `doordash.com/store` and
+matching subdomains. A share ending in
+`?utm_source=mx_share&aw=synthetic_share_token` becomes the plain store URL.
+The `aw` rule is limited to the `/store` path boundary; other paths and domains
+retain it. Store paths, functional query fields, and fragments remain intact.
+The exact query parameter `si` is removed globally, on every HTTP(S) host and
+port, by the owner's explicit preference. Spotify shares containing both `si`
+and `utm_source` become the plain content URL; the same removal applies to
+YouTube and any other domain. Case variants and encoded parameter names follow
+the existing normalization rules. Other names such as `sibling` stay intact.
+Site-specific keep rules can preserve `si` where needed. Signed-link protection,
+exclusions and cleaning modes still take precedence.
 Other query fields, byte encoding, duplicate functional fields, paths, and
 fragments are preserved. Links containing `sig`, `signature`, `X-Amz-Signature`,
 or `X-Goog-Signature` are left intact because the signature can cover the query.
@@ -86,3 +98,25 @@ list are accepted. Export/import never includes account data or startup settings
 The helper also returns local preview details and normalized settings; the worker
 uses only the changed URL list. Preview originals are not stored by Decrumb. A URL
 inside a functional query parameter does not confuse the outer scheme detection.
+
+## Managing rules from Signal
+
+With phone commands enabled, send `/decrumb rules` in Note to Self to inspect
+the installed bundled defaults and custom settings. Each reply is bounded and
+includes a page number; `/decrumb rules <page>` requests another page.
+
+Send `/decrumb rules add doordash.com/store aw` to add a site-scoped removal.
+Multiple exact names can be separated by spaces or commas. This uses the
+installed helper's existing normalization and validation; it adds or merges a
+custom rule without changing bundled defaults, keep rules, exclusions, selected
+sites or cleaning mode. It persists to the existing private configuration and
+updates the running cleaner immediately without a restart.
+
+The worker already holds the runtime lock while handling these commands.
+A durable command reservation precedes configuration changes, separately from
+the reply outbox, so cancellation or interrupted replies cannot authorize
+repeating a mutation. Reservations expire after 30 days; accepted commands
+are limited to fresh self-to-self transcripts from the active worker session.
+Old pending notes are cancelled under the same policy as app rule changes.
+Invalid rules and save failures get fixed replies without reflecting private
+errors or paths. All replies use the ordinary Note-to-Self-only delivery path.

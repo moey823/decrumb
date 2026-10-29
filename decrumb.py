@@ -350,6 +350,7 @@ class Store(notes.NoteStore):
         self.db.execute("CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value INTEGER NOT NULL)")
         self.db.execute("CREATE TABLE IF NOT EXISTS outbox (id TEXT PRIMARY KEY, timestamp INTEGER NOT NULL, state TEXT NOT NULL, body TEXT)")
         self.db.execute("CREATE TABLE IF NOT EXISTS metrics (key TEXT PRIMARY KEY, value INTEGER NOT NULL)")
+        self.db.execute("CREATE TABLE IF NOT EXISTS phone_rule_changes (id TEXT PRIMARY KEY, timestamp INTEGER NOT NULL)")
         self.db.execute("INSERT OR IGNORE INTO meta VALUES ('enabled_at', ?)", (now_ms(),))
         # An interrupted send could already have arrived. Never automatically duplicate it.
         self.db.execute("UPDATE outbox SET state='uncertain', body=NULL WHERE state='inflight'")
@@ -361,6 +362,14 @@ class Store(notes.NoteStore):
 
     def contains(self, event_id):
         return self.db.execute("SELECT 1 FROM outbox WHERE id=?", (event_id,)).fetchone() is not None
+
+    def rule_change_seen(self, event_id):
+        return self.db.execute("SELECT 1 FROM phone_rule_changes WHERE id=?", (event_id,)).fetchone() is not None
+
+    def reserve_rule_change(self, event_id, timestamp):
+        with self.db:
+            return self.db.execute("INSERT OR IGNORE INTO phone_rule_changes VALUES (?,?)",
+                                   (event_id, timestamp)).rowcount == 1
 
     def enqueue(self, event_id, timestamp, urls, sender=None, options=None):
         options = notes_settings(options)
@@ -394,6 +403,7 @@ class Store(notes.NoteStore):
             self.db.execute("UPDATE outbox SET state='expired', body=NULL WHERE state='pending' AND timestamp<?", (current - MAX_AGE_MS,))
             self.expire_notes(current)
             self.db.execute("DELETE FROM outbox WHERE timestamp<? AND state!='pending'", (current - 30 * MAX_AGE_MS,))
+            self.db.execute("DELETE FROM phone_rule_changes WHERE timestamp<?", (current - 30 * MAX_AGE_MS,))
 
     def counts(self):
         return dict(self.db.execute("SELECT state,count(*) FROM outbox GROUP BY state"))
@@ -527,6 +537,46 @@ def _cleanup_retry(store, note_id, attempts, state, current):
                      (state, attempts, current + delay, note_id))
 
 
+def phone_rule_handler(root, config, store):
+    """Used only while the worker holds its runtime lock; no arbitrary paths."""
+    def validate(settings):
+        try:
+            return clean_result(config["helper"], "", settings)["settings"]
+        except SafeError:
+            raise ValueError() from None
+
+    def defaults():
+        helper = Path(config["helper"]).resolve()
+        directory = helper.parent
+        contents = directory.parent
+        packaged = (directory.name == "Helpers" and contents.name == "Contents"
+                    and contents.parent.suffix == ".app")
+        rules_path = contents / "Resources/rules.json" if packaged else directory / "rules.json"
+        with rules_path.open("rb") as source:
+            raw = source.read(64 * 1024 + 1)
+        if len(raw) > 64 * 1024:
+            raise ValueError()
+        value = json.loads(raw)
+        if value["version"] != 1 or not isinstance(value["revision"], str) or len(value["revision"]) > 64:
+            raise ValueError()
+        normalized = validate({"mode": "all", "baseURLs": [], "rules": value["sites"]})
+        global_rule = validate({"mode": "all", "baseURLs": [], "rules": [
+            {"site": "example.invalid", "remove": value["globalRemove"], "keep": value["protectedParameters"]}
+        ]})["rules"][0]
+        return {"revision": value["revision"], "sites": normalized["rules"],
+                "globalRemove": global_rule["remove"], "protectedParameters": global_rule["keep"]}
+
+    def save(settings):
+        # Match desktop/Pi rule application: cancel notes authorized by old rules.
+        # Keep replay reservations outside outbox so cancellation cannot erase them.
+        store.clear_pending()
+        updated = {**config, "settings": settings}
+        write_json(root / "config.json", updated)
+        config["settings"] = settings
+
+    return phone_commands.RuleCommands(defaults, validate, save)
+
+
 def run(root, config, stopped=None):
     try:
         _run(root, config, stopped)
@@ -561,6 +611,7 @@ def _run(root, config, stopped=None):
                 if phone_commands.normalize_settings(config.get("phone_commands"))["enabled"]:
                     aliases = command_aliases(rpc, account, aliases)
                 rpc.call("subscribeReceive", {"account": account})
+                rule_commands = phone_rule_handler(root, config, store)
                 next_send = next_cleanup = next_health = 0.0
                 recorded_drops = 0
                 while not stopped.is_set():
@@ -592,7 +643,7 @@ def _run(root, config, stopped=None):
                             handled = phone_commands.process(
                                 event, aliases, store, config,
                                 lambda text: clean(config["helper"], text, config["settings"]),
-                                now_ms(), commands_started_at,
+                                now_ms(), commands_started_at, rules=rule_commands,
                             )
                         except SafeError:
                             store.increment("helper_failures")

@@ -304,9 +304,80 @@ App Store submission preparation. This supersedes the pending live-Umbrel
 acceptance status in the earlier release records above.
 
 This is maintainer-reported validation, separate from the automated synthetic
-checks. The exact tested app build, hardware/architecture, umbrelOS version, and
-restart/update persistence results have not yet been recorded. Do not infer
-those details or claim live coverage on both architectures from this confirmation.
+checks. Read-only SSH to the identified Umbrel host confirmed `x86_64` / AMD64.
+The exact tested app build, umbrelOS version, and restart/update persistence
+results have not yet been recorded. Do not infer those details or claim live
+coverage on both architectures from this confirmation.
+
+## DoorDash store-share cleanup, 2026-10-14
+
+- Added bundled `aw` removal scoped to `doordash.com/store` and matching
+  subdomains; the existing global rule removes `utm_source`.
+- `python3 build.py` succeeded on Mini. The offline Python suite ran 317 tests:
+  313 passed and four platform-specific checks were skipped. Native status tests
+  passed separately.
+- Synthetic DoorDash fixtures passed in both Python and the built Swift helper,
+  including their complete protocol comparison. They cover subdomains, normal
+  ports, path boundaries, Markdown links, duplicate/encoded names, functional
+  inputs and fragments, signatures, keep overrides, exclusions and cleaning modes.
+- Source and local build only; no installed app, linked account, hosted release,
+  or live Signal message was changed.
+
+## Owner-authorized local DoorDash activation, 2026-10-14
+
+- Applied the tested `doordash.com/store` removal for `aw` through the signed
+  installed Mac mini app's supported custom-rule settings. The existing global
+  rule removes `utm_source`; the installed bundled revision remains unchanged.
+  The new bundled defaults are still source changes for a future packaged release.
+- The installed helper passed all 27 synthetic DoorDash cases with this rule.
+  The installed app's preview stripped both share parameters and preserved a
+  functional item parameter and fragment.
+- The supported settings operation restarted cleaning; a fresh running heartbeat
+  confirmed activation. The linked account and every configuration field outside
+  the cleaning-rule settings remained unchanged. Existing rules and exclusions
+  were preserved, and strict recursive app signature verification passed.
+- No real test message was sent and no public release was published. The app's
+  normal rule-application behavior discards pending notes from the previous rules.
+
+## Signal rule commands, 2026-10-14
+
+- Added `/decrumb rules [page]` for installed bundled/custom rules, global
+  removals, signature protections, modes and site controls. Added
+  `/decrumb rules add <site> <parameter> [parameter …]` for bounded,
+  helper-validated custom removals with immediate persistence and activation.
+- The final offline suite ran 329 tests: 325 passed and four platform-specific
+  checks were skipped. Native status checks and the Mac development app build
+  passed. New coverage includes normalized merging, invalid inputs and limits,
+  keep conflicts, identity/spoiler/opt-in exclusions, pagination, immediate
+  cleaning, queue cancellation, save failures, crash recovery and durable replay.
+- The first packaged listing check found that Mac app rules live in Resources,
+  whereas development/Pi rules live beside the helper. The corrected lookup
+  matches the Swift helper, with a regression test for the packaged Mac layout.
+- The rebuilt frozen worker passed isolated fake-Signal listing, addition and
+  subsequent cleaning, with persistent settings, disappearing commands, forged
+  identity rejection and duplicate suppression. The existing packaged smoke
+  also passed its bootstrap, preview, pairing cancellation, synthetic delivery,
+  note removal, phone-command and isolated native dependency checks.
+- Source and development bundle only. The installed linked app was not replaced,
+  real messages were not sent for testing, and no public release was published.
+
+## Owner-authorized local command deployment, 2026-10-14
+
+- Replaced the Mini's installed app at `/Applications/Decrumb.app` with the
+  tested local development bundle after stopping only Decrumb's app and worker.
+  The prior Developer ID signed/notarized installation is retained in the
+  ignored `build/deployment-backups` directory for rollback.
+- This local bundle uses ad-hoc signing, preserves the existing bundle identifier
+  and 1.1.3/build 10 release metadata, and requires macOS 26.7.1 (the verified Mini
+  OS). No public release assets, signing configuration or update feed changed.
+- Installed worker/helper/rule hashes match the tested build. Recursive signature
+  integrity verification passed. Configuration remained identical, including the
+  linked account, existing rules, Note to Self command opt-in and login preference.
+  Queue/database bytes were unchanged during replacement.
+- Relaunch produced a fresh running heartbeat. Commands remain enabled, the new
+  durable rule-change reservation table was verified with a read-only query,
+  and the installed helper passed a synthetic DoorDash preview using existing
+  settings. No live test message was sent.
 
 ## Boundaries
 
@@ -326,3 +397,30 @@ worker checks pass on macOS 26.4 and 27.0; the native interface was inspected on
 27.0. Downloaded installation, real-account behavior, and interface acceptance
 on 26.4 remain separate release checks. Candidate signing and notarization have
 completed successfully; real-device acceptance remains before stable release.
+
+## Spotify share cleanup, 2026-10-29
+
+- Added removal of `si` scoped to `open.spotify.com`; the existing global
+  rule removes `utm_source`. Synthetic fixtures cover share paths, encoded and
+  duplicate names, functional query bytes/fragments, unrelated hosts, signatures,
+  user keep rules, exclusions and cleaning modes in Python and Swift.
+- The new Python regression failed on nine cases before the rule was added.
+  `python3 build.py` passed. The full offline suite ran 331 tests with four
+  platform skips and one outdated revision expectation; after updating that
+  expectation, all 32 app tests and all 17 cleaner tests passed, including
+  Swift/Python protocol parity. Native status checks and `git diff --check` passed.
+- Source and local unsigned build only. Activation in the installed app awaits
+  explicit authorization; no real messages or installed runtime were changed.
+
+## Owner-requested global si removal, 2026-10-29
+
+- Supersedes the Spotify-only scope above: the owner explicitly requested
+  removing exact `si` parameters on every domain. Moved `si` into globalRemove
+  and removed the redundant Spotify site rule.
+- Expanded synthetic fixtures to arbitrary domains, YouTube and nonstandard
+  ports, with encoded/case variants, distinct names, keep overrides, exclusions
+  and signature protection. Both Python and Swift and their full protocol parity
+  checks passed.
+- `python3 build.py`, the full 331-test suite (327 passed, four platform skips),
+  native status checks and `git diff --check` passed.
+- Source and local build updated; the installed app remains unchanged.

@@ -1,10 +1,11 @@
 {
   "version": 1,
-  "revision": "2026-09-25",
-  "globalRemove": ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id", "utm_source_platform", "utm_creative_format", "utm_marketing_tactic", "fbclid", "gclid", "msclkid", "mc_eid", "oly_anon_id", "oly_enc_id", "__s", "vero_id", "_hsenc", "mkt_tok"],
+  "revision": "2026-10-29",
+  "globalRemove": ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id", "utm_source_platform", "utm_creative_format", "utm_marketing_tactic", "fbclid", "gclid", "msclkid", "mc_eid", "oly_anon_id", "oly_enc_id", "__s", "vero_id", "_hsenc", "mkt_tok", "si"],
   "protectedParameters": ["signature", "sig", "x-amz-signature", "x-goog-signature"],
   "sites": [
-    {"site": "instagram.com", "remove": ["igsh", "igshid", "stkn"], "keep": []},
+    {"site": "instagram.com", "remove": ["igsh", "igshid", "stkn", "rpxt"], "keep": []},
+    {"site": "doordash.com/store", "remove": ["aw"], "keep": []},
     {"site": "x.com", "remove": ["s", "t"], "keep": []},
     {"site": "twitter.com", "remove": ["s", "t"], "keep": []},
     {"site": "x.com/i/redirect", "remove": [], "keep": ["s", "t"]},

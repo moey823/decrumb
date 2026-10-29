@@ -20,6 +20,109 @@ RULES = cleaner.load_rules(ROOT / "rules/defaults.json")
 SETTINGS = {"mode": "all", "baseURLs": []}
 
 
+def instagram_rpxt_cases():
+    """Offline fixtures for the reported Instagram sharing parameter."""
+    path = "/reel/ExampleCode/"
+    tracking = "?rpxt=c3ludGhldGlj=="
+    base = "https://www.instagram.com" + path
+    cases = [("https://" + host + path + tracking, SETTINGS,
+              ["https://" + host + path])
+             for host in ("instagram.com", "www.instagram.com", "m.instagram.com")]
+    cases.extend([
+        (base + "?rpxt=c3ludGhldGlj==&img_index=2&story_media_id=123#media", SETTINGS,
+         [base + "?img_index=2&story_media_id=123#media"]),
+        (base + "?%72pxt=a&RPXT=b&id=a%2Bb&id=%26", SETTINGS,
+         [base + "?id=a%2Bb&id=%26"]),
+        (base + tracking + "&sig=synthetic", SETTINGS, []),
+        (base + tracking, {**SETTINGS, "rules": [
+            {"site": "instagram.com", "remove": [], "keep": ["rpxt"]}]}, []),
+        (base + tracking, {**SETTINGS, "excludedURLs": ["instagram.com"]}, []),
+        (base + tracking, {"mode": "off", "baseURLs": []}, []),
+        (base + tracking, {"mode": "selected", "baseURLs": ["instagram.com/reel"]}, [base]),
+    ])
+    for host in ("example.com", "notinstagram.com", "instagram.com.example", "instagram.com:8443"):
+        cases.append(("https://" + host + path + tracking, SETTINGS, []))
+    return cases
+
+
+def doordash_share_cases():
+    """Synthetic DoorDash store shares; preserve other inputs and user controls."""
+    path = "/store/123456"
+    tracking = "?utm_source=mx_share&aw=synthetic_share_token"
+    base = "https://www.doordash.com" + path
+    cases = []
+    for host in ("doordash.com", "www.doordash.com", "m.doordash.com"):
+        for scheme, port in (("https", ""), ("https", ":443"), ("http", ":80")):
+            store = scheme + "://" + host + port + path
+            cases.append((store + tracking, SETTINGS, [store]))
+    cases.extend([
+        (base + "/menu" + tracking, SETTINGS, [base + "/menu"]),
+        (base + "?aw=synthetic_share_token", SETTINGS, [base]),
+        (base + "?aw=a&id=a%2Bb&aw=b&id=%26&utm_source=mx_share#menu",
+         SETTINGS, [base + "?id=a%2Bb&id=%26#menu"]),
+        (base + "?%61w=a&AW=b&item_id=789", SETTINGS, [base + "?item_id=789"]),
+        ("[" + base + tracking + "](" + base + tracking + ")", SETTINGS, [base]),
+        (base + tracking + "&sig=synthetic_signature", SETTINGS, []),
+        (base + tracking, {**SETTINGS, "rules": [
+            {"site": "doordash.com/store", "remove": [], "keep": ["aw"]}]},
+         [base + "?aw=synthetic_share_token"]),
+        (base + tracking, {**SETTINGS, "excludedURLs": ["doordash.com/store"]}, []),
+        (base + tracking, {"mode": "off", "baseURLs": []}, []),
+        (base + tracking, {"mode": "selected", "baseURLs": ["doordash.com/store"]}, [base]),
+        (base + tracking, {"mode": "selected", "baseURLs": ["doordash.com/other"]}, []),
+    ])
+    for host in ("example.com", "notdoordash.com", "doordash.com.example",
+                 "doordash.com:8443"):
+        original = "https://" + host + path
+        cases.append((original + tracking, SETTINGS,
+                      [original + "?aw=synthetic_share_token"]))
+    for path in ("/", "/checkout", "/storefront/123456"):
+        original = "https://www.doordash.com" + path
+        cases.append((original + tracking, SETTINGS,
+                      [original + "?aw=synthetic_share_token"]))
+    return cases
+
+
+def global_si_cases():
+    """Global si removal, with functional inputs and existing controls preserved."""
+    base = "https://open.spotify.com/track/SyntheticTrack"
+    tracking = "?si=synthetic_share_token&utm_source=copy-link"
+    cases = [(base + tracking, SETTINGS, [base]),
+             (base + "?si=synthetic", SETTINGS, [base]),
+             (base + "?%73i=a&SI=b&t=42&id=a%2Bb&id=%26#part", SETTINGS,
+              [base + "?t=42&id=a%2Bb&id=%26#part"]),
+             ("[" + base + tracking + "](" + base + tracking + ")", SETTINGS, [base]),
+             (base + tracking + "&sig=synthetic", SETTINGS, []),
+             (base + tracking, {**SETTINGS, "rules": [
+                 {"site": "open.spotify.com", "remove": [], "keep": ["si"]}]},
+              [base + "?si=synthetic_share_token"]),
+             (base + tracking, {**SETTINGS, "excludedURLs": ["open.spotify.com"]}, []),
+             (base + tracking, {"mode": "off", "baseURLs": []}, []),
+             (base + tracking, {"mode": "selected", "baseURLs": ["open.spotify.com"]}, [base]),
+             (base + tracking, {"mode": "selected", "baseURLs": ["example.com"]}, [])]
+    for path in ("/album/SyntheticAlbum", "/playlist/SyntheticPlaylist",
+                 "/episode/SyntheticEpisode", "/intl-de/track/SyntheticTrack"):
+        url = "https://open.spotify.com" + path
+        cases.append((url + tracking, SETTINGS, [url]))
+    for host in ("example.com", "notopen.spotify.com", "open.spotify.com.example",
+                 "accounts.spotify.com", "open.spotify.com:8443", "www.youtube.com", "youtu.be"):
+        url = "https://" + host + "/track/SyntheticTrack"
+        cases.append((url + tracking, SETTINGS, [url]))
+    generic = "https://example.com/page"
+    cases.extend([
+        (generic + "?si=synthetic", SETTINGS, [generic]),
+        (generic + "?%73i=a&SI=b&t=42&id=a%2Bb#part", SETTINGS,
+         [generic + "?t=42&id=a%2Bb#part"]),
+        (generic + "?sibling=keep&visit=keep", SETTINGS, []),
+        (generic + tracking + "&signature=synthetic", SETTINGS, []),
+        (generic + tracking, {**SETTINGS, "rules": [
+            {"site": "example.com", "remove": [], "keep": ["si"]}]},
+         [generic + "?si=synthetic_share_token"]),
+        (generic + tracking, {**SETTINGS, "excludedURLs": ["example.com"]}, []),
+    ])
+    return cases
+
+
 def x_tracking_cases():
     """Synthetic expected results also exercised through the built Swift helper."""
     path = "/example/status/1234567890"
@@ -73,6 +176,39 @@ def swift_reference_available():
 class PortableCleanerTests(unittest.TestCase):
     def result(self, text, **options):
         return cleaner.request({"text": text, "settings": {**SETTINGS, **options}}, RULES)
+
+    def test_instagram_rpxt_rules(self):
+        for text, options, expected in instagram_rpxt_cases():
+            with self.subTest(text=text, options=options):
+                self.assertEqual(self.result(text, **options)["urls"], expected)
+
+    @unittest.skipUnless(swift_reference_available(), "requires built macOS reference helper")
+    def test_swift_instagram_rpxt_rules(self):
+        for text, options, expected in instagram_rpxt_cases():
+            with self.subTest(text=text, options=options):
+                self.assertEqual(decrumb.clean(ROOT / "build/url-cleaner", text, options), expected)
+
+    def test_global_si_removal(self):
+        for text, options, expected in global_si_cases():
+            with self.subTest(text=text, options=options):
+                self.assertEqual(self.result(text, **options)["urls"], expected)
+
+    @unittest.skipUnless(swift_reference_available(), "requires built macOS reference helper")
+    def test_swift_global_si_removal(self):
+        for text, options, expected in global_si_cases():
+            with self.subTest(text=text, options=options):
+                self.assertEqual(decrumb.clean(ROOT / "build/url-cleaner", text, options), expected)
+
+    def test_doordash_store_shares(self):
+        for text, options, expected in doordash_share_cases():
+            with self.subTest(text=text, options=options):
+                self.assertEqual(self.result(text, **options)["urls"], expected)
+
+    @unittest.skipUnless(swift_reference_available(), "requires built macOS reference helper")
+    def test_swift_doordash_store_shares(self):
+        for text, options, expected in doordash_share_cases():
+            with self.subTest(text=text, options=options):
+                self.assertEqual(decrumb.clean(ROOT / "build/url-cleaner", text, options), expected)
 
     def test_x_tracking_rules_preserve_functional_inputs_and_user_controls(self):
         for text, options, expected in x_tracking_cases():
@@ -182,6 +318,8 @@ class PortableCleanerTests(unittest.TestCase):
         ]
         cases = [(text, SETTINGS) for text in texts]
         cases.extend((text, options) for text, options, _ in x_tracking_cases())
+        cases.extend((text, options) for text, options, _ in doordash_share_cases())
+        cases.extend((text, options) for text, options, _ in global_si_cases())
         for options in ({"mode": "off", "baseURLs": []},
                         {"mode": "selected", "baseURLs": [" example.com/news/ "]},
                         {**SETTINGS, "excludedURLs": ["example.com/news"]},
